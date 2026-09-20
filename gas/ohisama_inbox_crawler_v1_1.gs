@@ -1,5 +1,5 @@
 /**
- * おひさまコネクト - INBOX Crawler v1.1
+ * おひさまコネクト - INBOX Crawler v1.1.1
  * 2026-09-20
  *
  * 役割:
@@ -65,6 +65,10 @@ const OCOS = Object.freeze({
   LEDGER_PROPERTY_KEY: 'CRAWLER_LEDGER_SPREADSHEET_ID',
   LEDGER_SPREADSHEET_NAME: 'おひさまコネクト_CRAWLER_LEDGER',
   LEDGER_SHEET_NAME: 'CRAWLER_LEDGER',
+
+  // Google Drive: OC-OSフォルダ配下へLedgerを配置
+  DRIVE_FOLDER_NAME: 'OC-OS',
+  DRIVE_FOLDER_PROPERTY_KEY: 'OCOS_DRIVE_FOLDER_ID',
   LEDGER_FLUSH_EVERY: 20,
   LEDGER_HEADERS: ['Fingerprint', 'First_Detected', 'URL', 'Source_Type', 'Title']
 });
@@ -817,6 +821,9 @@ function getOrCreateLedgerSheet_() {
     props.setProperty(OCOS.LEDGER_PROPERTY_KEY, ss.getId());
   }
 
+  // 新規作成時だけでなく、既存LedgerもOC-OSフォルダへ移動する。
+  ensureFileInOcosFolder_(ss.getId());
+
   let sheet = ss.getSheetByName(OCOS.LEDGER_SHEET_NAME);
   if (!sheet) {
     const sheets = ss.getSheets();
@@ -830,6 +837,54 @@ function getOrCreateLedgerSheet_() {
 
   ensureLedgerHeader_(sheet);
   return sheet;
+}
+
+/**
+ * OC-OSフォルダを取得する。
+ * 初回はフォルダ名で検索し、以後はIDをScript Propertiesへ保存して使う。
+ */
+function getOcosDriveFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const savedId = props.getProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY);
+
+  if (savedId) {
+    try {
+      return DriveApp.getFolderById(savedId);
+    } catch (e) {
+      console.warn('Saved OC-OS folder ID is invalid. Searching by name again.');
+      props.deleteProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY);
+    }
+  }
+
+  const folders = DriveApp.getFoldersByName(OCOS.DRIVE_FOLDER_NAME);
+
+  if (!folders.hasNext()) {
+    throw new Error(
+      `Google Driveに「${OCOS.DRIVE_FOLDER_NAME}」フォルダが見つかりません。`
+    );
+  }
+
+  const folder = folders.next();
+
+  // 同名フォルダが複数ある場合は、誤配置を避けるため停止する。
+  if (folders.hasNext()) {
+    throw new Error(
+      `Google Driveに「${OCOS.DRIVE_FOLDER_NAME}」フォルダが複数あります。` +
+      '重複するフォルダ名を整理してから setupCrawlerV11() を再実行してください。'
+    );
+  }
+
+  props.setProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY, folder.getId());
+  return folder;
+}
+
+/**
+ * Ledger SpreadsheetをOC-OSフォルダ配下へ移動する。
+ */
+function ensureFileInOcosFolder_(fileId) {
+  const folder = getOcosDriveFolder_();
+  const file = DriveApp.getFileById(fileId);
+  file.moveTo(folder);
 }
 
 function ensureLedgerHeader_(sheet) {
