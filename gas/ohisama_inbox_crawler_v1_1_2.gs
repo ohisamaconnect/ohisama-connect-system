@@ -896,8 +896,7 @@ function normalizeGoogleNewsTitleKey_(title) {
     s = s.normalize('NFKC');
   } catch (e) {}
 
-  // Google Newsが最後に付ける
-  // 「 - 媒体名」を除去。
+  // Google Newsが最後に付ける「 - 媒体名」を除去
   const separator = s.lastIndexOf(' - ');
 
   if (separator > 0) {
@@ -908,6 +907,11 @@ function normalizeGoogleNewsTitleKey_(title) {
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/[‐-‒–—―]/g, '-')
+
+    // 括弧直前などの表記揺れを吸収
+    // 「表紙に (MANTANWEB)」と「表紙に(MANTANWEB)」を同一視
+    .replace(/\s+([(\[【「『])/g, '$1')
+
     .replace(/\s+/g, ' ')
     .trim();
 
