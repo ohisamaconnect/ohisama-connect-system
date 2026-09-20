@@ -784,6 +784,12 @@ function normalizeCandidate_(raw) {
 function makeFingerprint_(item) {
   let basis;
 
+  const publishedKey =
+    fingerprintDateKey_(item.publishedAt);
+
+  const eventDateKey =
+    fingerprintDateKey_(item.eventDateHint);
+
   if (isGoogleNewsUrl_(item.url)) {
 
     const sourceKey =
@@ -799,18 +805,17 @@ function makeFingerprint_(item) {
       'google-news',
       sourceKey,
       titleKey,
-      item.publishedAt || ''
+      publishedKey
     ].join('|');
 
   } else {
 
-    // 公式NEWS / BLOG / SCHEDULE / YouTube等は従来方式。
     basis = [
       item.sourceType,
       item.url,
       item.title,
-      item.publishedAt || '',
-      item.eventDateHint || ''
+      publishedKey,
+      eventDateKey
     ].join('|');
   }
 
@@ -831,6 +836,50 @@ function makeFingerprint_(item) {
     .join('');
 }
 
+
+/**
+ * Fingerprint用日時正規化。
+ *
+ * 同じ瞬間なら、
+ *
+ * 2026-08-29T07:00:00.000Z
+ * 2026-08-29T16:00:00+09:00
+ *
+ * を同一値として扱う。
+ *
+ * 日付だけの
+ * 2026-08-29
+ * はそのまま保持する。
+ */
+function fingerprintDateKey_(value) {
+  if (!value) {
+    return '';
+  }
+
+  const s = String(value).trim();
+
+  if (!s) {
+    return '';
+  }
+
+  // 日付だけならそのまま
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return s;
+  }
+
+  const d = new Date(s);
+
+  if (!isNaN(d.getTime())) {
+    // タイムゾーン・ミリ秒表記に依存しない
+    // Unix秒に統一
+    return String(
+      Math.floor(d.getTime() / 1000)
+    );
+  }
+
+  // 念のため解析不能値も完全に捨てない
+  return s.toLowerCase();
+}
 
 /**
  * Google News RSS URL判定
