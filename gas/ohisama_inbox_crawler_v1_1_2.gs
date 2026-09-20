@@ -1,5 +1,5 @@
 /**
- * おひさまコネクト - INBOX Crawler v1.1.1
+ * おひさまコネクト - INBOX Crawler v1.1.2
  * 2026-09-20
  *
  * 役割:
@@ -731,6 +731,7 @@ function collectGoogleNewsQuery_(query, requiredTitleTerms) {
       publishedAt: parseRfcDate_(pubDate),
       eventDateHint: null,
       publisher,
+      sourceHomepage: sourceHomepage,
       sourceClass: '未判定',
       sourceType: '記事',
       snippet: sourceHomepage
@@ -768,6 +769,9 @@ function normalizeCandidate_(raw) {
     publishedAt: normalizeIsoLike_(raw.publishedAt),
     eventDateHint: normalizeIsoLike_(raw.eventDateHint),
     publisher: truncate_(cleanText_(raw.publisher || ''), 1900),
+    // Google News重複判定専用。
+    sourceHomepage: cleanText_(raw.sourceHomepage || ''),
+
     sourceClass: raw.sourceClass || '未判定',
     sourceType: raw.sourceType || 'その他',
     snippet: truncate_(cleanText_(raw.snippet || ''), 1900)
@@ -778,15 +782,39 @@ function normalizeCandidate_(raw) {
 }
 
 function makeFingerprint_(item) {
-  // URLだけでなくタイトル・公開/実施日も含める。
-  // 同じURLのSCHEDULE内容が変更された場合は「変更」として再度INBOXへ入る。
-  const basis = [
-    item.sourceType,
-    item.url,
-    item.title,
-    item.publishedAt || '',
-    item.eventDateHint || ''
-  ].join('|').toLowerCase();
+  let basis;
+
+  if (isGoogleNewsUrl_(item.url)) {
+
+    const sourceKey =
+      makeGoogleNewsSourceKey_(
+        item.publisher,
+        item.sourceHomepage
+      );
+
+    const titleKey =
+      normalizeGoogleNewsTitleKey_(item.title);
+
+    basis = [
+      'google-news',
+      sourceKey,
+      titleKey,
+      item.publishedAt || ''
+    ].join('|');
+
+  } else {
+
+    // 公式NEWS / BLOG / SCHEDULE / YouTube等は従来方式。
+    basis = [
+      item.sourceType,
+      item.url,
+      item.title,
+      item.publishedAt || '',
+      item.eventDateHint || ''
+    ].join('|');
+  }
+
+  basis = basis.toLowerCase();
 
   const bytes = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
@@ -794,7 +822,96 @@ function makeFingerprint_(item) {
     Utilities.Charset.UTF_8
   );
 
-  return bytes.map(b => ('0' + ((b + 256) % 256).toString(16)).slice(-2)).join('');
+  return bytes
+    .map(
+      b =>
+        ('0' + ((b + 256) % 256).toString(16))
+          .slice(-2)
+    )
+    .join('');
+}
+
+
+/**
+ * Google News RSS URL判定
+ */
+function isGoogleNewsUrl_(url) {
+  return /^https:\/\/news\.google\.com\/rss\/articles\//i
+    .test(String(url || ''));
+}
+
+
+/**
+ * Google Newsの実際の配信元を識別する。
+ *
+ * 表示名ではなく、可能な限り
+ * <source url=""> のhostnameを利用する。
+ */
+function makeGoogleNewsSourceKey_(
+  publisher,
+  sourceHomepage
+) {
+  const host =
+    hostnameFromUrl_(sourceHomepage);
+
+  if (host) {
+    return host;
+  }
+
+  let value = cleanText_(publisher || '');
+
+  try {
+    value = value.normalize('NFKC');
+  } catch (e) {}
+
+  return value.toLowerCase();
+}
+
+
+/**
+ * URLからhostnameだけを取得。
+ */
+function hostnameFromUrl_(url) {
+  const s = cleanText_(url || '');
+
+  const match =
+    s.match(/^https?:\/\/([^\/?#]+)/i);
+
+  if (!match) return '';
+
+  return match[1]
+    .toLowerCase()
+    .replace(/^www\./, '');
+}
+
+
+/**
+ * Google Newsの記事タイトルを
+ * 重複判定用に正規化する。
+ */
+function normalizeGoogleNewsTitleKey_(title) {
+  let s = cleanText_(title || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  // Google Newsが最後に付ける
+  // 「 - 媒体名」を除去。
+  const separator = s.lastIndexOf(' - ');
+
+  if (separator > 0) {
+    s = s.slice(0, separator);
+  }
+
+  s = s
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[‐-‒–—―]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return s.toLowerCase();
 }
 
 
@@ -1259,4 +1376,178 @@ function ensureCheerio_() {
   if (typeof Cheerio === 'undefined') {
     throw new Error('Cheerio library が見つかりません。GASプロジェクトにCheerioを追加してください。');
   }
+}
+
+function migrateGoogleNewsFingerprintLedgerV112() {
+  validateBaseConfig_();
+
+  const ledger = loadLedgerFingerprints_();
+
+  let cursor = null;
+  let scanned = 0;
+  let added = 0;
+
+  const rows = [];
+
+  do {
+    const body = {
+      page_size: 100
+    };
+
+    if (cursor) {
+      body.start_cursor = cursor;
+    }
+
+    const result = notionRequest_(
+      `/v1/data_sources/${OCOS.NOTION_INBOX_DATA_SOURCE_ID}/query`,
+      'post',
+      body
+    );
+
+    (result.results || []).forEach(page => {
+
+      const props = page.properties || {};
+
+      const url =
+        props.URL &&
+        props.URL.url
+          ? props.URL.url
+          : '';
+
+      if (!isGoogleNewsUrl_(url)) {
+        return;
+      }
+
+      const title =
+        notionPropertyPlainText_(
+          props.Inbox_Title
+        );
+
+      const publisher =
+        notionPropertyPlainText_(
+          props.Publisher
+        );
+
+      const snippet =
+        notionPropertyPlainText_(
+          props.Detected_Snippet
+        );
+
+      const publishedAt =
+        props.Published_At &&
+        props.Published_At.date &&
+        props.Published_At.date.start
+          ? props.Published_At.date.start
+          : null;
+
+      if (!title) {
+        return;
+      }
+
+      const sourceHomepage =
+        extractGoogleNewsSourceHomepage_(
+          snippet
+        );
+
+      scanned++;
+
+      const item = normalizeCandidate_({
+        title,
+        url,
+        publishedAt,
+        eventDateHint: null,
+        publisher,
+        sourceHomepage,
+        sourceClass: '未判定',
+        sourceType: '記事',
+        snippet
+      });
+
+      if (!item) {
+        return;
+      }
+
+      if (ledger.has(item.fingerprint)) {
+        return;
+      }
+
+      ledger.add(item.fingerprint);
+
+      rows.push([
+        item.fingerprint,
+        nowJstIso_(),
+        url,
+        '記事',
+        `[v1.1.2 MIGRATION] ${title}`
+      ]);
+
+      added++;
+    });
+
+    cursor =
+      result.has_more
+        ? result.next_cursor
+        : null;
+
+  } while (cursor);
+
+  appendLedgerRows_(rows);
+
+  console.log(
+    `v1.1.2 migration finished. ` +
+    `scanned=${scanned}, ` +
+    `added=${added}`
+  );
+}
+
+
+/**
+ * Detected_Snippet:
+ *
+ * Google News経由 /
+ * 発行元: ○○ /
+ * https://example.com
+ *
+ * から配信元URLを取得。
+ */
+function extractGoogleNewsSourceHomepage_(
+  snippet
+) {
+  const s = cleanText_(snippet || '');
+
+  const matches =
+    s.match(/https?:\/\/[^\s/]+(?:\/)?/g);
+
+  if (!matches || !matches.length) {
+    return '';
+  }
+
+  return matches[matches.length - 1];
+}
+
+
+function notionPropertyPlainText_(prop) {
+  if (!prop) return '';
+
+  const parts =
+    prop.title ||
+    prop.rich_text ||
+    [];
+
+  return parts
+    .map(x => {
+      if (x.plain_text) {
+        return x.plain_text;
+      }
+
+      if (
+        x.text &&
+        x.text.content
+      ) {
+        return x.text.content;
+      }
+
+      return '';
+    })
+    .join('');
 }
