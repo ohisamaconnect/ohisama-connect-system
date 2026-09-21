@@ -1,0 +1,50 @@
+// ==========================================
+// 🧠 Core Logic & Auto-Tagger
+// ==========================================
+
+function processArticles(articles) {
+  articles.reverse().forEach(article => {
+    // 1. 重複チェック
+    if (isUrlExistsInNotion(article.url)) return;
+    
+    console.log(`🆕 Processing: ${article.title}`);
+
+    // 2. ターゲット層判定 (簡易ロジック)
+    let targetLayer = "Beginner";
+    if (article.category === 'Blog' || article.title.includes('詳細')) targetLayer = "Core";
+
+    // 3. PDFアーカイブ化 (公式系のみ)
+    let pdfUrl = null;
+    if (article.type === 'Blog' || article.type === 'News') {
+      pdfUrl = generatePdfArchive(article.url, article.title, article.date);
+    }
+
+    // 4. Notionへ登録
+    const pageId = postToNotion(article, targetLayer, pdfUrl);
+    
+    // 5. ★即時実行: Auto-Tagger (自動タグ付け)
+    if (pageId) {
+      runAutoTagForSinglePage(pageId, article.title);
+    }
+
+    Utilities.sleep(1000);
+  });
+}
+
+// --- 🏷️ Auto-Tagger (Single Page Mode) ---
+// 記事登録直後に、その1件だけを対象にタグ付けを行う（効率化）
+function runAutoTagForSinglePage(pageId, title) {
+  const memberMap = fetchMemberIdMap(); // 毎回取得はコストだが、メンバー増減は稀なのでキャッシュ推奨
+  const matchedIds = [];
+  
+  Object.keys(memberMap).forEach(name => {
+    if (title.includes(name)) {
+      matchedIds.push(memberMap[name]);
+      console.log(`  💡 Tagged: ${name}`);
+    }
+  });
+
+  if (matchedIds.length > 0) {
+    updateNewsRelation(pageId, matchedIds);
+  }
+}
