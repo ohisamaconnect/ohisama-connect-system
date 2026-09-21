@@ -784,14 +784,10 @@ function normalizeCandidate_(raw) {
 function makeFingerprint_(item) {
   let basis;
 
-  const publishedKey =
-    fingerprintDateKey_(item.publishedAt);
-
-  const eventDateKey =
-    fingerprintDateKey_(item.eventDateHint);
-
   if (isGoogleNewsUrl_(item.url)) {
 
+    // Google Newsだけは、
+    // RSS URL・媒体名・タイムゾーン表記の揺れを吸収する。
     const sourceKey =
       makeGoogleNewsSourceKey_(
         item.publisher,
@@ -800,6 +796,9 @@ function makeFingerprint_(item) {
 
     const titleKey =
       normalizeGoogleNewsTitleKey_(item.title);
+
+    const publishedKey =
+      fingerprintDateKey_(item.publishedAt);
 
     basis = [
       'google-news',
@@ -810,12 +809,16 @@ function makeFingerprint_(item) {
 
   } else {
 
+    // 公式NEWS / BLOG / SCHEDULE / YouTube等は
+    // v1.1.1までの方式を維持する。
+    //
+    // 既存Ledgerとの互換性を壊さないことが重要。
     basis = [
       item.sourceType,
       item.url,
       item.title,
-      publishedKey,
-      eventDateKey
+      item.publishedAt || '',
+      item.eventDateHint || ''
     ].join('|');
   }
 
