@@ -1,0 +1,410 @@
+// ==========================================
+// 🚀 Main Entry Point
+// ==========================================
+
+function runOCOS_Intelligence() {
+  console.log("=== 🦅 OCOS V5.0 Intelligence Engine Start ===");
+  
+  try { crawlOfficialContent(); } catch(e) { console.error("Official Error: " + e); }
+  try { crawlGoogleNews(); } catch(e) { console.error("GoogleNews Error: " + e); }
+  
+  // スケジュールは重いので、必要に応じてコメントアウトまたは別トリガーへ
+  try { crawlOfficialSchedule(); } catch(e) { console.error("Schedule Error: " + e); }
+
+  console.log("=== 全工程完了 ===");
+}
+
+// --- ユーティリティ ---
+
+function fetchContent(url) {
+  try {
+    return UrlFetchApp.fetch(url, {muteHttpExceptions: true}).getContentText();
+  } catch (e) {
+    console.warn("Fetch failed: " + url);
+    return null;
+  }
+}
+
+// --- ユーティリティ (Date Fix) ---
+
+function normalizeDate(input) {
+  // 1. inputが空なら現在時刻
+  if (!input) return Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd'T'HH:mm:ss+09:00");
+
+  // 2. 既にDateオブジェクトならそのままフォーマット
+  if (Object.prototype.toString.call(input) === '[object Date]') {
+    return Utilities.formatDate(input, "JST", "yyyy-MM-dd'T'HH:mm:ss+09:00");
+  }
+
+  // 3. 文字列の場合の処理
+  let dateStr = String(input).trim();
+  
+  try {
+    // A. ブログ/ニュース形式 "2026.02.03" や "2026.2.3 21:00" -> "/" に置換
+    // JSのDateは "YYYY/MM/DD" を好むため
+    let formattedStr = dateStr.replace(/\./g, '/');
+
+    // B. Google News (RSS) 形式 "Tue, 03 Feb 2026..." 
+    // これはJSのnew Date()がそのまま解釈できるので特に追加処理不要だが
+    // 日本時間補正が必要な場合があるためDateオブジェクト化して確認
+    
+    let dateObj = new Date(formattedStr);
+
+    // パース失敗 (Invalid Date) の場合
+    if (isNaN(dateObj.getTime())) {
+      console.warn(`Date parse error: "${input}". Using current time.`);
+      return Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd'T'HH:mm:ss+09:00");
+    }
+
+    // ★重要: Notionには "YYYY-MM-DDTHH:mm:ss+09:00" の形式で渡す
+    return Utilities.formatDate(dateObj, "JST", "yyyy-MM-dd'T'HH:mm:ss+09:00");
+
+  } catch (e) {
+    console.error(`normalizeDate Error (${input}): ${e.message}`);
+    return Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd'T'HH:mm:ss+09:00");
+  }
+}
+
+function isUrlExistsInNotion(targetUrl) {
+  const url = `https://api.notion.com/v1/databases/${MASTER_DB_ID}/query`;
+  const payload = {
+    filter: {
+      property: PROP_URL,
+      url: { equals: targetUrl }
+    }
+  };
+  
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() === 200) {
+    const data = JSON.parse(response.getContentText());
+    return data.results.length > 0;
+  }
+  return false;
+}
+
+/**
+ * 6. Notionへのデータ登録 (修正版: ID返却対応)
+ */
+function postToNotion(article, targetLayer, pdfUrl) {
+  const url = 'https://api.notion.com/v1/pages';
+  
+  const notionProperties = {};
+
+  // Title
+  notionProperties[PROP_NAME] = {
+    title: [{ text: { content: article.title } }]
+  };
+  
+  // URL
+  notionProperties[PROP_URL] = {
+    url: article.url
+  };
+  
+  // Date
+  notionProperties[PROP_DATE] = {
+    date: { start: article.date }
+  };
+  
+  // Category
+  notionProperties[PROP_CATEGORY] = {
+    select: { name: article.category }
+  };
+  
+  // Target Layer
+  notionProperties[PROP_TARGET] = {
+    select: { name: targetLayer }
+  };
+  
+  // PDF Archive
+  if (pdfUrl) {
+    notionProperties[PROP_PDF] = {
+      url: pdfUrl
+    };
+  }
+
+  const payload = {
+    parent: { database_id: MASTER_DB_ID },
+    properties: notionProperties,
+    icon: { emoji: article.type === 'Blog' ? "📝" : "📢" }
+  };
+
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+    const responseBody = response.getContentText();
+
+    if (responseCode !== 200) {
+      console.error(`Notion API Error: ${responseBody}`);
+      return null; // エラー時はnullを返す
+    } else {
+      const json = JSON.parse(responseBody); // レスポンスをJSONとして解析
+      console.log(`✅ Notion synced: ${article.title}`);
+      return json.id; // ★重要: 作成されたページのIDを返す
+    }
+  } catch (e) {
+    console.error(`Post Exception: ${e.toString()}`);
+    return null;
+  }
+}
+
+/**
+ * 5. PDFアーカイブ生成 (引数追加版)
+ * @param {string} url 記事URL
+ * @param {string} title 記事タイトル
+ * @param {string} articleDateStr 記事日付文字列
+ * @param {string} [forceMemberName] (任意) 保存先フォルダ名を強制指定する場合に使用
+ */
+function generatePdfArchive(url, title, articleDateStr, forceMemberName) {
+  try {
+    const htmlContent = fetchContent(url);
+    if (!htmlContent) return null;
+    
+    const $ = Cheerio.load(htmlContent);
+
+    // --- 1. タイトル・メンバー名取得 ---
+    let extractedTitle = $('.c-article__title').text().trim() || 
+                         $('.c-blog-article__title').text().trim() ||
+                         title;
+
+    // メンバー名取得 (引数で指定があればそれを最優先、なければスクレイピング)
+    let memberName = "";
+    if (forceMemberName) {
+      memberName = forceMemberName; // ★ここが追加ポイント
+    } else if ($('.c-blog-article__name').length > 0) {
+      memberName = $('.c-blog-article__name').text().trim();
+    }
+
+    // 本文エリアの特定
+    let contentObj = null;
+    if ($('.p-article__text').length > 0) contentObj = $('.p-article__text');
+    else if ($('.c-blog-article__text').length > 0) contentObj = $('.c-blog-article__text');
+    else if ($('.p-news__detail').length > 0) contentObj = $('.p-news__detail');
+    else contentObj = $('body');
+
+    // --- 2. 保存先フォルダの決定ロジック ---
+    const rootFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    let targetFolder;
+
+    if (memberName) {
+      // A. ブログの場合: メンバー名フォルダ (例: 金村美玖)
+      // ※フォルダがなければ作成、あれば取得
+      targetFolder = getOrCreateFolder(rootFolder, memberName);
+    } else {
+      // B. ニュースの場合: 年月フォルダ (例: 2026_02)
+      const articleDate = new Date(articleDateStr);
+      const yyyy_mm = Utilities.formatDate(articleDate, "JST", "yyyy_MM");
+      targetFolder = getOrCreateFolder(rootFolder, yyyy_mm);
+    }
+
+    // --- 3. 画像の抽出と保存 (_imageフォルダ) ---
+    // 保存先の中に _image フォルダを用意
+    const imageFolder = getOrCreateFolder(targetFolder, "_image");
+    const safeTitleBase = (extractedTitle || 'NoTitle').replace(/[\\/:*?"<>|]/g, '-').substring(0, 40);
+    const datePrefix = Utilities.formatDate(new Date(articleDateStr), "JST", "yyyyMMdd");
+
+    // 画像タグをループ処理
+    contentObj.find('img').each((i, element) => {
+      try {
+        let src = $(element).attr('src');
+        if (!src) return;
+
+        // 相対パスを絶対パスに変換
+        if (!src.startsWith('http')) {
+          src = 'https://www.hinatazaka46.com' + src;
+        }
+
+        // 画像の取得
+        const imgBlob = UrlFetchApp.fetch(src).getBlob();
+        
+        // ファイル名: [日付] タイトル_01.jpg
+        const imgName = `[${datePrefix}] ${safeTitleBase}_${String(i + 1).padStart(2, '0')}.${imgBlob.getName().split('.').pop() || 'jpg'}`;
+        imgBlob.setName(imgName);
+
+        // _imageフォルダへ保存
+        imageFolder.createFile(imgBlob);
+
+        // PDF用にHTML内に「画像あり」マークを残す
+        $(element).after(`<br><b>[保存済画像: ${imgName}]</b><br>`);
+
+      } catch (e) {
+        console.warn(`Image Download Failed: ${e.message}`);
+      }
+    });
+
+    // --- 4. PDF生成用の整形 ---
+    contentObj.find('script, style, noscript, .p-pager, .c-pager').remove();
+    // 画像タグ自体はPDFでは表示崩れの原因になることが多いので削除し、上記の[保存済画像]テキストのみ残す運用推奨
+    // (残したい場合は remove() をコメントアウトしてください)
+    contentObj.find('img').remove(); 
+    
+    contentObj.find('br').replaceWith('\n');
+    let rawText = contentObj.text();
+    let cleanText = rawText.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n\n').trim();
+
+    // --- 5. Doc作成 & PDF保存 ---
+    const docName = `[${datePrefix}] ${safeTitleBase}`;
+    const doc = DocumentApp.create(docName);
+    const body = doc.getBody();
+    
+    body.appendParagraph(extractedTitle).setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    body.appendParagraph(`Source: ${url}`).setLinkUrl(url);
+    body.appendParagraph(`Published: ${articleDateStr}`);
+    if (memberName) body.appendParagraph(`Member: ${memberName}`);
+    body.appendHorizontalRule();
+    body.appendParagraph(cleanText);
+    doc.saveAndClose();
+    
+    // PDF化して保存
+    const docFile = DriveApp.getFileById(doc.getId());
+    const pdfBlob = docFile.getAs(MimeType.PDF);
+    
+    // 決定した targetFolder に保存
+    const pdfFile = targetFolder.createFile(pdfBlob);
+    
+    // Docはゴミ箱へ
+    docFile.setTrashed(true);
+    
+    return pdfFile.getUrl();
+
+  } catch (e) {
+    console.warn(`PDF/Image Generation Failed for ${title}: ${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * フォルダ取得・作成のヘルパー関数
+ * 親フォルダ内に指定した名前のフォルダがあればそれを返し、なければ作成して返す
+ */
+function getOrCreateFolder(parentFolder, folderName) {
+  const folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) {
+    return folders.next();
+  } else {
+    return parentFolder.createFolder(folderName);
+  }
+}
+
+// --------------------------------------------------
+// Helper: Member DB から全メンバーの名前とIDを取得 (英語表記・スペース対応版)
+// --------------------------------------------------
+function fetchMemberIdMap() {
+  if (!MEMBER_DB_ID) {
+    console.error("❌ MEMBER_DB_ID が設定されていません。");
+    return {};
+  }
+
+  const url = `https://api.notion.com/v1/databases/${MEMBER_DB_ID}/query`;
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify({ page_size: 100 })
+  };
+
+  try {
+    const res = UrlFetchApp.fetch(url, options);
+    const data = JSON.parse(res.getContentText());
+    const map = {};
+    let count = 0;
+
+    data.results.forEach(page => {
+      const pageId = page.id;
+      // メンバー名 (Titleプロパティ '名前')
+      const nameProps = page.properties['名前'].title;
+      if (nameProps && nameProps.length > 0) {
+        // 元の文字列: "大野 愛実 (Oono Manami)"
+        const rawName = nameProps[0].text.content; 
+        
+        // 【修正1】カッコ「(」より前だけを取り出し、前後の空白を消す
+        // 結果: "大野 愛実"
+        const jpName = rawName.split('(')[0].trim();
+        
+        // パターンA: 日本語名そのまま (例: "大野 愛実")
+        if (jpName) {
+            map[jpName] = pageId;
+            
+            // パターンB: スペースなし (例: "大野愛実")
+            const noSpaceName = jpName.replace(/\s+/g, '');
+            if (noSpaceName !== jpName) {
+                map[noSpaceName] = pageId;
+            }
+        }
+
+        // ※もし英語名 "Oono Manami" でもヒットさせたい場合はここに追加処理が可能ですが
+        // 今回は日本語ニュースのタグ付けが目的なので不要です。
+
+        count++;
+      }
+    });
+
+    console.log(`✅ メンバー辞書生成: ${count}名 (英語除外・スペース対応済)`);
+    return map;
+
+  } catch (e) {
+    console.error("❌ fetchMemberIdMap Error: " + e);
+    return {};
+  }
+}
+
+// --------------------------------------------------
+// Helper: 記事ページの「関連メンバー」プロパティを更新
+// --------------------------------------------------
+function updateNewsRelation(pageId, memberPageIds) {
+  const url = `https://api.notion.com/v1/pages/${pageId}`;
+  
+  // 更新用ペイロード
+  const relations = memberPageIds.map(id => ({ id: id }));
+  
+  const payload = {
+    properties: {
+      '関連メンバー': {
+        relation: relations
+      }
+    }
+  };
+
+  const options = {
+    method: 'patch',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify(payload)
+  };
+
+  try {
+    const res = UrlFetchApp.fetch(url, options);
+    return res.getResponseCode() === 200;
+  } catch (e) {
+    console.error(`updateNewsRelation Error (Page: ${pageId}): ` + e);
+    return false;
+  }
+}
+
