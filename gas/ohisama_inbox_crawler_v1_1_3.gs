@@ -809,7 +809,13 @@ function isGoogleNewsGalleryNoise_(title) {
     /\(写真・画像\s*\d+\s*\/\s*\d+\)/i.test(s) ||
 
     // ウォーカープラス等「画像8 / 15＞」
-    /^画像\s*\d+\s*\/\s*\d+\s*[>＞]/i.test(s)
+    /^画像\s*\d+\s*\/\s*\d+\s*[>＞]/i.test(s) ||
+
+    // RBB TODAY等「1枚目の写真・画像」
+    /\d+枚目の写真・画像/i.test(s) ||
+
+    // Pop'n'Roll等「📸 画像：」
+    /^📸\s*画像\s*[:：]/i.test(s)
   );
 }
 
