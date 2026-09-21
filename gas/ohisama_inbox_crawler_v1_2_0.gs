@@ -74,16 +74,21 @@ const OCOS = Object.freeze({
   ],
 
   // MEMBERS DB完成後はDB由来に置き換える。
-  MEMBER_SEARCH_TERMS: [
-    '井口眞緒', '潮紗理菜', '柿崎芽実', '影山優佳', '加藤史帆', '齊藤京子',
-    '佐々木久美', '佐々木美玲', '高瀬愛奈', '高本彩花', '東村芽依', 
-    '金村美玖', '河田陽菜', '小坂菜緒', '富田鈴花', '丹生明里', '濱岸ひより',
-    '松田好花', '宮田愛萌', '渡邉美穂', 
-    '上村ひなの', '髙橋未来虹', '森本茉莉', '山口陽世', 
+  // 現役メンバー（26名）
+  CURRENT_MEMBER_SEARCH_TERMS: [
+    '金村美玖', '小坂菜緒', '上村ひなの', '髙橋未来虹', '森本茉莉',
     '石塚瑶季', '小西夏菜実', '清水理央', '正源司陽子', '竹内希来里',
     '平尾帆夏', '平岡海月', '藤嶌果歩', '宮地すみれ', '山下葉留花', '渡辺莉奈', 
     '大田美月', '大野愛実', '片山紗希', '蔵盛妃那乃', '坂井新奈', '佐藤優羽',
     '下田衣珠季', '高井俐香', '鶴崎仁香', '松尾桜'
+  ],
+
+  // 卒業メンバー（19名）※2026年9月時点
+  GRADUATED_MEMBER_SEARCH_TERMS: [
+    '井口眞緒', '潮紗理菜', '柿崎芽実', '影山優佳', '加藤史帆', '齊藤京子',
+    '佐々木久美', '佐々木美玲', '高瀬愛奈', '高本彩花', '東村芽依', 
+    '河田陽菜', '富田鈴花', '丹生明里', '濱岸ひより', '松田好花', 
+    '宮田愛萌', '渡邉美穂', '山口陽世'
   ],
 
   HTTP_USER_AGENT: 'Mozilla/5.0 (compatible; OhisamaConnectCrawler/1.2)',
@@ -174,7 +179,8 @@ function runScheduleCrawler() {
  */
 function runDailyCrawler() {
   runCrawlerGroup_('daily', [
-    collectGoogleNewsMembers_
+    collectGoogleNewsCurrentMembers_,
+    collectGoogleNewsGraduatedMembers_
   ], OCOS.MAX_CREATE_DAILY);
 }
 
@@ -358,24 +364,37 @@ function previewNewCandidatesAgainstLedger() {
 function previewGoogleNewsCoveragePublishers() {
   const raw = []
     .concat(collectGoogleNewsGroup_() || [])
-    .concat(collectGoogleNewsMembers_() || []);
+    .concat(collectGoogleNewsCurrentMembers_() || [])
+    .concat(collectGoogleNewsGraduatedMembers_() || []);
 
-  const normalized = normalizeAndDeduplicateCandidates_(raw);
+  const normalized =
+    normalizeAndDeduplicateCandidates_(raw);
+
   const byHost = {};
 
   normalized.forEach(item => {
-    const host = item.publisherHost || item.publisher || 'unknown';
-    byHost[host] = (byHost[host] || 0) + 1;
+    const host =
+      item.publisherHost ||
+      item.publisher ||
+      'unknown';
+
+    byHost[host] =
+      (byHost[host] || 0) + 1;
   });
 
-  console.log(`GOOGLE NEWS UNIQUE ARTICLES = ${normalized.length}`);
+  console.log(
+    `GOOGLE NEWS UNIQUE ARTICLES = ${normalized.length}`
+  );
+
   console.log('-------------------------');
 
   Object.keys(byHost)
     .sort((a, b) => byHost[b] - byHost[a])
     .slice(0, 100)
     .forEach(host => {
-      console.log(`${host}: ${byHost[host]}`);
+      console.log(
+        `${host}: ${byHost[host]}`
+      );
     });
 }
 
@@ -407,7 +426,8 @@ function fullCollectors_() {
     collectOfficialSchedule_,
     collectOfficialYouTube_,
     collectGoogleNewsGroup_,
-    collectGoogleNewsMembers_
+    collectGoogleNewsCurrentMembers_,
+    collectGoogleNewsGraduatedMembers_
   ];
 }
 
@@ -1052,16 +1072,34 @@ function collectGoogleNewsGroup_() {
  * 現役メンバー名検索。
  * 公式側で拾えない個人仕事・インタビュー等の発見を狙う。
  */
-function collectGoogleNewsMembers_() {
+function collectGoogleNewsCurrentMembers_() {
+  return collectGoogleNewsMemberTerms_(
+    OCOS.CURRENT_MEMBER_SEARCH_TERMS,
+    'google-news-current-member'
+  );
+}
+
+function collectGoogleNewsGraduatedMembers_() {
+  return collectGoogleNewsMemberTerms_(
+    OCOS.GRADUATED_MEMBER_SEARCH_TERMS,
+    'google-news-graduated-member'
+  );
+}
+
+function collectGoogleNewsMemberTerms_(memberTerms, collectorName) {
   const out = [];
   const chunkSize = OCOS.GOOGLE_NEWS_MEMBER_CHUNK_SIZE;
 
   for (
     let i = 0;
-    i < OCOS.MEMBER_SEARCH_TERMS.length;
+    i < memberTerms.length;
     i += chunkSize
   ) {
-    const chunk = OCOS.MEMBER_SEARCH_TERMS.slice(i, i + chunkSize);
+    const chunk =
+      memberTerms.slice(
+        i,
+        i + chunkSize
+      );
 
     const names = chunk
       .map(name => `"${name}"`)
@@ -1070,9 +1108,19 @@ function collectGoogleNewsMembers_() {
     const query =
       `(${names}) when:${OCOS.GOOGLE_NEWS_WINDOW}`;
 
+    const items =
+      collectGoogleNewsQuery_(
+        query,
+        chunk
+      );
+
+    items.forEach(item => {
+      item.collector = collectorName;
+    });
+
     out.push.apply(
       out,
-      collectGoogleNewsQuery_(query, chunk)
+      items
     );
 
     Utilities.sleep(250);
