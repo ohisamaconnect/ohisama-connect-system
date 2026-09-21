@@ -1,0 +1,170 @@
+// ==========================================
+// 🦅 Crawlers (Date Fixed Version)
+// ==========================================
+
+// --- A. 公式ニュース & ブログ ---
+function crawlOfficialContent() {
+  // 1. ニュース
+  const newsUrl = `${BASE_URL}/s/official/news/list`;
+  const newsHtml = fetchContent(newsUrl);
+  if (newsHtml) {
+    const $ = Cheerio.load(newsHtml);
+    const articles = [];
+    $('.p-news__item').each((i, el) => {
+      if (i >= 5) return false;
+      const anchor = $(el).find('a');
+      let href = anchor.attr('href');
+      if (!href) return;
+      const fullUrl = href.startsWith('http') ? href : BASE_URL + href;
+      
+      let title = $(el).find('.c-news__title').text().trim() || $(el).find('.c-news__text').text().trim();
+      title = title.replace(/[\r\n]+/g, ' ').trim();
+      
+      // ★修正: ニュースの日付を取得 (例: 2026.02.03)
+      const dateStr = $(el).find('.c-news__date').text().trim();
+      
+      articles.push({ title: title, url: fullUrl, date: normalizeDate(dateStr), category: 'Media', type: 'News' });
+    });
+    processArticles(articles);
+  }
+
+  // 2. ブログ
+  const blogUrl = `${BASE_URL}/s/official/diary/member/list`;
+  const blogHtml = fetchContent(blogUrl);
+  if (blogHtml) {
+    const $ = Cheerio.load(blogHtml);
+    const articles = [];
+    $('.p-blog-article').each((i, el) => {
+      if (i >= 5) return false;
+      const anchor = $(el).find('a.c-button-blog-detail');
+      let href = anchor.attr('href');
+      if (!href) return;
+      const fullUrl = href.startsWith('http') ? href : BASE_URL + href;
+      
+      const member = $(el).find('.c-blog-article__name').text().trim();
+      const titleText = $(el).find('.c-blog-article__title').text().trim();
+      
+      // ★修正: ブログの公開日時を取得 (例: 2026.2.3 21:00)
+      const dateStr = $(el).find('.c-blog-article__date').text().trim();
+      
+      articles.push({ 
+        title: `[ブログ] ${member}: ${titleText}`, 
+        url: fullUrl, 
+        date: normalizeDate(dateStr), 
+        category: 'Blog', 
+        type: 'Blog' 
+      });
+    });
+    processArticles(articles);
+  }
+}
+
+// --- B. Google News ---
+function crawlGoogleNews() {
+  const query = '日向坂46';
+  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
+  
+  try {
+    const xml = UrlFetchApp.fetch(rssUrl).getContentText();
+    const doc = XmlService.parse(xml);
+    const items = doc.getRootElement().getChild('channel').getChildren('item');
+    
+    const articles = [];
+    for (let i = 0; i < Math.min(items.length, 5); i++) {
+      const item = items[i];
+      const title = item.getChildText('title');
+      const link = item.getChildText('link');
+      
+      // ★修正: RSSのpubDate (例: Tue, 03 Feb 2026 12:00:00 GMT) を取得
+      const pubDate = item.getChildText('pubDate');
+      
+      articles.push({
+        title: title,
+        url: link,
+        date: normalizeDate(pubDate),
+        category: 'Media',
+        type: 'GoogleNews'
+      });
+    }
+    processArticles(articles);
+  } catch(e) { console.warn("Google News Skip: " + e); }
+}
+
+// --- C. 公式スケジュール (★日付判定ロジック完全修正版) ---
+function crawlOfficialSchedule() {
+  const now = new Date();
+  
+  // 今月と来月を取得
+  for (let i = 0; i < 2; i++) {
+    // URL生成 (例: dy=202602)
+    let targetDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    let year = targetDate.getFullYear();
+    let month = targetDate.getMonth() + 1;
+    let yyyymm = year + String(month).padStart(2, '0');
+    
+    const url = `${BASE_URL}/s/official/media/list?ima=0000&dy=${yyyymm}`;
+    console.log(`📡 Schedule Check: ${year}-${month}`);
+
+    const html = fetchContent(url);
+    if(!html) continue;
+
+    // ★重要: HTML構造から「日付ブロック」ごと抜き出す正規表現
+    // <div class="c-schedule__date--list">...<span>14</span>...</div> ... <ul class="p-schedule__list">...</ul>
+    const regex = /<div class="c-schedule__date--list">[\s\S]*?<span>(\d+)<\/span>[\s\S]*?<\/div>[\s\S]*?<ul class="p-schedule__list[\s\S]*?<\/ul>/g;
+    
+    let match;
+    const articles = [];
+    
+    // 日付ブロックごとのループ
+    while ((match = regex.exec(html)) !== null) {
+      const day = parseInt(match[1], 10); // 日付の数字 (例: 14)
+      const listHtml = match[0]; // その日のスケジュールリスト全体
+      
+      // リスト内の個別の予定を抽出
+      const itemRegex = /<li class="p-schedule__item">([\s\S]*?)<\/li>/g;
+      let itemMatch;
+      
+      while ((itemMatch = itemRegex.exec(listHtml)) !== null) {
+        const content = itemMatch[1];
+        
+        const titleMatch = content.match(/class="[^"]*schedule__text[^"]*"[^>]*>([\s\S]*?)<\/p>/);
+        if (!titleMatch) continue;
+        let title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+        
+        const catMatch = content.match(/class="[^"]*c-schedule__category[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+        let catRaw = catMatch ? catMatch[1].trim() : "Other";
+
+        const timeMatch = content.match(/class="[^"]*c-schedule__time--list[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+        let time = timeMatch ? timeMatch[1].trim() : "";
+        
+        // URL
+        const linkMatch = content.match(/href="([^"]+)"/);
+        let linkUrl = linkMatch ? linkMatch[1] : url;
+        if (linkUrl.startsWith('/')) linkUrl = BASE_URL + linkUrl;
+
+        // カテゴリ判定
+        let category = 'Other';
+        if (catRaw.match(/TV|RADIO|MAGAZINE|WEB/)) category = 'Media';
+        else if (catRaw.match(/LIVE|EVENT/)) category = 'Live';
+        else if (catRaw.match(/RELEASE/)) category = 'Release';
+
+        // ★日付の確定: 年月(URLから) + 日(HTMLから)
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        // タイトルに時間を付与
+        let fullTitle = `[${catRaw}] ${title}`;
+        if(time) fullTitle += ` (${time})`;
+
+        articles.push({
+          title: fullTitle,
+          url: linkUrl,
+          date: normalizeDate(dateStr), // ここで正確な日付が入る
+          category: category,
+          type: 'Schedule'
+        });
+      }
+    }
+    processArticles(articles);
+    Utilities.sleep(1000); // 月またぎの間の休憩
+  }
+}
