@@ -1,0 +1,254 @@
+/**
+ * OCOS V5.0 - Wiki-Historian (Integrated Ver.)
+ * Source: Wikipedia (日向坂46)
+ * Target: Master History DB
+ * Dependencies: 00_Config.gs, Cheerio Library
+ */
+
+// ★設定: Geminiを使用するか (ConfigにAPIキー設定が必要)
+const USE_GEMINI_ANALYSIS = true; 
+const WIKI_PAGE_URL = 'https://ja.wikipedia.org/wiki/%E6%97%A5%E5%90%91%E5%9D%8246';
+
+// ==========================================
+// メイン実行関数
+// ==========================================
+function runWikiHistoryUpdate() {
+  console.log('=== 📖 OCOS Wiki-Historian Start ===');
+
+  // 1. Configチェック (00_Config.gsの定数を利用)
+  if (!NOTION_TOKEN || !HISTORY_DB_ID) {
+    console.error("❌ Config Error: NOTION_TOKEN または HISTORY_DB_ID が設定されていません。");
+    return;
+  }
+
+  // 2. Notionから既存のユニークキーを取得（重複防止）
+  // キー形式: "YYYY-MM-DD_イベント名"
+  const existingSignatures = fetchExistingHistoryKeys();
+  console.log(`📚 既存の歴史データ: ${existingSignatures.size} 件 (重複はスキップします)`);
+
+  // 3. Wikipedia取得
+  console.log('🌍 Wikipediaにアクセス中...');
+  const html = UrlFetchApp.fetch(WIKI_PAGE_URL).getContentText();
+  const $ = Cheerio.load(html);
+
+  const newEvents = [];
+  let currentYear = null;
+  let isTargetSection = false;
+
+  // 4. 解析ロジック (H2, H3, H4, UL を順に走査)
+  const allElements = $('.mw-parser-output').find('h2, h3, h4, ul');
+
+  allElements.each((i, element) => {
+    const tagName = element.name;
+    const text = $(element).text().trim();
+
+    // セクション判定 (年譜・略歴 エリアのみを対象にする)
+    if (tagName === 'h2') {
+      if (text.includes('年譜') || text.includes('略歴') || text.includes('歩み')) {
+        isTargetSection = true;
+        console.log(`🎯 ターゲットセクション発見: ${text}`);
+      } else if (isTargetSection) {
+        isTargetSection = false; // 次のH2（メンバー等）に来たら終了
+        return false; 
+      }
+    }
+    if (!isTargetSection) return;
+
+    // 年の判定 (H3 or H4)
+    if (tagName === 'h3' || tagName === 'h4') {
+      const yearMatch = text.match(/^(\d{4})年/);
+      if (yearMatch) currentYear = yearMatch[1];
+    } 
+    // リスト解析
+    else if (tagName === 'ul') {
+      if (!currentYear) return;
+
+      $(element).find('li').each((j, li) => {
+        // 注釈 [1] などを削除
+        let liText = $(li).text().replace(/\[.*?\]/g, '').trim();
+        
+        // 行内に「2018年」のような表記があればそちらを優先 (年またぎ対応)
+        let yearInLine = currentYear;
+        const lineYearMatch = liText.match(/(\d{4})年(\d{1,2})月/);
+        if (lineYearMatch) yearInLine = lineYearMatch[1];
+
+        // 日付抽出 (M月D日)
+        const dateMatch = liText.match(/(\d{1,2})月(\d{1,2})日/);
+
+        if (dateMatch) {
+          const month = dateMatch[1].padStart(2, '0');
+          const day = dateMatch[2].padStart(2, '0');
+          const dateStr = `${yearInLine}-${month}-${day}`;
+          
+          // 本文抽出 (日付以降のテキスト)
+          let content = liText.replace(/^.*?日[、\s\-\–]*/, '').trim();
+
+          // ノイズフィルタ
+          if (content.includes('YouTube') && content.includes('更新')) return;
+          if (content === '') return;
+
+          // 重複チェック
+          const signature = `${dateStr}_${content}`;
+          if (existingSignatures.has(signature)) return;
+
+          // データ構築
+          newEvents.push(buildEventData(dateStr, content, month, day));
+        }
+      });
+    }
+  });
+
+  // 5. 送信処理
+  if (newEvents.length === 0) {
+    console.log('✅ 新しいデータはありませんでした。');
+    return;
+  }
+
+  console.log(`🚀 新着データ ${newEvents.length} 件を登録します...`);
+  
+  newEvents.forEach((event, index) => {
+    try {
+      // API Rate Limit 対策の待機
+      Utilities.sleep(500); 
+      postHistoryToNotion(event);
+      console.log(`[${index + 1}/${newEvents.length}] 追加: ${event.title}`);
+    } catch(e) {
+      console.error(`❌ エラー (${event.title}): ${e.message}`);
+    }
+  });
+  
+  console.log("=== 処理完了 ===");
+}
+
+// ==========================================
+// データ構築 & 解析ロジック
+// ==========================================
+function buildEventData(dateStr, content, month, day) {
+  const mdKey = `${month}${day}`; // MMDD形式
+  const era = (dateStr < '2019-02-11') ? 'けやき坂46' : '日向坂46';
+
+  // カテゴリ自動判定
+  let category = 'Other';
+  let importance = 'Mid';
+  
+  if (content.match(/発売|リリース/)) { category = 'Release'; importance = 'High'; }
+  else if (content.match(/ライブ|公演|コンサート|フェス|ツアー|武道館|アリーナ|ドーム/)) { category = 'Live'; importance = 'High'; }
+  else if (content.match(/加入|合格|配属|卒業|活動辞退|復帰/)) { category = 'Join/Grad'; importance = 'High'; }
+  else if (content.match(/結成|デビュー|発足/)) { category = 'Anniversary'; importance = 'High'; }
+  else if (content.match(/改名|ヒット祈願|受賞|決定/)) { category = 'Incident'; }
+  else if (content.match(/出演|放送|レギュラー/)) { category = 'Media'; }
+
+  // 鳥取・重要タグ判定 (Gemini or Rule-based)
+  // ※Gemini APIキーは 00_Config.gs または プロパティで管理推奨
+  let storyTags = [];
+  const geminiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+
+  if (USE_GEMINI_ANALYSIS && geminiKey) {
+    // Geminiで解析 (コストがかかるため、必要な場合のみ有効化してください)
+    // 今回は安定性重視で、まずはルールベースで実装します
+    // const aiResult = analyzeWithGemini(dateStr, content, geminiKey);
+    // if (aiResult.isTottori) storyTags.push("鳥取");
+  } 
+  
+  // ルールベース判定 (高速・確実)
+  if (content.match(/鳥取|米子|山口陽世|平尾帆夏/)) {
+    storyTags.push("鳥取");
+    importance = 'High';
+  }
+
+  return {
+    title: content,
+    date: dateStr,
+    mdKey: mdKey,
+    era: era,
+    category: category,
+    importance: importance,
+    storyTags: storyTags
+  };
+}
+
+// ==========================================
+// Notion API 連携
+// ==========================================
+function postHistoryToNotion(event) {
+  const url = 'https://api.notion.com/v1/pages';
+  
+  // Tagオブジェクトの配列作成
+  const tagObjects = event.storyTags.map(tag => ({ name: tag }));
+
+  const payload = {
+    parent: { database_id: HISTORY_DB_ID },
+    properties: {
+      "Event Name": { title: [{ text: { content: event.title } }] },
+      "日付": { date: { start: event.date } },
+      "MD_Key": { rich_text: [{ text: { content: event.mdKey } }] },
+      "Era": { select: { name: event.era } },
+      "カテゴリー": { select: { name: event.category } },
+      "重要度": { select: { name: event.importance } },
+      "Story Tag": { multi_select: tagObjects },
+      "source": { url: WIKI_PAGE_URL }
+    }
+  };
+
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) {
+    throw new Error(res.getContentText());
+  }
+}
+
+// ==========================================
+// 既存データ取得 (重複チェック用)
+// ==========================================
+function fetchExistingHistoryKeys() {
+  const url = `https://api.notion.com/v1/databases/${HISTORY_DB_ID}/query`;
+  const signatures = new Set();
+  let hasMore = true;
+  let cursor = undefined;
+
+  // 全件取得してSetに格納
+  while (hasMore) {
+    const payload = { 
+      page_size: 100,
+      filter: { property: "source", url: { contains: "wikipedia" } } // Wiki経由のものだけチェックすれば効率的
+    };
+    if (cursor) payload.start_cursor = cursor;
+
+    const options = {
+      method: 'post',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    const res = UrlFetchApp.fetch(url, options);
+    if (res.getResponseCode() !== 200) break;
+
+    const json = JSON.parse(res.getContentText());
+    json.results.forEach(page => {
+      const date = page.properties['日付']?.date?.start;
+      const title = page.properties['Event name']?.title?.[0]?.text?.content;
+      if (date && title) {
+        signatures.add(`${date}_${title}`);
+      }
+    });
+
+    hasMore = json.has_more;
+    cursor = json.next_cursor;
+  }
+  return signatures;
+}
