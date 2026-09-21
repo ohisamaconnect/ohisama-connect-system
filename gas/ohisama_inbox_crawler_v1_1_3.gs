@@ -790,17 +790,26 @@ function isGoogleNewsGalleryNoise_(title) {
     // ORICONなど
     /^画像・写真\s*\|/i.test(s) ||
 
-    // モデルプレス
-    /^\(画像\d+\/\d+\)/i.test(s) ||
+    // 「【写真・画像】〜」
+    /^【写真・画像】/i.test(s) ||
+
+    // モデルプレス等「(画像2/16)」
+    /^\(画像\s*\d+\s*\/\s*\d+\)/i.test(s) ||
 
     // ナタリー等
-    /\[画像ギャラリー\s*\d+\/\d+\]/i.test(s) ||
+    /\[画像ギャラリー\s*\d+\s*\/\s*\d+\]/i.test(s) ||
 
     // THE FIRST TIMES等
-    /画像一覧\s*[（(]\d+\/\d+[）)]/i.test(s) ||
+    /画像一覧\s*\(\d+\s*\/\s*\d+\)/i.test(s) ||
 
-    // 「…… 9枚目 - oricon.co.jp」
-    /\s\d+枚目\s*-\s*/i.test(s)
+    // ORICON「〜 9枚目 -」
+    /\s\d+枚目\s*-\s*/i.test(s) ||
+
+    // サンスポ等「（写真・画像 2/2）」
+    /\(写真・画像\s*\d+\s*\/\s*\d+\)/i.test(s) ||
+
+    // ウォーカープラス等「画像8 / 15＞」
+    /^画像\s*\d+\s*\/\s*\d+\s*[>＞]/i.test(s)
   );
 }
 
@@ -2025,4 +2034,3 @@ function previewNewCandidatesAgainstLedger() {
         `${x.url}`
       );
     });
-}
