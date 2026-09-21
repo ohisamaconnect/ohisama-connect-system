@@ -1,0 +1,317 @@
+
+/**
+ * OCOS V5.0 - Official History Loader (Deep Context Edition)
+ * Source: Hinatazaka46 Official News Archive
+ * Target: Master History DB
+ * Logic: 公式ニュースから選別し、さらに詳細ページから本文を取得して登録
+ */
+
+// ★設定: 取得開始する年
+const START_YEAR = 2019; 
+const END_YEAR = new Date().getFullYear(); 
+
+function runOfficialHistoryUpdate() {
+  console.log('=== 🏛️ OCOS Official-History Loader (Deep Context) Start ===');
+
+  if (!NOTION_TOKEN || !HISTORY_DB_ID) {
+    console.error("❌ Config Error: ID設定を確認してください。");
+    return;
+  }
+
+  const existingSignatures = fetchExistingHistoryKeys(); 
+  console.log(`📚 既存データ: ${existingSignatures.size} 件 (重複はスキップ)`);
+
+  for (let year = START_YEAR; year <= END_YEAR; year++) {
+    for (let month = 1; month <= 12; month++) {
+      const now = new Date();
+      if (year === now.getFullYear() && month > now.getMonth() + 1) break;
+
+      const yyyymm = `${year}${String(month).padStart(2, '0')}`;
+      console.log(`📡 Fetching: ${year}年${month}月...`);
+      
+      processMonthlyNews(yyyymm, existingSignatures);
+      
+      Utilities.sleep(1000); 
+    }
+  }
+  console.log("=== 全期間の処理が完了しました ===");
+}
+
+// ------------------------------------------
+// 月別ニュース処理
+// ------------------------------------------
+function processMonthlyNews(yyyymm, existingSignatures) {
+  const url = `${BASE_URL}/s/official/news/list?ima=0000&dy=${yyyymm}`;
+  // ※fetchContentがない場合はUrlFetchApp.fetch(url).getContentText()に置き換えてください
+  const html = fetchContent(url); 
+  if (!html) return;
+
+  const $ = Cheerio.load(html);
+  const newEvents = [];
+
+  $('.p-news__item').each((i, el) => {
+    // 基本情報抽出
+    const dateText = $(el).find('.c-news__date').text().trim(); 
+    const title = $(el).find('.c-news__text').text().trim();
+    const categoryRaw = $(el).find('.c-news__category').text().trim(); 
+    
+    // リンク取得 (詳細取得用)
+    const linkRef = $(el).find('a').attr('href');
+    const fullLink = linkRef ? (linkRef.startsWith('http') ? linkRef : BASE_URL + linkRef) : '';
+
+    const dateStr = dateText.replace(/\./g, '-'); 
+    const dateMatch = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!dateMatch) return;
+    
+    const month = dateMatch[2];
+    const day = dateMatch[3];
+
+    // 1. 厳格フィルター
+    if (shouldSkipOfficialNews(categoryRaw, title)) return;
+
+    // 2. 重複チェック
+    const signature = `${dateStr}_${title}`;
+    if (existingSignatures.has(signature)) return;
+
+    // 3. ★詳細本文の取得 (ここが追加機能)
+    // フィルタを通った重要な記事だけ詳細を見に行く
+    let bodyText = "";
+    if (fullLink) {
+      bodyText = fetchNewsDetailBody(fullLink);
+      Utilities.sleep(500); // アクセス負荷軽減
+    }
+
+    newEvents.push(buildOfficialEventData(dateStr, title, categoryRaw, month, day, fullLink, bodyText));
+  });
+
+  if (newEvents.length > 0) {
+    console.log(`  ✨ ${newEvents.length} 件の公式記録を追加します`);
+    newEvents.forEach(event => {
+      postHistoryToNotionFromOfficial(event);
+      Utilities.sleep(300);
+    });
+  }
+}
+
+// ------------------------------------------
+// ★追加: 詳細ページの本文取得関数
+// ------------------------------------------
+function fetchNewsDetailBody(url) {
+  try {
+    const html = fetchContent(url);
+    if (!html) return "";
+    const $ = Cheerio.load(html);
+
+    // 本文エリアの特定 (サイトの構造に合わせて調整)
+    // 公式サイトは .p-article__text または .c-article__text
+    let contentObj = $('.p-article__text, .c-article__text, .p-news__detail');
+    
+    // 整形処理
+    contentObj.find('script, style').remove(); // 不要なタグ削除
+    contentObj.find('br').replaceWith('\n');   // 改行維持
+    
+    let text = contentObj.text().trim();
+    
+    // 余分な空白削除
+    text = text.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n\n');
+    
+    // Notionの制限(2000文字)に合わせてカット
+    if (text.length > 1900) {
+      text = text.substring(0, 1900) + "...(略)";
+    }
+    
+    return text;
+  } catch (e) {
+    console.warn(`本文取得失敗: ${url}`);
+    return "";
+  }
+}
+
+// ------------------------------------------
+// ノイズ判定ロジック (変更なし)
+// ------------------------------------------
+function shouldSkipOfficialNews(category, title) {
+  if (category.includes('グッズ')) return true;
+  if (category.includes('チケット')) return true;
+  if (category.includes('ミート') || category.includes('握手会')) return true;
+
+  const ngKeywords = [
+    '受付開始', '受付スタート', '抽選', '当落', 'プレオーダー', '先行',
+    '詳細決定', 'お知らせ', 'ご案内', '注意事項',
+    '祝花', '整列', 'オフィシャル先行', '二次受付',
+    '更新', '配信開始', '表紙', '掲載', '発売中', 'ポスター', '特典', '絵柄'
+  ];
+
+  if (ngKeywords.some(kw => title.includes(kw))) {
+    return true; 
+  }
+
+  if (category.includes('メディア')) {
+    const mediaOkKeywords = ['レギュラー', '主演', 'ヒロイン', '写真集', '初出演', '紅白', '選手権', 'アンバサダー', 'MC'];
+    if (!mediaOkKeywords.some(kw => title.includes(kw))) {
+      return true;
+    }
+  }
+
+  if (category.includes('イベント')) {
+    if (!title.includes('決定') && !title.includes('終了') && !title.includes('完走')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// ------------------------------------------
+// データ構築 (引数追加: url, bodyText)
+// ------------------------------------------
+function buildOfficialEventData(dateStr, title, categoryRaw, month, day, url, bodyText) {
+  const mdKey = `${month}${day}`;
+  const era = (dateStr < '2019-02-11') ? 'けやき坂46' : '日向坂46';
+
+  let category = 'Other';
+  let importance = 'Mid';
+
+  if (categoryRaw.includes('リリース')) { category = 'Release'; importance = 'High'; }
+  else if (categoryRaw.includes('ライブ') || categoryRaw.includes('イベント')) { category = 'Live'; importance = 'High'; }
+  else if (categoryRaw.includes('メディア')) { category = 'Media'; }
+  else if (title.includes('卒業') || title.includes('加入') || title.includes('休止') || title.includes('復帰')) { category = 'Join/Grad'; importance = 'High'; }
+  
+  if (title.includes('MV') || title.includes('Music Video')) { category = 'Release'; importance = 'High'; }
+  if (title.includes('フォーメーション')) { category = 'Incident'; }
+  if (title.includes('決定')) { importance = 'High'; }
+
+  let storyTags = [];
+  if (title.match(/鳥取|米子|山口陽世|平尾帆夏/)) {
+    storyTags.push("鳥取");
+    importance = 'High';
+  }
+
+  return {
+    title: title,
+    date: dateStr,
+    mdKey: mdKey,
+    era: era,
+    category: category,
+    importance: importance,
+    storyTags: storyTags,
+    link: url,
+    context: bodyText // ★本文
+  };
+}
+
+// ------------------------------------------
+// 送信処理 (Context追加)
+// ------------------------------------------
+function postHistoryToNotionFromOfficial(event) {
+  const url = 'https://api.notion.com/v1/pages';
+  const tagObjects = event.storyTags.map(tag => ({ name: tag }));
+
+  const payload = {
+    parent: { database_id: HISTORY_DB_ID },
+    properties: {
+      "Event Name": { title: [{ text: { content: event.title } }] },
+      "日付": { date: { start: event.date } },
+      "MD_Key": { rich_text: [{ text: { content: event.mdKey } }] },
+      "Era": { select: { name: event.era } },
+      "カテゴリー": { select: { name: event.category } },
+      "重要度": { select: { name: event.importance } },
+      "Story Tag": { multi_select: tagObjects },
+      "source": { url: event.link || BASE_URL },
+      
+      // ★ここに本文を入れる (Context/Memo プロパティ)
+      "Context/Memo": { 
+        rich_text: [
+          { text: { content: event.context || "" } }
+        ]
+      }
+    }
+  };
+
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) {
+    console.error(`Notion Error: ${res.getContentText()}`);
+  }
+}
+
+// ==========================================
+// 既存データ取得 (ソース不問・完全チェック版)
+// ==========================================
+function fetchExistingHistoryKeys() {
+  const url = `https://api.notion.com/v1/databases/${HISTORY_DB_ID}/query`;
+  const signatures = new Set();
+  let hasMore = true;
+  let cursor = undefined;
+
+  console.log("📚 Notionから既存データの照合キーを全件取得中...");
+
+  while (hasMore) {
+    // ★重要: filterを削除し、DB内の全データを取得対象にする
+    const payload = { 
+      page_size: 100,
+      // filter: { ... } ← これを削除しました
+    };
+    
+    if (cursor) payload.start_cursor = cursor;
+
+    const options = {
+      method: 'post',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    const res = UrlFetchApp.fetch(url, options);
+    if (res.getResponseCode() !== 200) {
+      console.error(`❌ 既存データ取得エラー: ${res.getContentText()}`);
+      break; 
+    }
+
+    const json = JSON.parse(res.getContentText());
+    
+    json.results.forEach(page => {
+      // プロパティ名はNotionの設定に合わせてください (Event Name / Event name)
+      // 安全のため両方チェックするロジックにしています
+      let title = "";
+      if (page.properties['Event Name']) {
+        title = page.properties['Event Name'].title?.[0]?.text?.content;
+      } else if (page.properties['Event name']) {
+        title = page.properties['Event name'].title?.[0]?.text?.content;
+      } else if (page.properties['名前']) {
+        title = page.properties['名前'].title?.[0]?.text?.content;
+      }
+
+      const date = page.properties['日付']?.date?.start;
+
+      if (date && title) {
+        // 重複チェック用の署名を作成: YYYY-MM-DD_タイトル
+        signatures.add(`${date}_${title}`);
+      }
+    });
+
+    hasMore = json.has_more;
+    cursor = json.next_cursor;
+    
+    // ログがうるさくない程度に進捗表示
+    if (signatures.size % 500 === 0) {
+      console.log(`... ${signatures.size} 件取得済み`);
+    }
+  }
+  
+  return signatures;
+}
