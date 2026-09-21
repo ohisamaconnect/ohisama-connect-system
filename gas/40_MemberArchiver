@@ -1,0 +1,185 @@
+// ======================================================================
+// 【OCOS V5.0】OmniCrawler (Multi-Member Archiver) - Auto-Link Edition
+// - メンバーの過去ブログを収集
+// - 記事作成直後に、Notionの「関連メンバー」プロパティを強制的に更新します
+// ======================================================================
+
+// --- 🛠️ 設定エリア 🛠️ ---
+const TARGET_KEY = "HIRAO"; 
+const MAX_PAGES_TO_CRAWL = 100; 
+
+// --- 📋 メンバーリスト ---
+const MEMBER_DICT = {
+  // 四期生
+  "HIRAO":     { name: "平尾 帆夏", id: "31" },
+  "SHOGENJI":  { name: "正源司 陽子", id: "29" },
+  "ISHIZUKA":  { name: "石塚 瑶季", id: "25" },
+  "KONISHI":   { name: "小西 夏菜実", id: "27" },
+  "SHIMIZU":   { name: "清水 理央", id: "28" },
+  "TAKEUCHI":  { name: "竹内 希来里", id: "30" },
+  "HIRAOKA":   { name: "平岡 海月", id: "32" },
+  "FUJISHIMA": { name: "藤嶌 果歩", id: "33" },
+  "MIYACHI":   { name: "宮地 すみれ", id: "34" },
+  "YAMASHITA": { name: "山下 葉留花", id: "35" },
+  "WATANABE":  { name: "渡辺 莉奈", id: "36" },
+  
+  // 三期生
+  "KAMIMURA":  { name: "上村 ひなの", id: "21" },
+  "TAKAHASHI": { name: "髙橋 未来虹", id: "22" },
+  "MORIMOTO":  { name: "森本 茉莉",   id: "23" },
+  "YAMAGUCHI": { name: "山口 陽世",   id: "24" },
+
+  // 二期生
+  "KANEMURA":  { name: "金村 美玖",   id: "12" },
+  "KAWATA":    { name: "河田 陽菜",   id: "13" },
+  "KOSAKA":    { name: "小坂 菜緒",   id: "14" },
+  "MATSUDA":   { name: "松田 好花",   id: "18" },
+
+  // 五期生
+  "OOTA":      { name: "大田 美月",   id: "37" },
+  "OONO":      { name: "大野 愛実",   id: "38" },
+  "KATAYAMA":  { name: "片山 紗希",   id: "39" },
+  "KURAMORI":  { name: "蔵盛 妃那乃", id: "40" },
+  "SAKAI":     { name: "坂井 新奈",   id: "41" },
+  "SATO":      { name: "佐藤 優羽",   id: "42" },
+  "SHIMODA":   { name: "下田 衣珠季", id: "43" },
+  "TAKAI":     { name: "高井 俐香",   id: "44" },
+  "TSURUSAKI": { name: "鶴崎 仁香",   id: "45" },
+  "MATSUO":    { name: "松尾 桜",     id: "46" },
+};
+
+// ==========================================
+// 🚀 Main Execution
+// ==========================================
+
+function runMemberDeepArchive() {
+  const props = PropertiesService.getScriptProperties();
+  const startTime = new Date().getTime(); 
+
+  // --- A. ターゲットメンバーのNotion IDを特定する ---
+  // これにより、文字検索ではなく「ID指定」で確実に紐付けを行う
+  const target = MEMBER_DICT[TARGET_KEY];
+  if (!target) {
+    console.error(`❌ エラー: TARGET_KEY "${TARGET_KEY}" が辞書に見つかりません。`);
+    return;
+  }
+
+  // メンバー辞書を取得
+  const memberMap = fetchMemberIdMap(); // 30_Utils.gs の関数
+  
+  // 辞書からIDを探す (スペースあり or なし どちらでも検索)
+  let targetNotionPageId = memberMap[target.name] || memberMap[target.name.replace(/\s+/g, '')];
+
+  if (!targetNotionPageId) {
+    console.warn(`⚠️ 注意: メンバー "${target.name}" がNotion Member DBに見つかりません。自動紐付けはスキップされます。`);
+    // 処理は止めない（アーカイブ自体は行う）
+  } else {
+    console.log(`✅ ターゲット特定: ${target.name} (ID: ${targetNotionPageId}) -> 強制紐付けモードON`);
+  }
+
+  // --- B. 続きから再開ロジック ---
+  const savedState = props.getProperty('ARCHIVE_STATE');
+  let startPage = 0;
+  if (savedState && savedState.startsWith(TARGET_KEY + "_")) {
+    startPage = parseInt(savedState.split("_")[1]);
+    console.log(`🔄 続きから再開します: ${startPage}ページ目から`);
+  } else {
+    deleteTriggers();
+    console.log(`🚀 新規スタート`);
+  }
+
+  // --- C. クロールループ ---
+  for (let page = startPage; page < MAX_PAGES_TO_CRAWL; page++) {
+    // タイムアウトチェック
+    if (new Date().getTime() - startTime > 270000) { // 4分半
+      console.warn(`⏳ 時間切れ退避: ${page}ページ目`);
+      props.setProperty('ARCHIVE_STATE', `${TARGET_KEY}_${page}`);
+      ScriptApp.newTrigger('runMemberDeepArchive').timeBased().after(1 * 60 * 1000).create();
+      return;
+    }
+
+    console.log(`📖 Page: ${page + 1}`);
+    try {
+      // ★修正: targetNotionPageId を引数に追加して渡す
+      const hasNext = crawlSpecificMemberPage(target.id, target.name, page, targetNotionPageId);
+      
+      if (!hasNext) {
+        console.log("✅ 完了: 記事がありません");
+        props.deleteProperty('ARCHIVE_STATE');
+        deleteTriggers();
+        break;
+      }
+      Utilities.sleep(3000); 
+    } catch (e) {
+      console.error(`Error on page ${page}: ${e.message}`);
+    }
+  }
+}
+
+// トリガー削除
+function deleteTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(t => { if (t.getHandlerFunction() === 'runMemberDeepArchive') ScriptApp.deleteTrigger(t); });
+}
+
+// --- クローラー関数 (引数追加) ---
+function crawlSpecificMemberPage(memberId, memberName, pageNumber, targetNotionPageId) {
+  const url = `${BASE_URL}/s/official/diary/member/list?ima=0000&ct=${memberId}&page=${pageNumber}`;
+  const html = fetchContent(url);
+  if (!html) return false;
+
+  const $ = Cheerio.load(html);
+  const articles = [];
+  let count = 0;
+
+  $('.p-blog-article').each((i, element) => {
+    count++;
+    const anchor = $(element).find('a.c-button-blog-detail');
+    const href = anchor.attr('href');
+    if (!href) return;
+    const fullUrl = href.startsWith('http') ? href : BASE_URL + href;
+    const title = $(element).find('.c-blog-article__title').text().trim();
+    const date = $(element).find('.c-blog-article__date').text().trim();
+    
+    articles.push({
+      title: `[ブログ] ${memberName}: ${title}`,
+      memberName: memberName,
+      url: fullUrl,
+      date: normalizeDate(date),
+      category: 'Blog',
+      type: 'Blog'
+    });
+  });
+
+  if (count === 0) return false;
+
+  articles.forEach(article => {
+    // ★修正: IDを渡す
+    processMemberArticle(article, targetNotionPageId);
+  });
+  return true;
+}
+
+// --- 処理関数 (引数追加) ---
+function processMemberArticle(article, targetNotionPageId) {
+  if (isUrlExistsInNotion(article.url)) {
+    console.log(`⏩ Skip: ${article.title}`);
+    return;
+  }
+  console.log(`🆕 Archiving: ${article.title}`);
+
+  // PDF作成
+  const pdfUrl = generatePdfArchive(article.url, article.title, article.date, article.memberName);
+
+  if (pdfUrl) {
+    // Notion登録 (IDが返ってくる)
+    const pageId = postToNotion(article, "Core", pdfUrl);
+    
+    // ★ここで強制紐付け実行！
+    if (pageId && targetNotionPageId) {
+      const success = updateNewsRelation(pageId, [targetNotionPageId]); // 30_Utils.gs の関数
+      if (success) console.log(`  🔗 Link: ${article.memberName}`);
+    }
+  }
+  Utilities.sleep(2000);
+}
