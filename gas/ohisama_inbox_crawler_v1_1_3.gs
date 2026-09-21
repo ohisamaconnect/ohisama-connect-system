@@ -884,6 +884,7 @@ function fingerprintDateKey_(value) {
   return s.toLowerCase();
 }
 
+
 /**
  * Google News RSS URL判定
  */
@@ -1608,115 +1609,287 @@ function notionPropertyPlainText_(prop) {
     .join('');
 }
 
-function debugGoogleNewsRedirectResolution() {
+function debugGoogleNewsOriginalUrlResolution() {
   const urls = [
-    // 以前取得した同一タイトル
     'https://news.google.com/rss/articles/CBMiWkFVX3lxTE9yZEZZTEVBbE1pbFR6WXNFOGR6NzhKa3IzX1VSLVRwUXNvY2t0OGpxcXY5TXN0RnNVcTl6RmdiZkdfVGlkUjlBUmVaWFR3OHdMc1drYUZ3Y19yUQ?oc=5',
 
-    // 今回取得した同一タイトル
     'https://news.google.com/rss/articles/CBMiWkFVX3lxTE8xWnROUU1ZVzJkbkZjN3FZN2xmRlNVT0hzaGNBOVhSOUxzN0ZZOEFHdmtYNjgxNk5KeG1nWGJiQjRnQnVjTXh1RWZ5US1FeDhza1h5ZFI3dFdqQQ?oc=5'
   ];
 
-  urls.forEach((startUrl, index) => {
-    console.log(`===== SAMPLE ${index + 1} =====`);
+  urls.forEach((url, i) => {
+    console.log(`===== SAMPLE ${i + 1} =====`);
 
-    let currentUrl = startUrl;
+    try {
+      const resolved =
+        resolveGoogleNewsOriginalUrlDebug_(url);
 
-    for (let hop = 0; hop < 5; hop++) {
+      console.log(`google=${url}`);
+      console.log(`resolved=${resolved}`);
 
-      const response = UrlFetchApp.fetch(
-        currentUrl,
-        {
-          method: 'get',
-          muteHttpExceptions: true,
-          followRedirects: false,
-          headers: {
-            'User-Agent': OCOS.HTTP_USER_AGENT,
-            'Accept-Language': 'ja,en;q=0.8'
-          }
-        }
+    } catch (e) {
+      console.error(
+        `FAILED: ${e.stack || e}`
       );
-
-      const code =
-        response.getResponseCode();
-
-      const headers =
-        response.getAllHeaders();
-
-      const location =
-        headers.Location ||
-        headers.location ||
-        '';
-
-      console.log(
-        `hop=${hop} code=${code}`
-      );
-
-      console.log(
-        `url=${currentUrl}`
-      );
-
-      console.log(
-        `location=${location}`
-      );
-
-      if (
-        code >= 300 &&
-        code < 400 &&
-        location
-      ) {
-        currentUrl =
-          resolveRedirectUrl_(
-            currentUrl,
-            String(location)
-          );
-
-        continue;
-      }
-
-      const body =
-        response
-          .getContentText()
-          .slice(0, 500)
-          .replace(/\s+/g, ' ');
-
-      console.log(
-        `body=${body}`
-      );
-
-      break;
     }
   });
 }
 
 
-function resolveRedirectUrl_(
-  baseUrl,
-  location
-) {
-  if (
-    /^https?:\/\//i.test(location)
-  ) {
-    return location;
-  }
-
-  if (
-    location.startsWith('//')
-  ) {
-    return 'https:' + location;
-  }
-
-  const originMatch =
-    baseUrl.match(
-      /^(https?:\/\/[^\/]+)/i
+function resolveGoogleNewsOriginalUrlDebug_(googleNewsUrl) {
+  const idMatch =
+    String(googleNewsUrl).match(
+      /\/articles\/([^?&#/]+)/
     );
 
-  if (
-    location.startsWith('/') &&
-    originMatch
-  ) {
-    return originMatch[1] + location;
+  if (!idMatch) {
+    throw new Error(
+      'Google News article ID not found.'
+    );
   }
 
-  return location;
+  const articleId = idMatch[1];
+
+  // 1. Google Newsの記事ページを取得
+  
+ const articlePageUrl =
+  `https://news.google.com/rss/articles/${articleId}` +
+  `?hl=ja&gl=JP&ceid=JP:ja`;
+
+  const pageResponse =
+    UrlFetchApp.fetch(
+      articlePageUrl,
+      {
+        method: 'get',
+        muteHttpExceptions: true,
+        followRedirects: true,
+        headers: {
+          'User-Agent': OCOS.HTTP_USER_AGENT,
+          'Accept-Language': 'ja,en;q=0.8'
+        }
+      }
+    );
+
+  const pageCode =
+    pageResponse.getResponseCode();
+
+  console.log(
+    `article page code=${pageCode}`
+  );
+
+  if (
+    pageCode < 200 ||
+    pageCode >= 300
+  ) {
+    throw new Error(
+      `Google News page HTTP ${pageCode}`
+    );
+  }
+
+  const html =
+    pageResponse.getContentText();
+
+  const sgMatch =
+    html.match(
+      /data-n-a-sg="([^"]+)"/
+    );
+
+  const tsMatch =
+    html.match(
+      /data-n-a-ts="([^"]+)"/
+    );
+
+  if (!sgMatch || !tsMatch) {
+    throw new Error(
+      'data-n-a-sg / data-n-a-ts not found.'
+    );
+  }
+
+  const signature =
+    decodeHtmlAttributeDebug_(sgMatch[1]);
+
+  const timestamp =
+    tsMatch[1];
+
+  console.log(
+    `signature found=${Boolean(signature)}`
+  );
+
+  console.log(
+    `timestamp=${timestamp}`
+  );
+
+  // 2. batchexecute用の内部リクエスト
+  const innerRequest = [
+    'garturlreq',
+    [
+      [
+        'X',
+        'X',
+        ['X', 'X'],
+        null,
+        null,
+        1,
+        1,
+        'US:en',
+        null,
+        1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0,
+        1
+      ],
+      'X',
+      'X',
+      1,
+      [1, 1, 1],
+      1,
+      1,
+      null,
+      0,
+      0,
+      null,
+      0
+    ],
+    articleId,
+    Number(timestamp),
+    signature
+  ];
+
+  const rpcRequest = [
+    'Fbv4je',
+    JSON.stringify(innerRequest),
+    null,
+    'generic'
+  ];
+
+  const batchResponse =
+    UrlFetchApp.fetch(
+      'https://news.google.com/_/DotsSplashUi/data/batchexecute',
+      {
+        method: 'post',
+        muteHttpExceptions: true,
+        contentType:
+          'application/x-www-form-urlencoded;charset=UTF-8',
+
+        payload: {
+          'f.req':
+            JSON.stringify([
+              [rpcRequest]
+            ])
+        },
+
+        headers: {
+          'User-Agent': OCOS.HTTP_USER_AGENT,
+          'Referer': 'https://news.google.com/'
+        }
+      }
+    );
+
+  const batchCode =
+    batchResponse.getResponseCode();
+
+  console.log(
+    `batchexecute code=${batchCode}`
+  );
+
+  const text =
+    batchResponse.getContentText();
+
+  if (
+    batchCode < 200 ||
+    batchCode >= 300
+  ) {
+    console.log(
+      text.slice(0, 1000)
+    );
+
+    throw new Error(
+      `batchexecute HTTP ${batchCode}`
+    );
+  }
+
+  const resolved =
+    parseGoogleNewsBatchResponseDebug_(text);
+
+  if (!resolved) {
+    console.log(
+      `batchexecute body=${text.slice(0, 1500)}`
+    );
+
+    throw new Error(
+      'Original article URL not found in batchexecute response.'
+    );
+  }
+
+  return resolved;
+}
+
+
+function parseGoogleNewsBatchResponseDebug_(text) {
+  const parts =
+    String(text)
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+  for (const part of parts) {
+
+    if (!part.startsWith('[')) {
+      continue;
+    }
+
+    let outer;
+
+    try {
+      outer = JSON.parse(part);
+    } catch (e) {
+      continue;
+    }
+
+    if (!Array.isArray(outer)) {
+      continue;
+    }
+
+    for (const row of outer) {
+
+      if (
+        !Array.isArray(row) ||
+        row.length < 3 ||
+        typeof row[2] !== 'string'
+      ) {
+        continue;
+      }
+
+      try {
+        const inner =
+          JSON.parse(row[2]);
+
+        if (
+          Array.isArray(inner) &&
+          inner[0] === 'garturlres' &&
+          typeof inner[1] === 'string'
+        ) {
+          return inner[1];
+        }
+
+      } catch (e) {
+        // 次の行へ
+      }
+    }
+  }
+
+  return '';
+}
+
+
+function decodeHtmlAttributeDebug_(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
 }
