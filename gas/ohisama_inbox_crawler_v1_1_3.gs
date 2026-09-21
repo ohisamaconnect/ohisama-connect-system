@@ -1607,3 +1607,116 @@ function notionPropertyPlainText_(prop) {
     })
     .join('');
 }
+
+function debugGoogleNewsRedirectResolution() {
+  const urls = [
+    // 以前取得した同一タイトル
+    'https://news.google.com/rss/articles/CBMiWkFVX3lxTE9yZEZZTEVBbE1pbFR6WXNFOGR6NzhKa3IzX1VSLVRwUXNvY2t0OGpxcXY5TXN0RnNVcTl6RmdiZkdfVGlkUjlBUmVaWFR3OHdMc1drYUZ3Y19yUQ?oc=5',
+
+    // 今回取得した同一タイトル
+    'https://news.google.com/rss/articles/CBMiWkFVX3lxTE8xWnROUU1ZVzJkbkZjN3FZN2xmRlNVT0hzaGNBOVhSOUxzN0ZZOEFHdmtYNjgxNk5KeG1nWGJiQjRnQnVjTXh1RWZ5US1FeDhza1h5ZFI3dFdqQQ?oc=5'
+  ];
+
+  urls.forEach((startUrl, index) => {
+    console.log(`===== SAMPLE ${index + 1} =====`);
+
+    let currentUrl = startUrl;
+
+    for (let hop = 0; hop < 5; hop++) {
+
+      const response = UrlFetchApp.fetch(
+        currentUrl,
+        {
+          method: 'get',
+          muteHttpExceptions: true,
+          followRedirects: false,
+          headers: {
+            'User-Agent': OCOS.HTTP_USER_AGENT,
+            'Accept-Language': 'ja,en;q=0.8'
+          }
+        }
+      );
+
+      const code =
+        response.getResponseCode();
+
+      const headers =
+        response.getAllHeaders();
+
+      const location =
+        headers.Location ||
+        headers.location ||
+        '';
+
+      console.log(
+        `hop=${hop} code=${code}`
+      );
+
+      console.log(
+        `url=${currentUrl}`
+      );
+
+      console.log(
+        `location=${location}`
+      );
+
+      if (
+        code >= 300 &&
+        code < 400 &&
+        location
+      ) {
+        currentUrl =
+          resolveRedirectUrl_(
+            currentUrl,
+            String(location)
+          );
+
+        continue;
+      }
+
+      const body =
+        response
+          .getContentText()
+          .slice(0, 500)
+          .replace(/\s+/g, ' ');
+
+      console.log(
+        `body=${body}`
+      );
+
+      break;
+    }
+  });
+}
+
+
+function resolveRedirectUrl_(
+  baseUrl,
+  location
+) {
+  if (
+    /^https?:\/\//i.test(location)
+  ) {
+    return location;
+  }
+
+  if (
+    location.startsWith('//')
+  ) {
+    return 'https:' + location;
+  }
+
+  const originMatch =
+    baseUrl.match(
+      /^(https?:\/\/[^\/]+)/i
+    );
+
+  if (
+    location.startsWith('/') &&
+    originMatch
+  ) {
+    return originMatch[1] + location;
+  }
+
+  return location;
+}
