@@ -1,0 +1,30 @@
+/ ==========================================
+// 🛠️ OCOS V5.0 Config
+// ==========================================
+
+const PROPS = PropertiesService.getScriptProperties();
+
+// 環境変数
+const NOTION_TOKEN = PROPS.getProperty('NOTION_TOKEN');
+const MASTER_DB_ID = PROPS.getProperty('MASTER_DB_ID'); // 旧Schedule DB
+const MEMBER_DB_ID = PROPS.getProperty('MEMBER_DB_ID'); // Member DB
+const DRIVE_FOLDER_ID = PROPS.getProperty('DRIVE_FOLDER_ID');
+// 00_Config.gs の上部（定数エリア）に以下を追記
+const HISTORY_DB_ID = PROPS.getProperty('HISTORY_DB_ID'); // ★これを追加
+// ★今回作成いただいた「Master Live & Setlist DB」のID
+// const SETLIST_DB_ID = 'XXX';  ← ここを消すか // をつける
+
+// 定数
+const BASE_URL = 'https://www.hinatazaka46.com';
+const TOTTORI_KEYWORDS = ['鳥取', '米子', '大山', '山口陽世', '平尾帆夏', '蟹', '砂丘', 'さんいん', '山陰'];
+
+// Notionプロパティ名マッピング
+const PROP_NAME = "名前";          // Title
+const PROP_URL = "URL";           // URL
+const PROP_DATE = "日付";          // Date
+const PROP_CATEGORY = "カテゴリ";  // Select
+const PROP_TARGET = "Target Layer"; // Select
+const PROP_PDF = "PDF Archive";   // URL
+const PROP_RELATION = "関連メンバー"; // Relation
+const PROP_STATUS = "ステータス";   // Status
+
