@@ -1,0 +1,196 @@
+const TARGET_FILE_NAME = '48pedia_hinata.html'; // 保存したファイル名
+
+function runLocalHistoryUpdate() {
+  console.log('=== 📂 OCOS Local-History Loader (Section Fix) Start ===');
+
+  if (!NOTION_TOKEN || !HISTORY_DB_ID || !DRIVE_FOLDER_ID) {
+    console.error("❌ Config Error: ID設定を確認してください。");
+    return;
+  }
+
+  // 1. Driveからファイル取得
+  const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  const files = folder.getFilesByName(TARGET_FILE_NAME);
+  
+  if (!files.hasNext()) {
+    console.error(`❌ Error: Driveに '${TARGET_FILE_NAME}' がありません。`);
+    return;
+  }
+  
+  const html = files.next().getBlob().getDataAsString();
+  
+  // 既存データ取得（WikiLoader等で定義済みの関数を呼び出し。なければ空セット）
+  let existingSignatures = new Set();
+  try {
+    existingSignatures = fetchExistingHistoryKeys(); 
+  } catch (e) {
+    console.warn("⚠️ fetchExistingHistoryKeysが見つからないため、重複チェックなしで実行します。");
+  }
+  
+  // 2. 解析開始
+  const $ = Cheerio.load(html);
+  const newEvents = [];
+  
+  let isHistorySection = false; // 「歴史」エリア内にいるか
+  let currentYear = null;
+
+  // ページ内の全要素を上から順に走査
+  $('.mw-parser-output').find('*').each((i, element) => {
+    const tagName = element.name;
+    const text = $(element).text().trim();
+
+    // --- A. セクション判定 ---
+    // <h2>歴史</h2> が来たらスタート、次の <h2> が来たら終了
+    if (tagName === 'h2') {
+      if (text.includes('歴史')) {
+        isHistorySection = true;
+        console.log("🎯 「歴史」セクションを発見。解析を開始します。");
+        return; 
+      } else if (isHistorySection) {
+        isHistorySection = false;
+        console.log(`🏁 「${text}」セクションに到達したため、解析を終了します。`);
+        return false; // ループを抜ける
+      }
+    }
+
+    if (!isHistorySection) return; // 歴史エリア外なら無視
+
+    // --- B. 年の判定 ---
+    // 48pediaは <h3>2015年</h3> のような形式
+    if (tagName === 'h3' || tagName === 'h4') {
+      const yearMatch = text.match(/^(\d{4})年/);
+      if (yearMatch) {
+        currentYear = yearMatch[1];
+      }
+    }
+
+    // --- C. リスト解析 ---
+    else if (tagName === 'li') {
+      if (!currentYear) return;
+
+      // ノイズ除去
+      if (shouldSkip48PediaItem(text)) return;
+
+      // 日付抽出 (M月D日)
+      const dateMatch = text.match(/(\d{1,2})月(\d{1,2})日/);
+      if (dateMatch) {
+        const month = dateMatch[1].padStart(2, '0');
+        const day = dateMatch[2].padStart(2, '0');
+        const dateStr = `${currentYear}-${month}-${day}`;
+
+        // 本文抽出
+        // "5月8日 - 1stアルバム..." -> "1stアルバム..."
+        let content = text.replace(/^.*?日\s*[-–]?\s*/, '').trim();
+        content = content.replace(/\[.*?\]/g, '').trim(); // 注釈削除
+
+        // 重複チェック
+        const signature = `${dateStr}_${content}`;
+        if (existingSignatures.has(signature)) return;
+
+        // データ作成
+        newEvents.push(buildEventDataLocal(dateStr, content, month, day));
+      }
+    }
+  });
+
+  // 3. 送信処理
+  if (newEvents.length === 0) {
+    console.log('✅ 追加データなし。');
+    return;
+  }
+
+  console.log(`🚀 エケペディアから ${newEvents.length} 件を追加します...`);
+  newEvents.forEach((event, index) => {
+    try {
+      Utilities.sleep(400);
+      postHistoryToNotionFromLocal(event);
+      console.log(`[${index+1}] 追加: ${event.title}`);
+    } catch(e) {
+      console.error(`Error: ${e.message}`);
+    }
+  });
+}
+
+// ==========================================
+// 48pedia用 ヘルパー関数群
+// ==========================================
+
+function shouldSkip48PediaItem(text) {
+  // ラジオの「歴史コーナー」には細かすぎるため除外するキーワード
+  const skipKeywords = [
+    '誕生日', '生誕祭', '握手会', 'ミーグリ', '受付開始', '判明', 
+    '更新', 'SHOWROOM配信', 'ゲーム実況', '高画質化', '公開', 
+    '詳細発表', '解禁', 'ポスター', 'グッズ', 'モバイルメール', 'メッセージ'
+  ];
+  
+  if (skipKeywords.some(kw => text.includes(kw))) return true;
+  return false;
+}
+
+function buildEventDataLocal(dateStr, content, month, day) {
+  const mdKey = `${month}${day}`;
+  const era = (dateStr < '2019-02-11') ? 'けやき坂46' : '日向坂46';
+
+  let category = 'Other';
+  let importance = 'Mid';
+  
+  if (content.match(/発売|リリース/)) { category = 'Release'; importance = 'High'; }
+  else if (content.match(/ライブ|公演|コンサート|フェス|ツアー|武道館|アリーナ|ドーム/)) { category = 'Live'; importance = 'High'; }
+  else if (content.match(/加入|合格|配属|卒業|活動辞退|復帰/)) { category = 'Join/Grad'; importance = 'High'; }
+  else if (content.match(/結成|デビュー|発足/)) { category = 'Anniversary'; importance = 'High'; }
+  else if (content.match(/改名|ヒット祈願|受賞|決定/)) { category = 'Incident'; }
+  else if (content.match(/出演|放送|レギュラー/)) { category = 'Media'; }
+
+  // 鳥取判定
+  let storyTags = [];
+  if (content.match(/鳥取|米子|山口陽世|平尾帆夏/)) {
+    storyTags.push("鳥取");
+    importance = 'High';
+  }
+
+  return {
+    title: content,
+    date: dateStr,
+    mdKey: mdKey,
+    era: era,
+    category: category,
+    importance: importance,
+    storyTags: storyTags
+  };
+}
+
+function postHistoryToNotionFromLocal(event) {
+  const url = 'https://api.notion.com/v1/pages';
+  const tagObjects = event.storyTags ? event.storyTags.map(tag => ({ name: tag })) : [];
+
+  const payload = {
+    parent: { database_id: HISTORY_DB_ID },
+    properties: {
+      "Event Name": { title: [{ text: { content: event.title } }] },
+      "日付": { date: { start: event.date } },
+      "MD_Key": { rich_text: [{ text: { content: event.mdKey } }] },
+      "Era": { select: { name: event.era } },
+      "カテゴリー": { select: { name: event.category } },
+      "重要度": { select: { name: event.importance } },
+      "Story Tag": { multi_select: tagObjects },
+      "source": { url: 'https://48pedia.org/日向坂46' }
+    }
+  };
+
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) {
+    const err = JSON.parse(res.getContentText());
+    throw new Error(`Notion Error: ${err.message}`);
+  }
+}
