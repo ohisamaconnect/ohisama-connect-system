@@ -1,0 +1,161 @@
+/**
+ * OCOS V6.0 - 75_MusicStatsFetcher (改修版: 2段ディープサーチ対応)
+ * 機能: Master Music DBの未更新の楽曲を毎日数件ピックアップし、
+ * Sakamichi Universeから「総披露回数」等を自動取得してNotionを更新する。
+ */
+
+// 00_Config.gs に MUSIC_DB_ID が無い場合はここに直接書きます
+const MUSIC_DB_ID = 'XXX'; 
+
+function runMusicStatsAutoUpdate() {
+  console.log('🎼 Music Stats Fetcher Start');
+
+  if (!NOTION_TOKEN || !MUSIC_DB_ID) {
+    console.error("❌ Config Error: Notionトークン等が設定されていません。");
+    return;
+  }
+
+  // 1. Notionから「総披露回数」が空っぽの曲を最大5件だけ取得
+  const targetSongs = getUnupdatedSongs(5);
+  
+  if (targetSongs.length === 0) {
+    console.log("✅ すべての楽曲データの更新が完了しています！");
+    return;
+  }
+
+  // 2. 1曲ずつSakamichi Universeを検索してデータを抽出
+  targetSongs.forEach(song => {
+    console.log(`🔍 検索中: ${song.title}`);
+    
+    // ① 検索用URL
+    const searchUrl = `https://meaning-of-goodbye.com/sakamichi-search/?keyword=${encodeURIComponent(song.title)}&group=hinata`;
+    
+    try {
+      const searchHtml = UrlFetchApp.fetch(searchUrl).getContentText();
+      const $search = Cheerio.load(searchHtml);
+      
+      let detailUrl = "";
+      let backupUrl = "";
+      
+      // ② 検索結果から「songid=」が含まれるリンク（詳細ページへの扉）を探す
+      $search('a').each((i, el) => {
+        const href = $search(el).attr('href');
+        const text = $search(el).text().trim();
+        
+        if (href && href.includes('songid=')) {
+           // URLからsongidの部分だけを正確に抜き出す
+           const match = href.match(/songid=([^&"']+)/);
+           if (match) {
+               const constructedUrl = `https://meaning-of-goodbye.com/sakamichi-search/?songid=${match[1]}&group=hinata`;
+               if (!backupUrl) backupUrl = constructedUrl; // 最初の1件をキープ
+               
+               // Notionの曲名とリンクの文字が完全一致したら最優先
+               if (text === song.title) {
+                   detailUrl = constructedUrl;
+                   return false; // ループを抜ける
+               }
+           }
+        }
+      });
+
+      // 完全一致がなければ、最初に見つかった曲のリンクを採用する
+      detailUrl = detailUrl || backupUrl; 
+
+      if (!detailUrl) {
+         console.log(`  └ ⚠️ 楽曲詳細ページが見つかりませんでした`);
+         return; // forEachの次の曲へスキップ
+      }
+
+      // ③ 見つけ出した楽曲詳細ページに潜入して回数を取得
+      const detailHtml = UrlFetchApp.fetch(detailUrl).getContentText();
+      const $detail = Cheerio.load(detailHtml);
+      
+      let totalCount = 0;
+      
+      // <p>総披露回数：<strong>51</strong>回</p> のような構造から数字だけを抽出
+      const countText = $detail('p:contains("総披露回数")').text(); 
+      const countMatch = countText.match(/総披露回数：(\d+)回/);
+      
+      if (countMatch) {
+        totalCount = parseInt(countMatch[1], 10);
+        
+        // ④ Notionのプロパティを更新
+        updateMusicDbStats(song.id, totalCount, detailUrl);
+        console.log(`  └ ✅ 更新完了: ${totalCount}回`);
+      } else {
+        console.log(`  └ ⚠️ 詳細ページに回数データが見つかりませんでした`);
+      }
+
+      // 相手サーバーに優しくするため、次の曲に行く前に3秒待機
+      Utilities.sleep(3000);
+
+    } catch (e) {
+      console.error(`❌ 取得エラー (${song.title}): ${e.message}`);
+    }
+  });
+  
+  console.log('🎼 Music Stats Fetcher 完了');
+}
+
+// --- Helper: 未更新の曲を取得 ---
+function getUnupdatedSongs(limit) {
+  const url = `https://api.notion.com/v1/databases/${MUSIC_DB_ID}/query`;
+  const payload = {
+    page_size: limit,
+    filter: {
+      property: "総披露回数",
+      number: {
+        is_empty: true
+      }
+    }
+  };
+  
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+  
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) return [];
+  
+  const json = JSON.parse(res.getContentText());
+  return json.results.map(page => ({
+    id: page.id,
+    title: page.properties['Title']?.title[0]?.text?.content || '不明な曲'
+  }));
+}
+
+// --- Helper: Notionのプロパティを更新 ---
+function updateMusicDbStats(pageId, totalCount, sourceUrl) {
+  const url = `https://api.notion.com/v1/pages/${pageId}`;
+  const payload = {
+    properties: {
+      "総披露回数": { number: totalCount },
+      "詳細データURL": { url: sourceUrl }
+    }
+  };
+  
+  const options = {
+    method: 'patch',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+  
+  const res = UrlFetchApp.fetch(url, options);
+  
+  // ★ ここを追加：Notionからの返事をしっかり確認する
+  if (res.getResponseCode() !== 200) {
+    console.error(`❌ Notion書き込みエラー: ` + res.getContentText());
+  }
+}
