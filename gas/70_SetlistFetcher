@@ -1,0 +1,174 @@
+const SETLIST_DB_ID = '2ed031bc0d4580e19d28f48c3b65da28'; 
+// ★全アーカイブが表示されるURLに変更
+const SEARCH_LIST_URL = 'https://meaning-of-goodbye.com/sakamichi-search/?view=live-archive&group=hinata';
+
+// ★大量データ処理用：何件目から処理をスタートするか（最初は0）
+// 例：途中で止まってしまい、Notionに50件入っていたら「50」に変更して再実行する
+const START_INDEX = 295; 
+
+function runFullAutoSetlistFetcher() {
+  const startTime = Date.now();
+  console.log('🚀 日向坂46・全アーカイブ自動収集を開始します');
+
+  if (!NOTION_TOKEN || !SETLIST_DB_ID) {
+    console.error("❌ Config Error: NotionトークンまたはDB_IDが設定されていません。");
+    return;
+  }
+
+  // --------------------------------------------------
+  // 1. 一覧ページから「日向坂46」のライブURLのみを全件収集
+  // --------------------------------------------------
+  console.log('🌍 アーカイブページからURLを抽出中...');
+  const html = UrlFetchApp.fetch(SEARCH_LIST_URL).getContentText();
+  const $ = Cheerio.load(html);
+  
+  const targetUrls = [];
+  
+  $('a').each((i, el) => {
+    let href = $(el).attr('href');
+    
+    if (href) {
+      // ★HTMLエンティティ「&#038;」や「&amp;」を通常の「&」に戻す
+      href = href.replace(/&#038;/g, '&').replace(/&amp;/g, '&');
+
+      // 条件: 「livedate=」かつ「group=hinata」が含まれるURLのみ抽出
+      if (href.includes('livedate=') && href.includes('group=hinata')) {
+         const fullUrl = href.startsWith('http') ? href : 'https://meaning-of-goodbye.com/sakamichi-search' + href.replace(/^\/?/, '/');
+         
+         if (!targetUrls.includes(fullUrl)) {
+           targetUrls.push(fullUrl);
+         }
+      }
+    }
+  });
+
+  if (targetUrls.length === 0) {
+    console.error('❌ 日向坂46のURLが見つかりませんでした。');
+    return;
+  }
+
+  console.log(`✅ 対象URLを合計 ${targetUrls.length} 件 発見しました！`);
+
+  // --------------------------------------------------
+  // 2. 収集したURLを START_INDEX の位置から順番に処理
+  // --------------------------------------------------
+  let processedCount = 0;
+
+  for (let i = START_INDEX; i < targetUrls.length; i++) {
+    // セーフティ機能（5分＝300,000ミリ秒 経過で安全に停止）
+    if (Date.now() - startTime > 300000) {
+      console.warn(`\n⚠️ 実行制限時間(6分)が近づいたため、[${i}件目]の直前で安全に中断しました。`);
+      console.warn(`💡 次回はコード上部の「const START_INDEX = ${i};」に変更してから再実行してください！`);
+      break;
+    }
+
+    const targetUrl = targetUrls[i];
+    console.log(`\n▶️ [${i + 1}/${targetUrls.length}] 処理中: ${targetUrl}`);
+    
+    try {
+      processSingleSetlist(targetUrl);
+      processedCount++;
+    } catch (e) {
+      console.error(`❌ エラー (${targetUrl}): ${e.message}`);
+    }
+
+    // 負荷軽減の待機（3秒）
+    if (i < targetUrls.length - 1) {
+      Utilities.sleep(3000); 
+    }
+  }
+  
+  console.log(`\n🎉 今回の自動処理が完了しました！ (今回登録成功: ${processedCount}件)`);
+}
+
+// --- 1件のセットリストを抽出・登録する関数 ---
+function processSingleSetlist(targetUrl) {
+  const html = UrlFetchApp.fetch(targetUrl).getContentText();
+  const $ = Cheerio.load(html);
+  
+  let pageTitle = $('title').text();
+  let liveName = "不明なライブ";
+  if (pageTitle.includes('「') && pageTitle.includes('」')) {
+    liveName = pageTitle.split('「')[1].split('」')[0];
+  }
+  
+  const dayMatch = pageTitle.match(/［(DAY\d+)］/);
+  if (dayMatch) {
+    liveName += ` [${dayMatch[1]}]`;
+  }
+  
+  // Titleタグからライブ名がうまく取れない場合のフォールバック
+  if (liveName === "不明なライブ" || !liveName) {
+    const headerTitle = $('.saka-hero__title, h1').first().text().trim();
+    if(headerTitle) liveName = headerTitle;
+  }
+  
+  const dateMatch = targetUrl.match(/livedate=(\d{4}-\d{2}-\d{2})/);
+  const liveDate = dateMatch ? dateMatch[1] : null;
+
+  if (!liveDate) throw new Error("日付取得失敗");
+
+  const setlistBlocks = [];
+  let currentSection = "";
+  
+  $('tr.sd-setlist-row').each((i, el) => {
+    const sectionAttr = $(el).attr('data-section'); 
+    if (sectionAttr !== currentSection) {
+       currentSection = sectionAttr;
+       const sectionTitle = (currentSection === 'encore') ? '🌟 アンコール' : '🎤 本編';
+       setlistBlocks.push({
+         object: 'block',
+         type: 'heading_2',
+         heading_2: { rich_text: [{ text: { content: sectionTitle } }] }
+       });
+    }
+    
+    const songNum = $(el).find('.sd-timeline-cell').text().replace(/\n/g, '').trim();
+    const songName = $(el).find('.sd-song-link').text().replace(/\n/g, '').trim();
+    const remark = $(el).find('.sd-remark-text').text().replace(/\n/g, '').trim();
+    
+    const blockText = `${songNum} ${songName} ${remark ? '（' + remark + '）' : ''}`.trim();
+    
+    setlistBlocks.push({
+      object: 'block',
+      type: 'bulleted_list_item',
+      bulleted_list_item: { rich_text: [{ text: { content: blockText } }] }
+    });
+  });
+
+  if (setlistBlocks.length === 0) throw new Error("セットリスト空");
+
+  postSetlistToNotion(liveName, liveDate, targetUrl, setlistBlocks);
+}
+
+// --- NotionへのPost処理 ---
+function postSetlistToNotion(liveName, liveDate, sourceUrl, blocks) {
+  const url = 'https://api.notion.com/v1/pages';
+  const payload = {
+    parent: { database_id: SETLIST_DB_ID },
+    properties: {
+      "ライブ名": { title: [{ text: { content: liveName } }] },
+      "開催日": { date: { start: liveDate } },
+      "データ元URL": { url: sourceUrl }
+    },
+    children: blocks
+  };
+  
+  const options = {
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+  
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) {
+    throw new Error("Notion登録エラー: " + res.getContentText());
+  } else {
+    console.log(`✅ 登録完了: ${liveName}`);
+  }
+}
