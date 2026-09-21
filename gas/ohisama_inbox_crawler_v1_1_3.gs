@@ -680,17 +680,46 @@ function youtubeGet_(resource, params) {
 // ============================================================
 
 function collectGoogleNewsGroup_() {
-  return collectGoogleNewsQuery_('日向坂46', ['日向坂46']);
+  return collectGoogleNewsQuery_(
+    '日向坂46 when:7d',
+    ['日向坂46']
+  );
 }
+
 
 function collectGoogleNewsMembers_() {
   const out = [];
   const chunkSize = 7;
 
-  for (let i = 0; i < OCOS.MEMBER_SEARCH_TERMS.length; i += chunkSize) {
-    const chunk = OCOS.MEMBER_SEARCH_TERMS.slice(i, i + chunkSize);
-    const query = chunk.map(name => `"${name}"`).join(' OR ');
-    out.push.apply(out, collectGoogleNewsQuery_(query, chunk));
+  for (
+    let i = 0;
+    i < OCOS.MEMBER_SEARCH_TERMS.length;
+    i += chunkSize
+  ) {
+    const chunk =
+      OCOS.MEMBER_SEARCH_TERMS.slice(
+        i,
+        i + chunkSize
+      );
+
+    const names =
+      chunk
+        .map(name => `"${name}"`)
+        .join(' OR ');
+
+    // Google Newsは「最近の新情報発見」に限定する。
+    // 過去記事が検索順位変動で再浮上するのを防ぐ。
+    const query =
+      `(${names}) when:7d`;
+
+    out.push.apply(
+      out,
+      collectGoogleNewsQuery_(
+        query,
+        chunk
+      )
+    );
+
     Utilities.sleep(250);
   }
 
@@ -709,10 +738,17 @@ function collectGoogleNewsQuery_(query, requiredTitleTerms) {
   const out = [];
 
   channel.getChildren('item').forEach(item => {
-    const title = cleanText_(item.getChildText('title') || '');
-    const link = item.getChildText('link');
-    const pubDate = item.getChildText('pubDate');
-    if (!title || !link) return;
+   const title = cleanText_(item.getChildText('title') || '');
+   const link = item.getChildText('link');
+   const pubDate = item.getChildText('pubDate');
+
+   if (!title || !link) return;
+
+ // 画像ギャラリー等の子ページは情報源として採用しない
+ 
+   if (isGoogleNewsGalleryNoise_(title)) {
+   return;
+   }
 
     if (requiredTitleTerms && requiredTitleTerms.length > 1) {
       const matched = requiredTitleTerms.some(term => title.includes(term));
@@ -741,6 +777,31 @@ function collectGoogleNewsQuery_(query, requiredTitleTerms) {
   });
 
   return out;
+}
+
+function isGoogleNewsGalleryNoise_(title) {
+  let s = cleanText_(title || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  return (
+    // ORICONなど
+    /^画像・写真\s*\|/i.test(s) ||
+
+    // モデルプレス
+    /^\(画像\d+\/\d+\)/i.test(s) ||
+
+    // ナタリー等
+    /\[画像ギャラリー\s*\d+\/\d+\]/i.test(s) ||
+
+    // THE FIRST TIMES等
+    /画像一覧\s*[（(]\d+\/\d+[）)]/i.test(s) ||
+
+    // 「…… 9枚目 - oricon.co.jp」
+    /\s\d+枚目\s*-\s*/i.test(s)
+  );
 }
 
 
@@ -1892,4 +1953,76 @@ function decodeHtmlAttributeDebug_(value) {
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
+}
+
+function previewNewCandidatesAgainstLedger() {
+  const collectors = fullCollectors_();
+  let all = [];
+
+  collectors.forEach(fn => {
+    try {
+      const raw = fn() || [];
+      all = all.concat(raw);
+    } catch (e) {
+      console.error(
+        `${fn.name}: ERROR ${e.stack || e}`
+      );
+    }
+  });
+
+  const normalized =
+    normalizeAndDeduplicateCandidates_(all);
+
+  console.log(
+    `TOTAL UNIQUE = ${normalized.length}`
+  );
+
+  // Ledger + 現在INBOXに存在するFingerprint
+  const seen =
+    loadSeenFingerprints_();
+
+  const newItems =
+    normalized.filter(
+      x => !seen.has(x.fingerprint)
+    );
+
+  const counts = {};
+
+  newItems.forEach(x => {
+    counts[x.sourceType] =
+      (counts[x.sourceType] || 0) + 1;
+  });
+
+  console.log(
+    '-------------------------'
+  );
+
+  console.log(
+    `NEW AFTER LEDGER = ${newItems.length}`
+  );
+
+  Object.keys(counts)
+    .sort()
+    .forEach(type => {
+      console.log(
+        `${type}: ${counts[type]}`
+      );
+    });
+
+  console.log(
+    '-------------------------'
+  );
+
+  newItems
+    .slice(0, 50)
+    .forEach((x, i) => {
+      console.log(
+        `${i + 1}. ` +
+        `[${x.sourceType}] ` +
+        `${x.title} | ` +
+        `${x.publisher} | ` +
+        `pub=${x.publishedAt || '-'} | ` +
+        `${x.url}`
+      );
+    });
 }
