@@ -62,6 +62,10 @@ const OCOS = Object.freeze({
   GOOGLE_NEWS_WINDOW: '7d',
   GOOGLE_NEWS_MEMBER_CHUNK_SIZE: 7,
 
+  // ArticleKeyはGoogle Newsの公開時刻揺れ対策専用。
+  // 永久重複判定にはせず、検索窓7日の2倍だけ既出扱いする。
+  GOOGLE_NEWS_ARTICLE_KEY_TTL_DAYS: 14,
+
   YOUTUBE_CHANNELS: [
     {
       id: 'UCR0V48DJyWbwEAdxLL5FjxA',
@@ -1773,6 +1777,7 @@ function loadLedgerSeenState_() {
 
   values.forEach(row => {
     const fingerprint = cleanText_(row[0]);
+    const firstDetected = row[1];
     const url = cleanText_(row[2]);
     const title = cleanText_(row[4]);
     const publisherHost = cleanText_(row[6]);
@@ -1787,7 +1792,10 @@ function loadLedgerSeenState_() {
       publisherHost
     });
 
-    if (articleKey) {
+    if (
+      articleKey &&
+      isWithinGoogleNewsArticleKeyTtl_(firstDetected)
+    ) {
       state.googleNewsArticleKeys.add(articleKey);
     }
   });
@@ -1854,6 +1862,34 @@ function backfillLedgerFromInbox() {
 
   appendLedgerRows_(rows);
   console.log(`Ledger backfill from INBOX: ${rows.length}`);
+}
+
+/**
+ * Google News ArticleKeyの既出判定を有効にする期間。
+ *
+ * Fingerprintは永久履歴として残す一方、ArticleKeyは
+ * 公開時刻揺れを吸収するための短期的な補助キーとしてのみ使う。
+ */
+function isWithinGoogleNewsArticleKeyTtl_(detectedAt) {
+  if (!detectedAt) return false;
+
+  const d = detectedAt instanceof Date
+    ? detectedAt
+    : new Date(String(detectedAt));
+
+  if (isNaN(d.getTime())) {
+    return false;
+  }
+
+  const ttlMs =
+    OCOS.GOOGLE_NEWS_ARTICLE_KEY_TTL_DAYS *
+    24 * 60 * 60 * 1000;
+
+  const ageMs = Date.now() - d.getTime();
+
+  // 数分程度の時計差や将来時刻は許容しつつ、
+  // TTLより古いArticleKeyは既出判定に使わない。
+  return ageMs <= ttlMs;
 }
 
 function loadSeenState_() {
@@ -1945,7 +1981,17 @@ function loadExistingInboxSeenState_() {
         publisher: crawlerNotionText_(p.Publisher)
       });
 
-      if (articleKey) {
+      const detectedAt =
+        p.Detected_At &&
+        p.Detected_At.date &&
+        p.Detected_At.date.start
+          ? p.Detected_At.date.start
+          : '';
+
+      if (
+        articleKey &&
+        isWithinGoogleNewsArticleKeyTtl_(detectedAt)
+      ) {
         state.googleNewsArticleKeys.add(articleKey);
       }
     });
@@ -2349,6 +2395,7 @@ function previewV122MemberGoogleNewsActual() {
 
   console.log('========================================');
   console.log('v1.2.2 MEMBER GOOGLE NEWS ACTUAL PREVIEW');
+  console.log(`ARTICLE KEY TTL = ${OCOS.GOOGLE_NEWS_ARTICLE_KEY_TTL_DAYS} days`);
   console.log('WRITE = NONE');
   console.log('========================================');
 
