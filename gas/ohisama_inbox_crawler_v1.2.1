@@ -2206,3 +2206,213 @@ function ensureCheerio_() {
     );
   }
 }
+// ============================================================
+// v1.2.1 Member Google News 実収集 Preview
+// 書き込みなし。安定版判定用。
+// ============================================================
+
+function previewV121MemberGoogleNewsActual() {
+  const allStartedAt = Date.now();
+
+  console.log('========================================');
+  console.log('v1.2.1 MEMBER GOOGLE NEWS ACTUAL PREVIEW');
+  console.log('WRITE = NONE');
+  console.log('========================================');
+
+  // Ledger + 現在INBOXとの照合
+  const seenStartedAt = Date.now();
+  const seen = loadSeenFingerprints_();
+
+  console.log(
+    `SEEN FINGERPRINTS = ${seen.size} / ` +
+    `load=${Date.now() - seenStartedAt}ms`
+  );
+
+  const sections = [
+    {
+      label: 'CURRENT',
+      fn: collectGoogleNewsCurrentMembers_
+    },
+    {
+      label: 'GRADUATED',
+      fn: collectGoogleNewsGraduatedMembers_
+    }
+  ];
+
+  let allRaw = [];
+
+  sections.forEach(section => {
+    console.log('');
+    console.log(`========== ${section.label} ==========`);
+
+    const startedAt = Date.now();
+
+    const raw = section.fn() || [];
+    const normalized =
+      normalizeAndDeduplicateCandidates_(raw);
+
+    const newItems =
+      normalized.filter(x => !seen.has(x.fingerprint));
+
+    const suspectNoise =
+      normalized.filter(x =>
+        previewLooksLikeGoogleNewsNoiseV121_(x.title)
+      );
+
+    const duplicateGroups =
+      previewSameHostTitleMultiFingerprintGroupsV121_(raw);
+
+    const elapsedMs = Date.now() - startedAt;
+
+    console.log(`raw=${raw.length}`);
+    console.log(`unique=${normalized.length}`);
+    console.log(
+      `fingerprintDedupRemoved=${raw.length - normalized.length}`
+    );
+    console.log(`newAfterLedger=${newItems.length}`);
+    console.log(`suspectNoise=${suspectNoise.length}`);
+    console.log(
+      `sameHostSameTitleMultiFingerprintGroups=${duplicateGroups.length}`
+    );
+    console.log(`elapsed=${elapsedMs}ms`);
+
+    console.log('--- NEW AFTER LEDGER SAMPLE ---');
+
+    newItems.slice(0, 15).forEach((x, i) => {
+      console.log(
+        `${i + 1}. ${x.title} | ` +
+        `${x.publisherHost || x.publisher || '-'} | ` +
+        `pub=${x.publishedAt || '-'} | ` +
+        `terms=${x.discoveryTerms || '-'}`
+      );
+    });
+
+    console.log('--- SUSPECT NOISE SAMPLE ---');
+
+    suspectNoise.slice(0, 15).forEach((x, i) => {
+      console.log(
+        `${i + 1}. ${x.title} | ` +
+        `${x.publisherHost || x.publisher || '-'} | ` +
+        `pub=${x.publishedAt || '-'}`
+      );
+    });
+
+    console.log(
+      '--- SAME HOST + SAME TITLE / MULTI-FINGERPRINT ---'
+    );
+
+    duplicateGroups.slice(0, 10).forEach((group, i) => {
+      const first = group[0];
+
+      console.log(
+        `${i + 1}. count=${group.length} | ` +
+        `host=${first.publisherHost || first.publisher || '-'} | ` +
+        `${first.title}`
+      );
+
+      group.slice(0, 10).forEach(x => {
+        console.log(
+          `   pub=${x.publishedAt || '-'} | ` +
+          `fp=${x.fingerprint.slice(0, 12)}...`
+        );
+      });
+    });
+
+    allRaw = allRaw.concat(raw);
+  });
+
+  const allUnique =
+    normalizeAndDeduplicateCandidates_(allRaw);
+
+  const allNew =
+    allUnique.filter(x => !seen.has(x.fingerprint));
+
+  console.log('');
+  console.log('========================================');
+  console.log('TOTAL');
+  console.log(`raw=${allRaw.length}`);
+  console.log(`unique=${allUnique.length}`);
+  console.log(
+    `fingerprintDedupRemoved=${allRaw.length - allUnique.length}`
+  );
+  console.log(`newAfterLedger=${allNew.length}`);
+  console.log(
+    `elapsedTotal=${Date.now() - allStartedAt}ms`
+  );
+  console.log('========================================');
+}
+
+
+/**
+ * 現行production filterを変更せず、
+ * Previewだけで「子ページっぽいもの」を広めに検出する。
+ */
+function previewLooksLikeGoogleNewsNoiseV121_(title) {
+  let s = cleanText_(title || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  return (
+    /^画像・写真(?:\s*[|｜]|\s+)/i.test(s) ||
+    /^関連写真\s*[|｜]/i.test(s) ||
+    /^関連画像/i.test(s) ||
+    /^（写真）/i.test(s) ||
+    /^\(写真\)/i.test(s) ||
+    /\[画像ギャラリー\s*\d+\s*\/\s*\d+\]/i.test(s) ||
+    /画像一覧\s*[（(]\d+\s*\/\s*\d+[）)]/i.test(s) ||
+    /\s\d+枚目(?:\s|-|$)/i.test(s)
+  );
+}
+
+
+/**
+ * 同一媒体・同一タイトルなのにFingerprintが複数ある群を検出。
+ *
+ * 公開時刻違い等で既存Fingerprintをすり抜ける
+ * 「技術重複」候補を見るための診断専用。
+ */
+function previewSameHostTitleMultiFingerprintGroupsV121_(items) {
+  const map = new Map();
+
+  (items || []).forEach(raw => {
+    const item = normalizeCandidate_(raw);
+
+    if (!item || !isGoogleNewsUrl_(item.url)) {
+      return;
+    }
+
+    const host =
+      cleanText_(
+        item.publisherHost ||
+        makeGoogleNewsSourceKey_(
+          item.publisher,
+          item.sourceHomepage
+        ) ||
+        'unknown'
+      ).toLowerCase();
+
+    const titleKey =
+      normalizeGoogleNewsTitleKey_(item.title);
+
+    const key = `${host}|${titleKey}`;
+
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+
+    map.get(key).push(item);
+  });
+
+  return Array.from(map.values())
+    .filter(group => {
+      if (group.length < 2) return false;
+
+      const fingerprints =
+        new Set(group.map(x => x.fingerprint));
+
+      return fingerprints.size > 1;
+    })
+    .sort((a, b) => b.length - a.length);
+}
