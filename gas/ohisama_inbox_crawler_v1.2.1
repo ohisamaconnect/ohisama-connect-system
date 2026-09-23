@@ -1,0 +1,2208 @@
+/**
+ * おひさまコネクト - INBOX Crawler v1.2.1
+ * 2026-09-23
+ *
+ * 目的:
+ *   「おひさまコネクト」と、あさくらじゅんの推し活のために、
+ *   日向坂46の直近情報を漏れにくく発見し、Notion INBOXへ届ける。
+ *
+ * 基本原則:
+ *   1. 日向坂46公式（NEWS / BLOG / SCHEDULE / YouTube）を一次情報の主軸にする。
+ *   2. 公式SCHEDULEに外部リンクがあれば「関係者一次情報候補」として別レコード化する。
+ *   3. Google News RSSは「外部報道の発見」と「媒体への広がりの観測」に使う。
+ *   4. Google Newsで同じ出来事が異なる媒体に掲載された場合は原則残す。
+ *      それ自体が外部メディアへの広がりを示す観測データになり得るため。
+ *   5. 同一媒体内の技術重複、画像ギャラリー、写真子ページ、コメント子ページは除外する。
+ *   6. AIやCrawlerは重要度を決めない。最終判断は人間が行う。
+ *   7. EVENTS / SOURCES はCrawlerから直接編集しない。必ずINBOXを経由する。
+ *
+ * 必要な Script Properties:
+ *   NOTION_TOKEN
+ *   YOUTUBE_API_KEY
+ *
+ * 必要な外部ライブラリ:
+ *   Cheerio
+ *
+ * 推奨Project timezone:
+ *   Asia/Tokyo
+ *
+ * Notion INBOX に必要なプロパティ:
+ *   Inbox_Title (title)
+ *   URL (url)
+ *   Detected_At (date)
+ *   Publisher (text)
+ *   Source_Class (select)
+ *   Source_Type (select)
+ *   Detected_Snippet (text)
+ *   Status (select)
+ *   Decision (select)
+ *   Fingerprint (text)
+ *   Published_At (date)
+ *   Event_Date_Hint (date)
+ *   Collector (text)
+ *   Publisher_Host (text)
+ *   Discovery_Terms (text)
+ */
+
+const OCOS = Object.freeze({
+  BASE_URL: 'https://www.hinatazaka46.com',
+
+  // Notion INBOX data source
+  NOTION_INBOX_DATA_SOURCE_ID: '7e3a247d-8d7b-4ed7-a4b1-cfac6ec45f16',
+  NOTION_VERSION: '2026-03-11',
+
+  TIMEZONE: 'Asia/Tokyo',
+
+  // 公式サイトの探索範囲
+  NEWS_MONTH_OFFSETS: [-1, 0],
+  BLOG_PAGES_TO_SCAN: 3,
+  SCHEDULE_MONTH_OFFSETS: [-1, 0, 1, 2, 3, 4, 5, 6],
+
+  // Google Newsは「直近情報を拾うセンサー」として使う。
+  GOOGLE_NEWS_WINDOW: '7d',
+  GOOGLE_NEWS_MEMBER_CHUNK_SIZE: 7,
+
+  YOUTUBE_CHANNELS: [
+    {
+      id: 'UCR0V48DJyWbwEAdxLL5FjxA',
+      name: '日向坂46 OFFICIAL YouTube CHANNEL'
+    },
+    {
+      id: 'UCOB24f8lQBCnVqPZXOkVpOg',
+      name: '日向坂ちゃんねる'
+    }
+  ],
+
+  // Google News人物検索はHHA MEMBERSを唯一の人物マスターとして動的生成する。
+  // v1.2.0の運用範囲を維持するため、0期卒業者と活動辞退者は既定では対象外。
+  HHA_MEMBERS_DATA_SOURCE_ID: 'df86e0ba-5478-4fc6-b30a-49cb1bd6c83d',
+  GOOGLE_NEWS_INCLUDE_ZERO_GEN_GRADUATED: false,
+  GOOGLE_NEWS_INCLUDE_WITHDRAWN_MEMBERS: false,
+
+  HTTP_USER_AGENT: 'Mozilla/5.0 (compatible; OhisamaConnectCrawler/1.2)',
+  HTTP_MAX_RETRIES: 4,
+  NOTION_WRITE_INTERVAL_MS: 380,
+
+  // GASは1実行6分制限があるため、少し手前で自主停止する。
+  RUN_SOFT_LIMIT_MS: 4.5 * 60 * 1000,
+  MAX_CREATE_FREQUENT: 80,
+  MAX_CREATE_SCHEDULE: 100,
+  MAX_CREATE_DAILY: 100,
+  MAX_CREATE_FULL: 120,
+
+  LEDGER_PROPERTY_KEY: 'CRAWLER_LEDGER_SPREADSHEET_ID',
+  LEDGER_SPREADSHEET_NAME: 'おひさまコネクト_CRAWLER_LEDGER',
+  LEDGER_SHEET_NAME: 'CRAWLER_LEDGER',
+
+  DRIVE_FOLDER_NAME: 'OC-OS',
+  DRIVE_FOLDER_PROPERTY_KEY: 'OCOS_DRIVE_FOLDER_ID',
+
+  LEDGER_FLUSH_EVERY: 20,
+  LEDGER_HEADERS: [
+    'Fingerprint',
+    'First_Detected',
+    'URL',
+    'Source_Type',
+    'Title',
+    'Collector',
+    'Publisher_Host',
+    'Discovery_Terms'
+  ]
+});
+
+
+// ============================================================
+// 初期セットアップ
+// ============================================================
+
+/**
+ * 初回に1回実行する。
+ * 既存INBOXをLedgerへ移す動作を含むため、
+ * 「完全ゼロから再構築」する場合は、ゼロリセット後に実行すること。
+ */
+function setupCrawlerV12() {
+  validateBaseConfig_();
+  ensureCheerio_();
+
+  const sheet = getOrCreateLedgerSheet_();
+  console.log(`Ledger ready: ${sheet.getParent().getUrl()}`);
+
+  testNotionInboxConnection();
+  backfillLedgerFromInbox();
+
+  console.log('setupCrawlerV12 completed.');
+}
+
+
+// ============================================================
+// Public entry points
+// ============================================================
+
+/**
+ * 2時間おき推奨。
+ * 公式NEWS / BLOG / YouTube と、グループ名によるGoogle Newsを確認。
+ */
+function runFrequentCrawler() {
+  runCrawlerGroup_('frequent', [
+    collectOfficialNews_,
+    collectOfficialBlogs_,
+    collectOfficialYouTube_,
+    collectGoogleNewsGroup_
+  ], OCOS.MAX_CREATE_FREQUENT);
+}
+
+/**
+ * 6時間おき推奨。
+ * 公式SCHEDULEと、そこに掲載された関係者一次リンクを確認。
+ */
+function runScheduleCrawler() {
+  runCrawlerGroup_('schedule', [
+    collectOfficialSchedule_
+  ], OCOS.MAX_CREATE_SCHEDULE);
+}
+
+/**
+ * 1日1回推奨。
+ * HHA MEMBERS由来の在籍中・卒業メンバー名でGoogle Newsを確認。
+ */
+function runDailyCrawler() {
+  runCrawlerGroup_('daily', [
+    collectGoogleNewsCurrentMembers_,
+    collectGoogleNewsGraduatedMembers_
+  ], OCOS.MAX_CREATE_DAILY);
+}
+
+/**
+ * 初回大量投入用。
+ * remaining=0になるまで手動で繰り返す。
+ */
+function runFullCrawlerChunk() {
+  runCrawlerGroup_('full-chunk', fullCollectors_(), OCOS.MAX_CREATE_FULL);
+}
+
+function runFullCrawler() {
+  runFullCrawlerChunk();
+}
+
+/**
+ * 本番トリガーを入れる。
+ * データ品質確認が終わってから実行すること。
+ */
+function installCrawlerTriggers() {
+  const targetFunctions = [
+    'runFrequentCrawler',
+    'runScheduleCrawler',
+    'runDailyCrawler'
+  ];
+
+  ScriptApp.getProjectTriggers().forEach(trigger => {
+    if (targetFunctions.includes(trigger.getHandlerFunction())) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger('runFrequentCrawler')
+    .timeBased()
+    .everyHours(2)
+    .create();
+
+  ScriptApp.newTrigger('runScheduleCrawler')
+    .timeBased()
+    .everyHours(6)
+    .create();
+
+  ScriptApp.newTrigger('runDailyCrawler')
+    .timeBased()
+    .atHour(6)
+    .everyDays(1)
+    .create();
+
+  console.log('Crawler triggers installed.');
+}
+
+function removeCrawlerTriggers() {
+  const targetFunctions = [
+    'runFrequentCrawler',
+    'runScheduleCrawler',
+    'runDailyCrawler'
+  ];
+
+  let removed = 0;
+
+  ScriptApp.getProjectTriggers().forEach(trigger => {
+    if (targetFunctions.includes(trigger.getHandlerFunction())) {
+      ScriptApp.deleteTrigger(trigger);
+      removed++;
+    }
+  });
+
+  console.log(`Crawler triggers removed: ${removed}`);
+}
+
+
+// ============================================================
+// Preview / Test
+// ============================================================
+
+function previewCrawlerCounts() {
+  const collectors = fullCollectors_();
+  let all = [];
+
+  collectors.forEach(fn => {
+    try {
+      const raw = fn() || [];
+      const unique = normalizeAndDeduplicateCandidates_(raw);
+      console.log(`${fn.name}: raw=${raw.length}, unique=${unique.length}`);
+      all = all.concat(raw);
+    } catch (e) {
+      console.error(`${fn.name}: ERROR ${e.stack || e}`);
+    }
+  });
+
+  const totalUnique = normalizeAndDeduplicateCandidates_(all);
+  console.log('-------------------------');
+  console.log(`TOTAL UNIQUE = ${totalUnique.length}`);
+}
+
+function previewCrawlerSample() {
+  const collectors = fullCollectors_();
+  let all = [];
+
+  collectors.forEach(fn => {
+    try {
+      all = all.concat(fn() || []);
+    } catch (e) {
+      console.error(`${fn.name}: ERROR ${e.stack || e}`);
+    }
+  });
+
+  const normalized = normalizeAndDeduplicateCandidates_(all);
+  console.log(`UNIQUE TOTAL = ${normalized.length}`);
+
+  normalized.slice(0, 50).forEach((x, i) => {
+    console.log(
+      `${i + 1}. [${x.sourceType}] ${x.title} | ` +
+      `${x.publisher} | collector=${x.collector || '-'} | ` +
+      `pub=${x.publishedAt || '-'} | event=${x.eventDateHint || '-'} | ${x.url}`
+    );
+  });
+}
+
+/**
+ * Ledger + 現在INBOXと比較した「本当に新規」の候補を確認する。
+ * 書き込みは行わない。
+ */
+function previewNewCandidatesAgainstLedger() {
+  const collectors = fullCollectors_();
+  let all = [];
+
+  collectors.forEach(fn => {
+    try {
+      all = all.concat(fn() || []);
+    } catch (e) {
+      console.error(`${fn.name}: ERROR ${e.stack || e}`);
+    }
+  });
+
+  const normalized = normalizeAndDeduplicateCandidates_(all);
+  const seen = loadSeenFingerprints_();
+  const newItems = normalized.filter(x => !seen.has(x.fingerprint));
+
+  const typeCounts = {};
+  const collectorCounts = {};
+
+  newItems.forEach(x => {
+    typeCounts[x.sourceType] = (typeCounts[x.sourceType] || 0) + 1;
+
+    const collector = x.collector || 'unknown';
+    collectorCounts[collector] = (collectorCounts[collector] || 0) + 1;
+  });
+
+  console.log(`TOTAL UNIQUE = ${normalized.length}`);
+  console.log('-------------------------');
+  console.log(`NEW AFTER LEDGER = ${newItems.length}`);
+
+  Object.keys(typeCounts).sort().forEach(type => {
+    console.log(`${type}: ${typeCounts[type]}`);
+  });
+
+  console.log('-------------------------');
+  console.log('COLLECTORS');
+
+  Object.keys(collectorCounts).sort().forEach(name => {
+    console.log(`${name}: ${collectorCounts[name]}`);
+  });
+
+  console.log('-------------------------');
+
+  newItems.slice(0, 100).forEach((x, i) => {
+    console.log(
+      `${i + 1}. [${x.sourceType}] ${x.title} | ` +
+      `${x.publisher} | collector=${x.collector || '-'} | ` +
+      `host=${x.publisherHost || '-'} | ` +
+      `pub=${x.publishedAt || '-'} | ${x.url}`
+    );
+  });
+}
+
+/**
+ * Google Newsがどの媒体に広がっているかを診断する。
+ * これは重複削除用ではなく、媒体展開の観測用。
+ */
+function previewGoogleNewsCoveragePublishers() {
+  const raw = []
+    .concat(collectGoogleNewsGroup_() || [])
+    .concat(collectGoogleNewsCurrentMembers_() || [])
+    .concat(collectGoogleNewsGraduatedMembers_() || []);
+
+  const normalized =
+    normalizeAndDeduplicateCandidates_(raw);
+
+  const byHost = {};
+
+  normalized.forEach(item => {
+    const host =
+      item.publisherHost ||
+      item.publisher ||
+      'unknown';
+
+    byHost[host] =
+      (byHost[host] || 0) + 1;
+  });
+
+  console.log(
+    `GOOGLE NEWS UNIQUE ARTICLES = ${normalized.length}`
+  );
+
+  console.log('-------------------------');
+
+  Object.keys(byHost)
+    .sort((a, b) => byHost[b] - byHost[a])
+    .slice(0, 100)
+    .forEach(host => {
+      console.log(
+        `${host}: ${byHost[host]}`
+      );
+    });
+}
+
+function testNotionInboxConnection() {
+  validateBaseConfig_();
+
+  const result = notionRequest_(
+    `/v1/data_sources/${OCOS.NOTION_INBOX_DATA_SOURCE_ID}/query`,
+    'post',
+    { page_size: 1 }
+  );
+
+  console.log(
+    `Notion INBOX connection OK. results=${(result.results || []).length}`
+  );
+}
+
+function testLedgerConnection() {
+  const sheet = getOrCreateLedgerSheet_();
+  console.log(
+    `Ledger OK: rows=${Math.max(0, sheet.getLastRow() - 1)} / ${sheet.getParent().getUrl()}`
+  );
+}
+
+/**
+ * HHA MEMBERSからGoogle News用人物検索語がどう生成されるかを確認する。
+ * 書き込みは行わない。
+ */
+function previewHhaDerivedMemberSearchTerms() {
+  const groups = loadHhaMemberSearchGroups_(true);
+
+  console.log(`HHA-derived current=${groups.current.length}`);
+  console.log(groups.current.join(' / '));
+
+  console.log(`HHA-derived graduated=${groups.graduated.length}`);
+  console.log(groups.graduated.join(' / '));
+
+  console.log(`HHA-derived excluded=${groups.excluded.length}`);
+  groups.excluded.forEach(x => {
+    console.log(
+      `EXCLUDED: ${x.memberId || '-'} ${x.memberName} / ` +
+      `status=${x.activityStatus || '-'} / generation=${x.generation || '-'} / ` +
+      `reason=${x.reason}`
+    );
+  });
+}
+
+function fullCollectors_() {
+  return [
+    collectOfficialNews_,
+    collectOfficialBlogs_,
+    collectOfficialSchedule_,
+    collectOfficialYouTube_,
+    collectGoogleNewsGroup_,
+    collectGoogleNewsCurrentMembers_,
+    collectGoogleNewsGraduatedMembers_
+  ];
+}
+
+
+// ============================================================
+// Orchestrator
+// ============================================================
+
+function runCrawlerGroup_(label, collectors, maxCreate) {
+  const lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(5000)) {
+    console.warn(`[${label}] another crawler is running; skipped.`);
+    return;
+  }
+
+  const startedAt = Date.now();
+  let ledgerBuffer = [];
+
+  try {
+    validateBaseConfig_();
+    getOrCreateLedgerSheet_();
+
+    let candidates = [];
+
+    for (const fn of collectors) {
+      if (isNearSoftLimit_(startedAt)) {
+        console.warn(`[${label}] soft time limit reached during collection.`);
+        break;
+      }
+
+      try {
+        const items = fn() || [];
+        console.log(`${fn.name}: ${items.length} candidates`);
+        candidates = candidates.concat(items);
+      } catch (err) {
+        console.error(`${fn.name} failed: ${err.stack || err}`);
+      }
+    }
+
+    const normalized = normalizeAndDeduplicateCandidates_(candidates);
+    console.log(`[${label}] normalized unique candidates: ${normalized.length}`);
+
+    // Ledger + 現在INBOXの両方を見る。
+    const seen = loadSeenFingerprints_();
+
+    let created = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const item of normalized) {
+      if (seen.has(item.fingerprint)) {
+        skipped++;
+        continue;
+      }
+
+      if (created >= maxCreate || isNearSoftLimit_(startedAt)) {
+        break;
+      }
+
+      try {
+        createInboxPage_(item);
+        seen.add(item.fingerprint);
+        created++;
+
+        ledgerBuffer.push(makeLedgerRow_(item));
+
+        if (ledgerBuffer.length >= OCOS.LEDGER_FLUSH_EVERY) {
+          appendLedgerRows_(ledgerBuffer);
+          ledgerBuffer = [];
+        }
+
+        Utilities.sleep(OCOS.NOTION_WRITE_INTERVAL_MS);
+      } catch (err) {
+        failed++;
+        console.error(
+          `createInboxPage failed: ${item.title} / ${err.stack || err}`
+        );
+      }
+    }
+
+    if (ledgerBuffer.length) {
+      appendLedgerRows_(ledgerBuffer);
+      ledgerBuffer = [];
+    }
+
+    const remaining = normalized.reduce(
+      (n, x) => n + (seen.has(x.fingerprint) ? 0 : 1),
+      0
+    );
+
+    console.log(
+      `[${label}] done. created=${created}, skipped=${skipped}, failed=${failed}, ` +
+      `remaining=${remaining}, elapsedSec=${Math.round((Date.now() - startedAt) / 1000)}`
+    );
+  } finally {
+    if (ledgerBuffer.length) {
+      try {
+        appendLedgerRows_(ledgerBuffer);
+      } catch (e) {
+        console.error(`Ledger final flush failed: ${e.stack || e}`);
+      }
+    }
+
+    lock.releaseLock();
+  }
+}
+
+function isNearSoftLimit_(startedAt) {
+  return Date.now() - startedAt >= OCOS.RUN_SOFT_LIMIT_MS;
+}
+
+
+// ============================================================
+// Collector A: 日向坂46公式 NEWS
+// ============================================================
+
+function collectOfficialNews_() {
+  ensureCheerio_();
+  const out = [];
+
+  OCOS.NEWS_MONTH_OFFSETS.forEach(offset => {
+    const ym = yearMonthByOffset_(offset);
+    const url = `${OCOS.BASE_URL}/s/official/news/list?dy=${ym}&ima=0000`;
+    const html = fetchText_(url);
+
+    if (!html) return;
+
+    const $ = Cheerio.load(html);
+
+    $('.p-news__item').each((_, el) => {
+      const $el = $(el);
+
+      const $anchor = firstExisting_(
+        $el.find('a[href*="/news/detail/"]').first(),
+        $el.find('a').first()
+      );
+
+      const href = $anchor && $anchor.attr('href');
+      if (!href) return;
+
+      const title = cleanText_(firstNonEmpty_(
+        $el.find('.c-news__title').first().text(),
+        $el.find('.c-news__text').first().text(),
+        $anchor.text()
+      ));
+
+      if (!title) return;
+
+      const dateText = cleanText_(firstNonEmpty_(
+        $el.find('.c-news__date').first().text(),
+        $el.find('time').first().text()
+      ));
+
+      const category = cleanText_(firstNonEmpty_(
+        $el.find('.c-news__category').first().text(),
+        $el.find('.c-news__tag').first().text()
+      ));
+
+      out.push({
+        title,
+        url: absoluteUrl_(href, OCOS.BASE_URL),
+        publishedAt: parseJapaneseDate_(dateText),
+        eventDateHint: null,
+        publisher: '日向坂46公式',
+        publisherHost: 'hinatazaka46.com',
+        sourceClass: '日向坂46公式',
+        sourceType: 'NEWS',
+        collector: 'official-news',
+        discoveryTerms: '',
+        snippet: category
+          ? `公式NEWS / カテゴリ: ${category}`
+          : '日向坂46公式NEWS'
+      });
+    });
+  });
+
+  return out;
+}
+
+
+// ============================================================
+// Collector B: 日向坂46公式 BLOG
+// ============================================================
+
+function collectOfficialBlogs_() {
+  ensureCheerio_();
+  const out = [];
+
+  for (let page = 1; page <= OCOS.BLOG_PAGES_TO_SCAN; page++) {
+    const url = page === 1
+      ? `${OCOS.BASE_URL}/s/official/diary/member/list`
+      : `${OCOS.BASE_URL}/s/official/diary/member/list?page=${page}`;
+
+    const html = fetchText_(url);
+    if (!html) continue;
+
+    const $ = Cheerio.load(html);
+
+    $('.p-blog-article').each((_, el) => {
+      const $el = $(el);
+
+      let $anchor = $el.find('a.c-button-blog-detail').first();
+      if (!$anchor || !$anchor.length) {
+        $anchor = $el.find('a[href*="/diary/detail/"]').first();
+      }
+      if (!$anchor || !$anchor.length) {
+        $anchor = $el.find('a').first();
+      }
+
+      const href = $anchor.attr('href');
+      if (!href) return;
+
+      const member = cleanText_(
+        $el.find('.c-blog-article__name').first().text()
+      );
+
+      const blogTitle = cleanText_(firstNonEmpty_(
+        $el.find('.c-blog-article__title').first().text(),
+        $anchor.text()
+      ));
+
+      if (!blogTitle) return;
+
+      const dateText = cleanText_(firstNonEmpty_(
+        $el.find('.c-blog-article__date').first().text(),
+        $el.find('time').first().text()
+      ));
+
+      out.push({
+        title: member
+          ? `[ブログ] ${member}: ${blogTitle}`
+          : `[ブログ] ${blogTitle}`,
+        url: absoluteUrl_(href, OCOS.BASE_URL),
+        publishedAt: parseJapaneseDate_(dateText),
+        eventDateHint: null,
+        publisher: member || '日向坂46公式',
+        publisherHost: 'hinatazaka46.com',
+        sourceClass: '日向坂46公式',
+        sourceType: 'ブログ',
+        collector: 'official-blog',
+        discoveryTerms: member || '',
+        snippet: member
+          ? `日向坂46公式ブログ / 投稿者: ${member}`
+          : '日向坂46公式ブログ'
+      });
+    });
+  }
+
+  return out;
+}
+
+
+// ============================================================
+// Collector C: 日向坂46公式 SCHEDULE
+// ============================================================
+
+function collectOfficialSchedule_() {
+  ensureCheerio_();
+  const scheduleItems = [];
+
+  OCOS.SCHEDULE_MONTH_OFFSETS.forEach(offset => {
+    const d = firstDayByOffset_(offset);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const yyyymm = `${year}${String(month).padStart(2, '0')}`;
+
+    const scheduleUrl =
+      `${OCOS.BASE_URL}/s/official/media/list?ima=0000&dy=${yyyymm}`;
+
+    const html = fetchText_(scheduleUrl);
+    if (!html) return;
+
+    const domItems = parseScheduleMonthWithCheerio_(
+      html,
+      scheduleUrl,
+      year,
+      month
+    );
+
+    if (domItems.length) {
+      scheduleItems.push.apply(scheduleItems, domItems);
+    } else {
+      console.warn(`SCHEDULE DOM parse returned 0; regex fallback: ${yyyymm}`);
+
+      scheduleItems.push.apply(
+        scheduleItems,
+        parseScheduleMonthWithRegex_(html, scheduleUrl, year, month)
+      );
+    }
+  });
+
+  return expandScheduleCandidates_(scheduleItems);
+}
+
+function parseScheduleMonthWithCheerio_(html, scheduleUrl, year, month) {
+  const $ = Cheerio.load(html);
+  const out = [];
+
+  $('.c-schedule__date--list').each((_, dateEl) => {
+    const dayText = cleanText_($(dateEl).find('span').first().text());
+    const dayMatch = dayText.match(/\d{1,2}/);
+
+    if (!dayMatch) return;
+
+    const day = Number(dayMatch[0]);
+
+    let $list = $(dateEl).nextAll('ul.p-schedule__list').first();
+
+    if (!$list || !$list.length) {
+      $list = $(dateEl).parent().children('ul.p-schedule__list').first();
+    }
+
+    if (!$list || !$list.length) return;
+
+    $list.find('li.p-schedule__item').each((__, itemEl) => {
+      const item = parseScheduleItemCheerio_(
+        $,
+        $(itemEl),
+        scheduleUrl,
+        year,
+        month,
+        day
+      );
+
+      if (item) out.push(item);
+    });
+  });
+
+  return out;
+}
+
+function parseScheduleItemCheerio_($, $item, scheduleUrl, year, month, day) {
+  const category = cleanText_(firstNonEmpty_(
+    $item.find('.c-schedule__category').first().text(),
+    $item.find('[class*="schedule__category"]').first().text(),
+    'その他'
+  ));
+
+  const rawTime = cleanText_(firstNonEmpty_(
+    $item.find('.c-schedule__time--list').first().text(),
+    $item.find('[class*="schedule__time"]').first().text()
+  ));
+
+  const rawTitle = cleanText_(firstNonEmpty_(
+    $item.find('[class*="schedule__text"]').first().text(),
+    $item.find('p').last().text()
+  ));
+
+  if (!rawTitle) return null;
+
+  const href = $item.find('a[href]').first().attr('href') || '';
+  const relatedLink = href ? absoluteUrl_(href, OCOS.BASE_URL) : '';
+
+  const eventDate =
+    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+  return buildScheduleCandidate_(
+    scheduleUrl,
+    relatedLink,
+    eventDate,
+    category,
+    rawTime,
+    rawTitle
+  );
+}
+
+function parseScheduleMonthWithRegex_(html, scheduleUrl, year, month) {
+  const out = [];
+
+  const dayBlockRegex =
+    /<div class="c-schedule__date--list">[\s\S]*?<span>(\d+)<\/span>[\s\S]*?<\/div>[\s\S]*?<ul class="p-schedule__list[\s\S]*?<\/ul>/g;
+
+  let dayMatch;
+
+  while ((dayMatch = dayBlockRegex.exec(html)) !== null) {
+    const day = Number(dayMatch[1]);
+    const listHtml = dayMatch[0];
+    const itemRegex = /<li class="p-schedule__item">([\s\S]*?)<\/li>/g;
+
+    let itemMatch;
+
+    while ((itemMatch = itemRegex.exec(listHtml)) !== null) {
+      const content = itemMatch[1];
+
+      const titleMatch = content.match(
+        /class="[^"]*schedule__text[^"]*"[^>]*>([\s\S]*?)<\/p>/
+      );
+
+      if (!titleMatch) continue;
+
+      const rawTitle = stripHtml_(titleMatch[1]);
+      if (!rawTitle) continue;
+
+      const categoryMatch = content.match(
+        /class="[^"]*c-schedule__category[^"]*"[^>]*>([\s\S]*?)<\/div>/
+      );
+
+      const category = categoryMatch
+        ? stripHtml_(categoryMatch[1])
+        : 'その他';
+
+      const timeMatch = content.match(
+        /class="[^"]*c-schedule__time--list[^"]*"[^>]*>([\s\S]*?)<\/div>/
+      );
+
+      const rawTime = timeMatch ? stripHtml_(timeMatch[1]) : '';
+
+      const linkMatch = content.match(/href="([^"]+)"/);
+      const relatedLink = linkMatch
+        ? absoluteUrl_(linkMatch[1], OCOS.BASE_URL)
+        : '';
+
+      const eventDate =
+        `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      out.push(
+        buildScheduleCandidate_(
+          scheduleUrl,
+          relatedLink,
+          eventDate,
+          category,
+          rawTime,
+          rawTitle
+        )
+      );
+    }
+  }
+
+  return out;
+}
+
+function buildScheduleCandidate_(
+  scheduleUrl,
+  relatedLink,
+  eventDate,
+  category,
+  rawTime,
+  rawTitle
+) {
+  let title = `[SCHEDULE:${category}] ${rawTitle}`;
+  if (rawTime) title += ` (${rawTime})`;
+
+  const snippetParts = [
+    '公式SCHEDULE',
+    `カテゴリ: ${category}`
+  ];
+
+  if (rawTime) {
+    snippetParts.push(`時刻: ${rawTime}`);
+  }
+
+  if (relatedLink && relatedLink !== scheduleUrl) {
+    snippetParts.push(`関連リンク: ${relatedLink}`);
+  }
+
+  return {
+    title,
+    url: scheduleUrl,
+    publishedAt: null,
+    eventDateHint: eventDate,
+    publisher: '日向坂46公式',
+    publisherHost: 'hinatazaka46.com',
+    sourceClass: '日向坂46公式',
+    sourceType: 'SCHEDULE',
+    collector: 'official-schedule',
+    discoveryTerms: category || '',
+    relatedUrl: relatedLink || '',
+    scheduleCategory: category || '',
+    snippet: snippetParts.join(' / ')
+  };
+}
+
+/**
+ * 公式SCHEDULEの外部リンクを関係者一次情報候補として別レコード化する。
+ * 公式側のSCHEDULEレコードはそのまま残す。
+ */
+function expandScheduleCandidates_(items) {
+  const out = (items || []).slice();
+
+  (items || []).forEach(item => {
+    const relatedUrl = cleanText_(item.relatedUrl || '');
+    if (!relatedUrl) return;
+
+    const host = hostnameFromUrl_(relatedUrl);
+    if (!host) return;
+
+    // 日向坂46公式内リンクは別レコード化しない。
+    if (/(^|\.)hinatazaka46\.com$/i.test(host)) return;
+
+    out.push({
+      title: `[関係者一次候補] ${item.title}`,
+      url: relatedUrl,
+      publishedAt: null,
+      eventDateHint: item.eventDateHint || null,
+      publisher: host,
+      publisherHost: host,
+      sourceClass: '関係者一次',
+      sourceType: inferRelatedSourceType_(host, item.scheduleCategory),
+      collector: 'schedule-related',
+      discoveryTerms: item.scheduleCategory || '',
+      snippet:
+        `日向坂46公式SCHEDULEに掲載された関連一次リンク / ${item.title}`
+    });
+  });
+
+  return out;
+}
+
+function inferRelatedSourceType_(host, category) {
+  const h = String(host || '').toLowerCase();
+  const c = cleanText_(category || '');
+
+  if (h === 'x.com' || h === 'twitter.com') {
+    return 'X';
+  }
+
+  if (h === 'instagram.com') {
+    return 'Instagram';
+  }
+
+  if (
+    h === 'youtube.com' ||
+    h === 'youtu.be' ||
+    h.endsWith('.youtube.com')
+  ) {
+    return 'YouTube';
+  }
+
+  if (/テレビ|tv|ラジオ|radio|配信|stream/i.test(c)) {
+    return '番組公式';
+  }
+
+  return 'その他';
+}
+
+
+// ============================================================
+// Collector D: 公式YouTube
+// ============================================================
+
+function collectOfficialYouTube_() {
+  const apiKey = PropertiesService
+    .getScriptProperties()
+    .getProperty('YOUTUBE_API_KEY');
+
+  if (!apiKey) {
+    console.warn('YOUTUBE_API_KEY is not set. YouTube collection skipped.');
+    return [];
+  }
+
+  const out = [];
+
+  OCOS.YOUTUBE_CHANNELS.forEach(channel => {
+    try {
+      const channelData = youtubeGet_('channels', {
+        part: 'contentDetails,snippet',
+        id: channel.id,
+        key: apiKey
+      });
+
+      if (!channelData.items || !channelData.items.length) return;
+
+      const uploadsId =
+        channelData.items[0].contentDetails.relatedPlaylists.uploads;
+
+      const officialName =
+        channelData.items[0].snippet.title || channel.name;
+
+      const playlist = youtubeGet_('playlistItems', {
+        part: 'snippet,contentDetails',
+        playlistId: uploadsId,
+        maxResults: 50,
+        key: apiKey
+      });
+
+      (playlist.items || []).forEach(item => {
+        const snippet = item.snippet || {};
+        const contentDetails = item.contentDetails || {};
+
+        const videoId =
+          contentDetails.videoId ||
+          (snippet.resourceId && snippet.resourceId.videoId);
+
+        if (!videoId) return;
+
+        out.push({
+          title: `[YouTube] ${snippet.title || videoId}`,
+          url: `https://www.youtube.com/watch?v=${videoId}`,
+          publishedAt:
+            contentDetails.videoPublishedAt ||
+            snippet.publishedAt ||
+            null,
+          eventDateHint: null,
+          publisher: officialName,
+          publisherHost: 'youtube.com',
+          sourceClass: '日向坂46公式',
+          sourceType: 'YouTube',
+          collector: 'official-youtube',
+          discoveryTerms: officialName,
+          snippet: truncate_(cleanText_(snippet.description || ''), 1500)
+        });
+      });
+    } catch (err) {
+      console.error(
+        `YouTube channel failed (${channel.name}): ${err.stack || err}`
+      );
+    }
+  });
+
+  return out;
+}
+
+function youtubeGet_(resource, params) {
+  const query = Object.keys(params)
+    .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+    .join('&');
+
+  const url = `https://www.googleapis.com/youtube/v3/${resource}?${query}`;
+  const text = fetchText_(url);
+
+  return text ? JSON.parse(text) : {};
+}
+
+
+// ============================================================
+// HHA MEMBERS -> Google News search terms
+// ============================================================
+
+let OCOS_HHA_MEMBER_SEARCH_GROUPS_CACHE_ = null;
+
+/**
+ * HHA MEMBERSを人物検索語の唯一のマスターとして使う。
+ *
+ * current:
+ *   Activity_Status = 在籍中
+ *
+ * graduated:
+ *   Activity_Status = 卒業
+ *   ただしv1.2.0の監視範囲を維持するため、
+ *   Generation = 0期 は既定で除外する。
+ *
+ * withdrawn:
+ *   Activity_Status = 活動辞退 は既定で除外する。
+ *
+ * forceReload=true の場合は同一実行内キャッシュを無視する。
+ */
+function loadHhaMemberSearchGroups_(forceReload) {
+  if (!forceReload && OCOS_HHA_MEMBER_SEARCH_GROUPS_CACHE_) {
+    return OCOS_HHA_MEMBER_SEARCH_GROUPS_CACHE_;
+  }
+
+  const rows = [];
+  let cursor = null;
+
+  do {
+    const body = { page_size: 100 };
+    if (cursor) body.start_cursor = cursor;
+
+    const result = notionRequest_(
+      `/v1/data_sources/${OCOS.HHA_MEMBERS_DATA_SOURCE_ID}/query`,
+      'post',
+      body
+    );
+
+    (result.results || []).forEach(page => {
+      const p = page.properties || {};
+
+      rows.push({
+        memberId: crawlerNotionText_(p.Member_ID),
+        memberOrder: crawlerNotionNumber_(p.Member_Order),
+        memberName: crawlerNotionTitle_(p.Member_Name),
+        generation: crawlerNotionSelect_(p.Generation),
+        activityStatus: crawlerNotionSelect_(p.Activity_Status)
+      });
+    });
+
+    cursor = result.has_more ? result.next_cursor : null;
+  } while (cursor);
+
+  if (!rows.length) {
+    throw new Error('HHA MEMBERSから人物データを取得できませんでした。');
+  }
+
+  rows.sort(
+    (a, b) => Number(a.memberOrder || 0) - Number(b.memberOrder || 0)
+  );
+
+  const current = [];
+  const graduated = [];
+  const excluded = [];
+
+  rows.forEach(row => {
+    const term = normalizeMemberSearchTerm_(row.memberName);
+    if (!term) {
+      excluded.push(Object.assign({}, row, { reason: 'EMPTY_MEMBER_NAME' }));
+      return;
+    }
+
+    if (row.activityStatus === '在籍中') {
+      current.push(term);
+      return;
+    }
+
+    if (row.activityStatus === '卒業') {
+      if (
+        row.generation === '0期' &&
+        !OCOS.GOOGLE_NEWS_INCLUDE_ZERO_GEN_GRADUATED
+      ) {
+        excluded.push(Object.assign({}, row, {
+          reason: 'ZERO_GEN_GRADUATED_EXCLUDED_BY_POLICY'
+        }));
+        return;
+      }
+
+      graduated.push(term);
+      return;
+    }
+
+    if (row.activityStatus === '活動辞退') {
+      if (OCOS.GOOGLE_NEWS_INCLUDE_WITHDRAWN_MEMBERS) {
+        graduated.push(term);
+      } else {
+        excluded.push(Object.assign({}, row, {
+          reason: 'WITHDRAWN_EXCLUDED_BY_POLICY'
+        }));
+      }
+      return;
+    }
+
+    excluded.push(Object.assign({}, row, {
+      reason: `UNHANDLED_ACTIVITY_STATUS:${row.activityStatus || 'EMPTY'}`
+    }));
+  });
+
+  const groups = {
+    current: Array.from(new Set(current)),
+    graduated: Array.from(new Set(graduated)),
+    excluded
+  };
+
+  if (!groups.current.length) {
+    throw new Error(
+      'HHA MEMBERS由来の在籍中Google News検索語が0件です。' +
+      'Activity_StatusまたはNotion接続を確認してください。'
+    );
+  }
+
+  console.log(
+    `[HHA member terms] current=${groups.current.length}, ` +
+    `graduated=${groups.graduated.length}, excluded=${groups.excluded.length}`
+  );
+
+  OCOS_HHA_MEMBER_SEARCH_GROUPS_CACHE_ = groups;
+  return groups;
+}
+
+function normalizeMemberSearchTerm_(name) {
+  let s = cleanText_(name || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  // HHA Member_Nameは「金村 美玖」のように姓・名間に空白を持つ。
+  // Google Newsの従来検索条件と同じ「金村美玖」形式に正規化する。
+  return s.replace(/[\s\u3000]+/g, '');
+}
+
+function crawlerNotionTitle_(prop) {
+  if (!prop || !Array.isArray(prop.title)) return '';
+
+  return prop.title
+    .map(x => x.plain_text || (x.text && x.text.content) || '')
+    .join('');
+}
+
+function crawlerNotionText_(prop) {
+  if (!prop || !Array.isArray(prop.rich_text)) return '';
+
+  return prop.rich_text
+    .map(x => x.plain_text || (x.text && x.text.content) || '')
+    .join('');
+}
+
+function crawlerNotionNumber_(prop) {
+  if (!prop || prop.number === null || prop.number === undefined) {
+    return null;
+  }
+
+  return Number(prop.number);
+}
+
+function crawlerNotionSelect_(prop) {
+  return prop && prop.select && prop.select.name
+    ? prop.select.name
+    : '';
+}
+
+
+// ============================================================
+// Collector E: Google News RSS
+// ============================================================
+
+/**
+ * グループ名検索。
+ * 「日向坂46」という語を含む外部報道を広く拾う。
+ */
+function collectGoogleNewsGroup_() {
+  return collectGoogleNewsQuery_(
+    `日向坂46 when:${OCOS.GOOGLE_NEWS_WINDOW}`,
+    ['日向坂46']
+  );
+}
+
+/**
+ * 現役メンバー名検索。
+ * 公式側で拾えない個人仕事・インタビュー等の発見を狙う。
+ */
+function collectGoogleNewsCurrentMembers_() {
+  const groups = loadHhaMemberSearchGroups_();
+
+  return collectGoogleNewsMemberTerms_(
+    groups.current,
+    'google-news-current-member'
+  );
+}
+
+function collectGoogleNewsGraduatedMembers_() {
+  const groups = loadHhaMemberSearchGroups_();
+
+  return collectGoogleNewsMemberTerms_(
+    groups.graduated,
+    'google-news-graduated-member'
+  );
+}
+
+function collectGoogleNewsMemberTerms_(memberTerms, collectorName) {
+  const out = [];
+  const chunkSize = OCOS.GOOGLE_NEWS_MEMBER_CHUNK_SIZE;
+
+  for (
+    let i = 0;
+    i < memberTerms.length;
+    i += chunkSize
+  ) {
+    const chunk =
+      memberTerms.slice(
+        i,
+        i + chunkSize
+      );
+
+    const names = chunk
+      .map(name => `"${name}"`)
+      .join(' OR ');
+
+    const query =
+      `(${names}) when:${OCOS.GOOGLE_NEWS_WINDOW}`;
+
+    const items =
+      collectGoogleNewsQuery_(
+        query,
+        chunk
+      );
+
+    items.forEach(item => {
+      item.collector = collectorName;
+    });
+
+    out.push.apply(
+      out,
+      items
+    );
+
+    Utilities.sleep(250);
+  }
+
+  return out;
+}
+
+/**
+ * Google News RSS共通取得。
+ *
+ * ポイント:
+ * - Google NewsのURL自体は保持する。
+ * - <source url=""> の発行元homepageをPublisher_Host用に保存する。
+ * - 異なる媒体の記事は削除しない。
+ * - 同一媒体 + 同一タイトル + 同一公開時刻はFingerprintで同一視する。
+ */
+function collectGoogleNewsQuery_(query, requiredTitleTerms) {
+  const rssUrl =
+    `https://news.google.com/rss/search?q=${encodeURIComponent(query)}` +
+    `&hl=ja&gl=JP&ceid=JP:ja`;
+
+  const xml = fetchText_(rssUrl);
+  if (!xml) return [];
+
+  const doc = XmlService.parse(xml);
+  const channel = doc.getRootElement().getChild('channel');
+
+  if (!channel) return [];
+
+  const out = [];
+
+  channel.getChildren('item').forEach(item => {
+    const title = cleanText_(item.getChildText('title') || '');
+    const link = item.getChildText('link');
+    const pubDate = item.getChildText('pubDate');
+
+    if (!title || !link) return;
+
+    if (isGoogleNewsChildPageNoise_(title)) {
+      return;
+    }
+
+    if (requiredTitleTerms && requiredTitleTerms.length > 1) {
+      const matched = requiredTitleTerms.some(term => title.includes(term));
+      if (!matched) return;
+    }
+
+    const sourceEl = item.getChild('source');
+
+    const publisher = sourceEl
+      ? cleanText_(sourceEl.getText())
+      : 'Google News';
+
+    const sourceHomepage =
+      sourceEl && sourceEl.getAttribute('url')
+        ? sourceEl.getAttribute('url').getValue()
+        : '';
+
+    const publisherHost = hostnameFromUrl_(sourceHomepage);
+
+    const matchedTerms = (requiredTitleTerms || [])
+      .filter(term => title.includes(term));
+
+    out.push({
+      title,
+      url: link,
+      publishedAt: parseRfcDate_(pubDate),
+      eventDateHint: null,
+      publisher,
+      publisherHost,
+      sourceHomepage,
+      sourceClass: '未判定',
+      sourceType: '記事',
+      collector: 'google-news',
+      discoveryTerms: matchedTerms.length
+        ? matchedTerms.join(', ')
+        : (requiredTitleTerms || []).join(', '),
+      snippet: sourceHomepage
+        ? `Google News coverage sensor / 発行元: ${publisher} / ${sourceHomepage}`
+        : `Google News coverage sensor / 発行元: ${publisher}`
+    });
+  });
+
+  return out;
+}
+
+/**
+ * 「外部媒体に記事が存在する」という観測価値がない、
+ * 画像・写真・コメント等の子ページだけを除外する。
+ */
+function isGoogleNewsChildPageNoise_(title) {
+  let s = cleanText_(title || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  return (
+    /^画像・写真\s*\|/i.test(s) ||
+    /^【写真・画像】/i.test(s) ||
+    /^\(画像\s*\d+\s*\/\s*\d+\)/i.test(s) ||
+    /\[画像ギャラリー\s*\d+\s*\/\s*\d+\]/i.test(s) ||
+    /画像一覧\s*\(\d+\s*\/\s*\d+\)/i.test(s) ||
+    /\s\d+枚目\s*-\s*/i.test(s) ||
+    /\(写真・画像\s*\d+\s*\/\s*\d+\)/i.test(s) ||
+    /^画像\s*\d+\s*\/\s*\d+\s*[>＞]/i.test(s) ||
+    /\d+枚目の写真・画像/i.test(s) ||
+    /^📸\s*画像\s*[:：]/i.test(s) ||
+    /^コメント\s*\|/i.test(s)
+  );
+}
+
+
+// ============================================================
+// Normalize / fingerprint / dedup
+// ============================================================
+
+function normalizeAndDeduplicateCandidates_(items) {
+  const map = new Map();
+
+  (items || []).forEach(raw => {
+    const item = normalizeCandidate_(raw);
+
+    if (!item) return;
+
+    if (!map.has(item.fingerprint)) {
+      map.set(item.fingerprint, item);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+function normalizeCandidate_(raw) {
+  if (!raw || !raw.title || !raw.url) return null;
+
+  const item = {
+    title: truncate_(cleanText_(raw.title), 1900),
+    url: canonicalizeUrl_(raw.url),
+    publishedAt: normalizeIsoLike_(raw.publishedAt),
+    eventDateHint: normalizeIsoLike_(raw.eventDateHint),
+    publisher: truncate_(cleanText_(raw.publisher || ''), 1900),
+
+    collector: truncate_(cleanText_(raw.collector || ''), 1900),
+
+    publisherHost: truncate_(
+      cleanText_(
+        raw.publisherHost ||
+        hostnameFromUrl_(raw.sourceHomepage || raw.url || '')
+      ),
+      1900
+    ),
+
+    discoveryTerms: truncate_(
+      cleanText_(raw.discoveryTerms || ''),
+      1900
+    ),
+
+    // Google News重複判定専用
+    sourceHomepage: cleanText_(raw.sourceHomepage || ''),
+
+    sourceClass: raw.sourceClass || '未判定',
+    sourceType: raw.sourceType || 'その他',
+    snippet: truncate_(cleanText_(raw.snippet || ''), 1900)
+  };
+
+  item.fingerprint = makeFingerprint_(item);
+  return item;
+}
+
+function makeFingerprint_(item) {
+  let basis;
+
+  if (isGoogleNewsUrl_(item.url)) {
+    // Google News:
+    // 異なる媒体は残す。
+    // 同じ媒体・同じ記事が検索語違い等で出た場合だけ同一視する。
+    const sourceKey = makeGoogleNewsSourceKey_(
+      item.publisher,
+      item.sourceHomepage
+    );
+
+    const titleKey = normalizeGoogleNewsTitleKey_(item.title);
+    const publishedKey = fingerprintDateKey_(item.publishedAt);
+
+    basis = [
+      'google-news',
+      sourceKey,
+      titleKey,
+      publishedKey
+    ].join('|');
+  } else {
+    basis = [
+      item.sourceType,
+      item.url,
+      item.title,
+      item.publishedAt || '',
+      item.eventDateHint || ''
+    ].join('|');
+  }
+
+  basis = basis.toLowerCase();
+
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    basis,
+    Utilities.Charset.UTF_8
+  );
+
+  return bytes
+    .map(
+      b => ('0' + ((b + 256) % 256).toString(16)).slice(-2)
+    )
+    .join('');
+}
+
+function fingerprintDateKey_(value) {
+  if (!value) return '';
+
+  const s = String(value).trim();
+  if (!s) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return s;
+  }
+
+  const d = new Date(s);
+
+  if (!isNaN(d.getTime())) {
+    return String(Math.floor(d.getTime() / 1000));
+  }
+
+  return s.toLowerCase();
+}
+
+function isGoogleNewsUrl_(url) {
+  return /^https:\/\/news\.google\.com\/rss\/articles\//i
+    .test(String(url || ''));
+}
+
+function makeGoogleNewsSourceKey_(publisher, sourceHomepage) {
+  const host = hostnameFromUrl_(sourceHomepage);
+
+  if (host) return host;
+
+  let value = cleanText_(publisher || '');
+
+  try {
+    value = value.normalize('NFKC');
+  } catch (e) {}
+
+  return value.toLowerCase();
+}
+
+function hostnameFromUrl_(url) {
+  const s = cleanText_(url || '');
+
+  const match = s.match(/^https?:\/\/([^\/?#]+)/i);
+  if (!match) return '';
+
+  return match[1]
+    .toLowerCase()
+    .replace(/^www\./, '');
+}
+
+function normalizeGoogleNewsTitleKey_(title) {
+  let s = cleanText_(title || '');
+
+  try {
+    s = s.normalize('NFKC');
+  } catch (e) {}
+
+  // Google Newsが末尾に付ける「 - 媒体名」を除去。
+  const separator = s.lastIndexOf(' - ');
+
+  if (separator > 0) {
+    s = s.slice(0, separator);
+  }
+
+  s = s
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[‐-‒–—―]/g, '-')
+    .replace(/\s+([(\[【「『])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return s.toLowerCase();
+}
+
+
+// ============================================================
+// CRAWLER_LEDGER (Google Sheets / 機械専用)
+// ============================================================
+
+function getOrCreateLedgerSheet_() {
+  const props = PropertiesService.getScriptProperties();
+  let id = props.getProperty(OCOS.LEDGER_PROPERTY_KEY);
+  let ss = null;
+
+  if (id) {
+    try {
+      ss = SpreadsheetApp.openById(id);
+    } catch (e) {
+      console.warn('Saved Ledger Spreadsheet ID is invalid. Recreating.');
+      id = null;
+    }
+  }
+
+  if (!ss) {
+    ss = SpreadsheetApp.create(OCOS.LEDGER_SPREADSHEET_NAME);
+    props.setProperty(OCOS.LEDGER_PROPERTY_KEY, ss.getId());
+  }
+
+  ensureFileInOcosFolder_(ss.getId());
+
+  let sheet = ss.getSheetByName(OCOS.LEDGER_SHEET_NAME);
+
+  if (!sheet) {
+    const sheets = ss.getSheets();
+
+    if (sheets.length === 1 && sheets[0].getLastRow() === 0) {
+      sheet = sheets[0];
+      sheet.setName(OCOS.LEDGER_SHEET_NAME);
+    } else {
+      sheet = ss.insertSheet(OCOS.LEDGER_SHEET_NAME);
+    }
+  }
+
+  ensureLedgerHeader_(sheet);
+  return sheet;
+}
+
+function getOcosDriveFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const savedId = props.getProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY);
+
+  if (savedId) {
+    try {
+      return DriveApp.getFolderById(savedId);
+    } catch (e) {
+      console.warn('Saved OC-OS folder ID is invalid. Searching by name again.');
+      props.deleteProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY);
+    }
+  }
+
+  const folders = DriveApp.getFoldersByName(OCOS.DRIVE_FOLDER_NAME);
+
+  if (!folders.hasNext()) {
+    throw new Error(
+      `Google Driveに「${OCOS.DRIVE_FOLDER_NAME}」フォルダが見つかりません。`
+    );
+  }
+
+  const folder = folders.next();
+
+  if (folders.hasNext()) {
+    throw new Error(
+      `Google Driveに「${OCOS.DRIVE_FOLDER_NAME}」フォルダが複数あります。` +
+      '同名フォルダを整理してください。'
+    );
+  }
+
+  props.setProperty(OCOS.DRIVE_FOLDER_PROPERTY_KEY, folder.getId());
+  return folder;
+}
+
+function ensureFileInOcosFolder_(fileId) {
+  const folder = getOcosDriveFolder_();
+  const file = DriveApp.getFileById(fileId);
+  file.moveTo(folder);
+}
+
+function ensureLedgerHeader_(sheet) {
+  const headers = OCOS.LEDGER_HEADERS;
+
+  const current = sheet
+    .getRange(1, 1, 1, headers.length)
+    .getValues()[0];
+
+  const same = headers.every((h, i) => current[i] === h);
+
+  if (!same) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.setFrozenRows(1);
+  }
+}
+
+function loadLedgerFingerprints_() {
+  const sheet = getOrCreateLedgerSheet_();
+  const lastRow = sheet.getLastRow();
+  const set = new Set();
+
+  if (lastRow <= 1) return set;
+
+  const values = sheet
+    .getRange(2, 1, lastRow - 1, 1)
+    .getValues();
+
+  values.forEach(row => {
+    const fp = cleanText_(row[0]);
+    if (fp) set.add(fp);
+  });
+
+  return set;
+}
+
+function makeLedgerRow_(item) {
+  return [
+    item.fingerprint,
+    nowJstIso_(),
+    item.url,
+    item.sourceType,
+    item.title,
+    item.collector || '',
+    item.publisherHost || '',
+    item.discoveryTerms || ''
+  ];
+}
+
+function appendLedgerRows_(rows) {
+  if (!rows || !rows.length) return;
+
+  const sheet = getOrCreateLedgerSheet_();
+  const startRow = sheet.getLastRow() + 1;
+
+  sheet
+    .getRange(
+      startRow,
+      1,
+      rows.length,
+      OCOS.LEDGER_HEADERS.length
+    )
+    .setValues(rows);
+}
+
+/**
+ * INBOXに既にあるFingerprintをLedgerへ移す。
+ * 完全ゼロリセット後は0件になる。
+ */
+function backfillLedgerFromInbox() {
+  const inbox = loadExistingInboxFingerprints_();
+  const ledger = loadLedgerFingerprints_();
+  const rows = [];
+
+  inbox.forEach(fp => {
+    if (ledger.has(fp)) return;
+
+    rows.push([
+      fp,
+      nowJstIso_(),
+      '',
+      'BACKFILL',
+      'INBOXから移植',
+      'backfill',
+      '',
+      ''
+    ]);
+  });
+
+  appendLedgerRows_(rows);
+  console.log(`Ledger backfill from INBOX: ${rows.length}`);
+}
+
+function loadSeenFingerprints_() {
+  const ledger = loadLedgerFingerprints_();
+  const inbox = loadExistingInboxFingerprints_();
+
+  inbox.forEach(fp => ledger.add(fp));
+
+  return ledger;
+}
+
+
+// ============================================================
+// Notion INBOX
+// ============================================================
+
+function loadExistingInboxFingerprints_() {
+  const set = new Set();
+  let cursor = null;
+
+  do {
+    const body = { page_size: 100 };
+
+    if (cursor) {
+      body.start_cursor = cursor;
+    }
+
+    const result = notionRequest_(
+      `/v1/data_sources/${OCOS.NOTION_INBOX_DATA_SOURCE_ID}/query`,
+      'post',
+      body
+    );
+
+    (result.results || []).forEach(page => {
+      const prop = page.properties && page.properties.Fingerprint;
+
+      if (!prop || !prop.rich_text || !prop.rich_text.length) {
+        return;
+      }
+
+      const value = prop.rich_text
+        .map(x => x.plain_text || '')
+        .join('');
+
+      if (value) set.add(value);
+    });
+
+    cursor = result.has_more
+      ? result.next_cursor
+      : null;
+  } while (cursor);
+
+  return set;
+}
+
+function createInboxPage_(item) {
+  const properties = {
+    Inbox_Title: notionTitle_(item.title),
+    URL: { url: item.url },
+    Detected_At: { date: { start: nowJstIso_() } },
+    Publisher: notionRichText_(item.publisher),
+    Source_Class: { select: { name: item.sourceClass } },
+    Source_Type: { select: { name: item.sourceType } },
+    Detected_Snippet: notionRichText_(item.snippet),
+    Status: { select: { name: '未処理' } },
+    Decision: { select: { name: '未判断' } },
+    Fingerprint: notionRichText_(item.fingerprint),
+
+    // v1.2内部観測項目
+    Collector: notionRichText_(item.collector || ''),
+    Publisher_Host: notionRichText_(item.publisherHost || ''),
+    Discovery_Terms: notionRichText_(item.discoveryTerms || '')
+  };
+
+  if (item.publishedAt) {
+    properties.Published_At = {
+      date: { start: item.publishedAt }
+    };
+  }
+
+  if (item.eventDateHint) {
+    properties.Event_Date_Hint = {
+      date: { start: item.eventDateHint }
+    };
+  }
+
+  notionRequest_('/v1/pages', 'post', {
+    parent: {
+      type: 'data_source_id',
+      data_source_id: OCOS.NOTION_INBOX_DATA_SOURCE_ID
+    },
+    properties
+  });
+}
+
+function notionRequest_(path, method, body) {
+  const token = PropertiesService
+    .getScriptProperties()
+    .getProperty('NOTION_TOKEN');
+
+  if (!token) {
+    throw new Error('NOTION_TOKEN is not set in Script Properties.');
+  }
+
+  const options = {
+    method: method || 'get',
+    muteHttpExceptions: true,
+    contentType: 'application/json',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Notion-Version': OCOS.NOTION_VERSION
+    }
+  };
+
+  if (body !== undefined && body !== null) {
+    options.payload = JSON.stringify(body);
+  }
+
+  for (let attempt = 0; attempt < OCOS.HTTP_MAX_RETRIES; attempt++) {
+    const res = UrlFetchApp.fetch(
+      `https://api.notion.com${path}`,
+      options
+    );
+
+    const code = res.getResponseCode();
+    const text = res.getContentText();
+
+    if (code >= 200 && code < 300) {
+      return text ? JSON.parse(text) : {};
+    }
+
+    if (code === 429 || code >= 500) {
+      const headers = res.getAllHeaders();
+
+      const retryAfter = Number(
+        headers['Retry-After'] ||
+        headers['retry-after'] ||
+        0
+      );
+
+      const waitMs = retryAfter > 0
+        ? retryAfter * 1000
+        : Math.pow(2, attempt) * 1000 + 250;
+
+      Utilities.sleep(waitMs);
+      continue;
+    }
+
+    throw new Error(`Notion API ${code}: ${text}`);
+  }
+
+  throw new Error(`Notion API retry limit exceeded: ${path}`);
+}
+
+function notionTitle_(text) {
+  return {
+    title: [
+      {
+        type: 'text',
+        text: {
+          content: truncate_(text || '', 1900)
+        }
+      }
+    ]
+  };
+}
+
+function notionRichText_(text) {
+  if (!text) {
+    return { rich_text: [] };
+  }
+
+  return {
+    rich_text: [
+      {
+        type: 'text',
+        text: {
+          content: truncate_(text, 1900)
+        }
+      }
+    ]
+  };
+}
+
+
+// ============================================================
+// HTTP helpers
+// ============================================================
+
+function fetchText_(url) {
+  const options = {
+    method: 'get',
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: {
+      'User-Agent': OCOS.HTTP_USER_AGENT,
+      'Accept-Language': 'ja,en;q=0.8'
+    }
+  };
+
+  for (let attempt = 0; attempt < OCOS.HTTP_MAX_RETRIES; attempt++) {
+    const res = UrlFetchApp.fetch(url, options);
+    const code = res.getResponseCode();
+
+    if (code >= 200 && code < 300) {
+      return res.getContentText();
+    }
+
+    if (code === 429 || code >= 500) {
+      Utilities.sleep(
+        Math.pow(2, attempt) * 1000 + 250
+      );
+      continue;
+    }
+
+    console.warn(`HTTP ${code}: ${url}`);
+    return null;
+  }
+
+  console.warn(`Retry limit exceeded: ${url}`);
+  return null;
+}
+
+
+// ============================================================
+// Date helpers
+// ============================================================
+
+function parseJapaneseDate_(text) {
+  if (!text) return null;
+
+  const s = cleanText_(text)
+    .replace(/年/g, '.')
+    .replace(/月/g, '.')
+    .replace(/日/g, '')
+    .replace(/\//g, '.');
+
+  const m = s.match(
+    /(\d{4})\.(\d{1,2})\.(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/
+  );
+
+  if (!m) return null;
+
+  const y = m[1];
+  const mo = String(m[2]).padStart(2, '0');
+  const d = String(m[3]).padStart(2, '0');
+
+  if (m[4] !== undefined) {
+    const hh = String(m[4]).padStart(2, '0');
+    const mm = String(m[5]).padStart(2, '0');
+
+    return `${y}-${mo}-${d}T${hh}:${mm}:00+09:00`;
+  }
+
+  return `${y}-${mo}-${d}`;
+}
+
+function parseRfcDate_(text) {
+  if (!text) return null;
+
+  const d = new Date(text);
+  if (isNaN(d.getTime())) return null;
+
+  return toJstIso_(d);
+}
+
+function normalizeIsoLike_(value) {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return toJstIso_(value);
+  }
+
+  const s = String(value).trim();
+  if (!s) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(s)) {
+    return s;
+  }
+
+  return parseJapaneseDate_(s) || parseRfcDate_(s);
+}
+
+function nowJstIso_() {
+  return toJstIso_(new Date());
+}
+
+function toJstIso_(date) {
+  return Utilities.formatDate(
+    date,
+    OCOS.TIMEZONE,
+    "yyyy-MM-dd'T'HH:mm:ss"
+  ) + '+09:00';
+}
+
+function yearMonthByOffset_(offset) {
+  const d = firstDayByOffset_(offset);
+
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function firstDayByOffset_(offset) {
+  const now = new Date();
+
+  return new Date(
+    now.getFullYear(),
+    now.getMonth() + offset,
+    1
+  );
+}
+
+
+// ============================================================
+// String / URL helpers
+// ============================================================
+
+function cleanText_(text) {
+  return String(text || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function stripHtml_(html) {
+  return cleanText_(
+    decodeBasicEntities_(
+      String(html || '').replace(/<[^>]+>/g, ' ')
+    )
+  );
+}
+
+function decodeBasicEntities_(text) {
+  return String(text || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ');
+}
+
+function absoluteUrl_(href, base) {
+  if (!href) return '';
+
+  if (/^https?:\/\//i.test(href)) {
+    return href;
+  }
+
+  if (href.startsWith('//')) {
+    return 'https:' + href;
+  }
+
+  if (href.startsWith('/')) {
+    return base.replace(/\/$/, '') + href;
+  }
+
+  return (
+    base.replace(/\/$/, '') +
+    '/' +
+    href.replace(/^\//, '')
+  );
+}
+
+function canonicalizeUrl_(url) {
+  let s = cleanText_(url);
+  if (!s) return s;
+
+  // 追跡系パラメータのみ除去。
+  // dy/page等、意味のあるパラメータは残す。
+  s = s.replace(
+    /([?&])(utm_[^=&]+|source|ima)=[^&#]*/gi,
+    '$1'
+  );
+
+  s = s
+    .replace('?&', '?')
+    .replace(/&&+/g, '&')
+    .replace(/[?&]+$/, '');
+
+  return s;
+}
+
+function truncate_(text, maxLen) {
+  const s = String(text || '');
+
+  return s.length <= maxLen
+    ? s
+    : s.slice(0, maxLen - 1) + '…';
+}
+
+function firstNonEmpty_() {
+  for (let i = 0; i < arguments.length; i++) {
+    const s = cleanText_(arguments[i]);
+    if (s) return s;
+  }
+
+  return '';
+}
+
+function firstExisting_() {
+  for (let i = 0; i < arguments.length; i++) {
+    const obj = arguments[i];
+    if (obj && obj.length) return obj;
+  }
+
+  return null;
+}
+
+
+// ============================================================
+// Validation
+// ============================================================
+
+function validateBaseConfig_() {
+  const props = PropertiesService.getScriptProperties();
+
+  if (!props.getProperty('NOTION_TOKEN')) {
+    throw new Error(
+      'Script Properties に NOTION_TOKEN を設定してください。'
+    );
+  }
+}
+
+function ensureCheerio_() {
+  if (typeof Cheerio === 'undefined') {
+    throw new Error(
+      'Cheerio library が見つかりません。' +
+      'GASプロジェクトにCheerioを追加してください。'
+    );
+  }
+}
