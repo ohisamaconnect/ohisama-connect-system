@@ -1,6 +1,6 @@
 /**
  * OC-OS MESSAGES / Gmail Label Gate PREVIEW
- * v0.1.0-preview (2026-09-25)
+ * v0.1.1-preview (2026-09-25)
  *
  * Canonical boundary:
  * - Gmail label "OC-OS/MESSAGES" is the only Production-entry gate.
@@ -22,7 +22,7 @@
  */
 
 const OC_MESSAGES_GMAIL_PREVIEW_V01 = Object.freeze({
-  VERSION: '0.1.0-preview',
+  VERSION: '0.1.1-preview',
   LABEL_NAME: 'OC-OS/MESSAGES',
   OWN_DOMAIN: '@ohisamaconnect.com',
   NOTION_DATA_SOURCE_ID: '4e56b186-74b3-4ee9-87a8-048a1b7cc650',
@@ -109,6 +109,7 @@ function previewLabeledGmailMessagesV01() {
         subject: parsed.subject,
         bodyPreview: parsed.bodyPreview,
         attachmentCount: parsed.attachmentCount,
+        attachmentNames: parsed.attachmentNames,
         externalMessageId: parsed.externalMessageId,
         threadId: parsed.threadId,
         gmailUrl: parsed.gmailUrl
@@ -142,10 +143,9 @@ function readLabeledGmailMessageV01_(message, thread) {
   const messageId = message.getId();
   const threadId = thread.getId();
   const body = String(message.getPlainBody() || '').trim();
-  const attachments = message.getAttachments({
-    includeInlineImages: false,
-    includeAttachments: true
-  });
+  // GmailApp advanced attachment filters can miss image files in some MIME layouts.
+  // For Attachment_Count we want every attached file payload, so use the default getter.
+  const attachments = message.getAttachments();
 
   return {
     sourceKey: 'GMAIL:' + messageId,
@@ -162,6 +162,7 @@ function readLabeledGmailMessageV01_(message, thread) {
     body: body,
     bodyPreview: body.replace(/\s+/g, ' ').slice(0, 350),
     attachmentCount: attachments.length,
+    attachmentNames: attachments.map(a => String(a.getName() || '')).filter(Boolean),
     externalMessageId: messageId,
     threadId: threadId,
     gmailUrl: 'https://mail.google.com/mail/u/0/#all/' + threadId
