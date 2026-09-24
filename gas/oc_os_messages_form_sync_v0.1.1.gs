@@ -1,6 +1,6 @@
 /**
  * OC-OS MESSAGES / Google Form -> Notion
- * v0.1.0 (2026-09-24)
+ * v0.1.1 (2026-09-24)
  *
  * Purpose:
  * - New Google Form responses are inserted into Notion MESSAGES.
@@ -13,7 +13,7 @@
  */
 
 const OC_MESSAGES_V01 = Object.freeze({
-  VERSION: '0.1.0',
+  VERSION: '0.1.1',
   SPREADSHEET_ID: '1QSt6EzXEjOOsK-LAszW5bGxtLRZWpfTBCcVqvpPgOE8',
   SHEET_NAME: 'フォームの回答 1',
   NOTION_DATA_SOURCE_ID: '4e56b186-74b3-4ee9-87a8-048a1b7cc650',
@@ -196,24 +196,43 @@ function normalizeBroadcastPermissionV01_(raw) {
 }
 
 function extractRequestSongTextV01_(messageType, body) {
-  if (String(messageType || '').indexOf('楽曲リクエスト') < 0) return '';
-
   const lines = String(body || '')
     .split(/\r?\n/)
     .map(s => s.trim())
     .filter(Boolean);
 
-  const marker = lines.findIndex(s => s.indexOf('リクエスト曲') >= 0);
+  if (!lines.length) return '';
+
   const picked = [];
+  let marker = lines.findIndex(s => s.indexOf('リクエスト曲') >= 0);
+
+  // お便り種別が「楽曲リクエスト」でなくても、本文中に
+  // 「リクエスト曲」と明示されていれば抽出対象にする。
+  if (marker < 0) {
+    marker = lines.findIndex(s => /(?:リクエスト|希望)(?:します|させて|お願い)/.test(s));
+  }
 
   if (marker >= 0) {
-    for (let i = marker + 1; i < Math.min(lines.length, marker + 6); i++) {
-      if (/^(あさくら|アサクラ|こんばんは|こんにちは)/.test(lines[i])) break;
-      picked.push(lines[i]);
+    // 「三輪車に乗りたいを希望します」のように同一行で完結する場合。
+    // 説明文や「3曲をリクエストします」のような文は曲名として扱わない。
+    const sameLine = lines[marker].match(/^(.{1,120}?)を(?:リクエスト|希望)(?:します|させてください|お願いします)?[！!。.]?$/);
+    if (sameLine && sameLine[1]) {
+      const candidate = sameLine[1].trim();
+      if (candidate.length <= 60 && !/[、。]/.test(candidate) && !/\d+\s*曲/.test(candidate)) {
+        picked.push(candidate);
+      }
+    }
+
+    if (!picked.length) {
+      for (let i = marker + 1; i < Math.min(lines.length, marker + 8); i++) {
+        if (/^(あさくら|アサクラ|こんばんは|こんにちは|よろしく)/.test(lines[i])) break;
+        picked.push(lines[i]);
+      }
     }
   }
 
-  if (!picked.length) picked.push.apply(picked, lines.slice(0, 3));
+  // 種別が楽曲リクエストでも曲名を安全に抽出できない場合は、
+  // 誤った曲名候補を作らず空欄にする。本文はMESSAGEページで確認できる。
   return picked.join(' / ').slice(0, 300);
 }
 
