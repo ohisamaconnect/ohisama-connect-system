@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ohisamaconnect.com/schemas/oc_os_publication_draft_v1.schema.json",
+  "title": "OC-OS PUBLICATIONS Draft Artifact v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generator_version",
+    "episode_key",
+    "source_transcript_url",
+    "output_type",
+    "platform",
+    "title_candidates",
+    "ai_draft_text",
+    "longform_markdown",
+    "notes_for_human"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "generator_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "episode_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_transcript_url": {
+      "type": "string"
+    },
+    "output_type": {
+      "enum": ["トーク音声", "ショーノート", "SNS投稿", "オーディオグラム", "その他"]
+    },
+    "platform": {
+      "enum": ["未定", "Spotify", "note", "X", "Instagram", "YouTube", "その他"]
+    },
+    "title_candidates": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "ai_draft_text": {
+      "type": "string"
+    },
+    "longform_markdown": {
+      "type": "string"
+    },
+    "notes_for_human": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}
