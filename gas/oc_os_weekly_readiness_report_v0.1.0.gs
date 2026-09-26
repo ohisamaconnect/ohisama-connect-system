@@ -55,7 +55,7 @@ function reportWeeklyReadinessV01() {
   const statementCounts = readinessV01CountSelect_(statements, 'Review_Status');
   const publicationCounts = readinessV01CountSelect_(publications, 'Publication_Status');
   const studioStatusCounts = actuals
-    ? readinessV01CountSelect_(actuals.allItems || [], 'Studio_Status')
+    ? readinessV01CountPlain_(actuals.allItems || [], 'status')
     : {};
 
   const report = {
@@ -106,7 +106,14 @@ function reportWeeklyReadinessV01() {
       readyToPublishCount: publicationCounts['公開準備済'] || 0,
       publishedCount: publicationCounts['公開済'] || 0
     },
-    signals: readinessV01BuildSignals_(episode, post, transcript, actuals, statementCounts, publicationCounts)
+    signals: readinessV01BuildSignals_(
+      episode,
+      post,
+      transcript,
+      actuals,
+      statementCounts,
+      publicationCounts
+    )
   };
 
   console.log('========================================');
@@ -118,7 +125,14 @@ function reportWeeklyReadinessV01() {
   return report;
 }
 
-function readinessV01BuildSignals_(episode, post, transcript, actuals, statementCounts, publicationCounts) {
+function readinessV01BuildSignals_(
+  episode,
+  post,
+  transcript,
+  actuals,
+  statementCounts,
+  publicationCounts
+) {
   const signals = [];
   const status = readinessV01Select_(episode.properties['Production_Status']);
 
@@ -175,6 +189,14 @@ function readinessV01BuildSignals_(episode, post, transcript, actuals, statement
       code: 'PUBLICATION_READY',
       message: '公開準備済のPUBLICATIONがある。公開は人間判断で実施する。count=' +
         publicationCounts['公開準備済']
+    });
+  }
+
+  if (actuals && !(actuals.allItems || []).length) {
+    signals.push({
+      level: 'NOTICE',
+      code: 'NO_STUDIO_ITEMS',
+      message: '対象EPISODEにSTUDIO ITEMSがない。収録前なら正常。'
     });
   }
 
@@ -239,9 +261,18 @@ function readinessV01QueryRelated_(dataSourceId, relationProperty, pageId) {
 function readinessV01CountSelect_(pages, propertyName) {
   const out = {};
   (pages || []).forEach(p => {
-    const props = p.properties || p;
+    const props = p.properties || {};
     const name = readinessV01Select_(props[propertyName]);
     const key = name || '(blank)';
+    out[key] = (out[key] || 0) + 1;
+  });
+  return out;
+}
+
+function readinessV01CountPlain_(rows, propertyName) {
+  const out = {};
+  (rows || []).forEach(row => {
+    const key = String((row && row[propertyName]) || '(blank)');
     out[key] = (out[key] || 0) + 1;
   });
   return out;
