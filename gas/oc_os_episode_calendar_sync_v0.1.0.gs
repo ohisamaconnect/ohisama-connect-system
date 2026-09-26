@@ -2,6 +2,9 @@
  * OC-OS EPISODE Calendar Sync
  * v0.1.0-preview (2026-09-26)
  *
+ * STATUS: CURRENT / Canonical operation candidate.
+ * Legacy predecessor: oc_os_calendar_bridge_v0.1.0.gs (DO NOT RUN).
+ *
  * Mirror EPISODES Recording_Date / Air_Date to the writable
  * "おひさまコネクト" Google Calendar.
  *
@@ -15,7 +18,7 @@
  * Optional Script Properties:
  * - OC_CALENDAR_ID       default labo@ohisamaconnect.com
  * - OC_AIR_START_TIME    default 19:30
- * - OC_AIR_DURATION_MIN  default 30
+ * - OC_AIR_DURATION_MIN  default 28
  */
 
 const OC_EPISODE_CALENDAR_V01 = Object.freeze({
@@ -26,7 +29,7 @@ const OC_EPISODE_CALENDAR_V01 = Object.freeze({
   TARGET_KEY_PROPERTY: 'OC_TARGET_EPISODE_KEY',
   DEFAULT_CALENDAR_ID: 'labo@ohisamaconnect.com',
   DEFAULT_AIR_START_TIME: '19:30',
-  DEFAULT_AIR_DURATION_MIN: 30
+  DEFAULT_AIR_DURATION_MIN: 28
 });
 
 /** Read-only preview. */
