@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0",
+  "policy": {
+    "explicit_alias_only": true,
+    "preserve_spoken_connectives": true,
+    "do_not_expand_surnames_to_full_names": true,
+    "boundary_repairs_must_be_explicit": true
+  },
+  "fixed_terms": [
+    "おひさまコネクト",
+    "おひさま",
+    "あさくらじゅん",
+    "DARAZ FM",
+    "米子市",
+    "米子市役所",
+    "鳥取県",
+    "山陰",
+    "ラヴィット！",
+    "TVer"
+  ],
+  "aliases": [
+    {"from":"お日様コネクト","to":"おひさまコネクト","kind":"oc"},
+    {"from":"お日様","to":"おひさま","kind":"oc"},
+    {"from":"朝倉潤","to":"あさくらじゅん","kind":"oc"},
+    {"from":"夜名護市役所","to":"米子市役所","kind":"oc"},
+    {"from":"夜名護","to":"米子","kind":"oc"},
+    {"from":"たとりけん","to":"鳥取県","kind":"oc"},
+    {"from":"サインと日向坂46","to":"山陰と日向坂46","kind":"oc"},
+    {"from":"サインで日向坂46","to":"山陰で日向坂46","kind":"oc"},
+    {"from":"ヘイ、お日様","to":"HEY!OHISAMA!","kind":"song"},
+    {"from":"平尾穂乃香","to":"平尾帆夏","kind":"member"}
+  ],
+  "boundary_repairs": [
+    {
+      "left":"今。",
+      "right_prefix":"週の1曲目",
+      "replacement_left":"",
+      "replacement_right_prefix":"今週の1曲目",
+      "reason":"Episode 78 confirmed ASR split across a silenced full-size song"
+    }
+  ]
+}
