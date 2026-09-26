@@ -24,6 +24,7 @@
 5. 情報番組のニュース要約のような文章へ変えないでください。
 6. 日向坂46に関する外部事実が必要でも、入力にない事実を補足しないでください。
 7. 不明な点は書かず、素材不足を埋めるための創作をしないでください。
+8. `publication_key` は入力値を1文字も変更せず、そのまま返してください。別の公開枠を推測してはいけません。
 
 ## Output Type Rule
 
@@ -70,6 +71,7 @@
   "schema_version": "1.0",
   "generator_version": "publication-draft-prompt-v1.0",
   "episode_key": "<INPUT_EPISODE_KEY>",
+  "publication_key": "<INPUT_PUBLICATION_KEY>",
   "source_transcript_url": "<INPUT_TRANSCRIPT_URL>",
   "output_type": "SNS投稿",
   "platform": "X",
@@ -91,6 +93,9 @@
 
 ```text
 EPISODE_KEY:
+<value>
+
+PUBLICATION_KEY:
 <value>
 
 OUTPUT_TYPE:
@@ -121,3 +126,4 @@ OPTIONAL_CONSTRAINTS:
 - 放送内容を単なるニュース要約へ変えていないか
 - AI案を最終成果物扱いしていないか
 - 0から新しい主張を作っていないか
+- `publication_key` を入力値から変更していないか
