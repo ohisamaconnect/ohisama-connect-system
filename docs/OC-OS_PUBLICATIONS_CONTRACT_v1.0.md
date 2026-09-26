@@ -35,9 +35,10 @@ Output_Type          トーク音声 / ショーノート / SNS投稿 / オー�
 Platform             未定 / Spotify / note / X / Instagram / YouTube / その他
 Publication_Status   未着手 / 下書き / 確認待ち / 公開準備済 / 公開済 / 見送り
 Origin               手動 / AI下書き
+AI_Draft_Text         AIが作成した短文案。人間承認前の素材
+Final_Text            人間が採用・修正した最終短文。AIが自動確定しない
 Draft_URL             下書きのGoogle Docs/Drive等
 Public_URL            実際に公開されたURL
-Final_Text            短文成果物の最終本文。長文はDraft_URL側を正本にしてよい
 Scheduled_At          公開予定日時
 Published_At          実公開日時
 Source_Transcript_URL 下書き生成時の正式Transcript
@@ -95,11 +96,27 @@ AIがしてはいけないこと:
 
 - 放送で言っていない内容を本人の発言として追加する
 - 発言の意味を都合よく美文化する
+- AI案を `Final_Text` に直接確定する
 - `公開準備済` / `公開済` を自動確定する
 - 外部サービスへ自動公開する
 - 人間の最終判断なしにPublication_Statusを承認段階へ進める
 
-AI生成時は `Origin = AI下書き`、`Generator_Version`、`Draft_Generated_At`、`Source_Transcript_URL` を残す。
+AI生成時は `Origin = AI下書き`、`AI_Draft_Text` または `Draft_URL`、`Generator_Version`、`Draft_Generated_At`、`Source_Transcript_URL` を残す。
+
+短文の場合:
+
+```text
+AI → AI_Draft_Text
+人間確認・修正 → Final_Text
+```
+
+長文の場合:
+
+```text
+AI → Google Docs等のDraft
+    → Draft_URL
+人間確認・修正 → 同Draft上で確定
+```
 
 ## 7. Talk Audio Rule
 
@@ -117,11 +134,11 @@ note等の長文成果物はGoogle Docs等をDraft正本にできる。
 
 PUBLICATIONSには `Draft_URL` を保持し、公開後に `Public_URL` を追加する。
 
-`Final_Text` は長文全文の重複保存を必須としない。
+`AI_Draft_Text` / `Final_Text` に長文全文を重複保存することは必須ではない。
 
 ## 9. SNS Rule
 
-SNS投稿は短文なら `Final_Text` を正本として保持できる。
+SNS投稿は短文なら、AI案を `AI_Draft_Text`、人間が採用・修正した本文を `Final_Text` に保持する。
 
 画像・動画・オーディオグラムの実体はGoogle Drive等に置き、必要に応じて `Draft_URL` から参照する。
 
