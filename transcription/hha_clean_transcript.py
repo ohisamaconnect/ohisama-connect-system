@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OC-OS HHA-grounded Transcript Cleanup v0.1.0
+OC-OS HHA-grounded Transcript Cleanup v0.1.1
 
 Input:
   *_TRANSCRIPT.json produced by the coverage-first transcription pipeline.
@@ -15,19 +15,22 @@ Principles:
 - Never modify the machine evidence in TRANSCRIPT.json.
 - Automatic replacement is allowed ONLY for an explicit alias whose target is
   present in the HHA-grounded canonical term file.
-- Fuzzy matching is suggestion-only and never rewrites text.
-- No semantic summarization, paraphrasing, or invention.
+- No fuzzy matching is used in the operational cleanup path.
+- A surname-only utterance must remain surname-only unless an explicit alias
+  proves it was an ASR error.
+- Conjunctions, modifiers, and ordinary spoken context around a name are part
+  of the utterance and must be preserved.
+- No semantic summarization, paraphrasing, completion, or invention.
 """
 
 from __future__ import annotations
 
 import argparse
-import difflib
 import json
 import re
 from pathlib import Path
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 
 def format_clock(seconds: float) -> str:
@@ -120,48 +123,6 @@ def apply_aliases(text: str, aliases: list[dict]) -> tuple[str, list[dict]]:
     return out, applied
 
 
-def extract_member_like_phrases(text: str) -> list[str]:
-    """Extract short strings immediately before さん for suggestion-only review."""
-    candidates = []
-    # Deliberately conservative: Japanese/ASCII letters only, 2-10 chars.
-    pattern = re.compile(r"([一-龯々〆ヵヶぁ-んァ-ヶーA-Za-z0-9]{2,10})さん")
-    for match in pattern.finditer(text):
-        value = match.group(1)
-        if value not in candidates:
-            candidates.append(value)
-    return candidates
-
-
-def member_suggestions(text: str, member_names: list[str], threshold: float) -> list[dict]:
-    suggestions = []
-
-    for observed in extract_member_like_phrases(text):
-        if observed in member_names:
-            continue
-
-        scored = []
-        for canonical in member_names:
-            ratio = difflib.SequenceMatcher(None, observed, canonical).ratio()
-            # Same surname/first character is useful for Japanese ASR mistakes.
-            if observed and canonical and observed[0] == canonical[0]:
-                ratio += 0.08
-            scored.append((ratio, canonical))
-
-        scored.sort(reverse=True)
-        if not scored:
-            continue
-
-        score, canonical = scored[0]
-        if score >= threshold:
-            suggestions.append({
-                "observed": observed,
-                "candidate": canonical,
-                "score": round(score, 3),
-            })
-
-    return suggestions
-
-
 def write_clean(path: Path, segments: list[dict]) -> None:
     lines = []
     for seg in segments:
@@ -174,7 +135,7 @@ def write_clean(path: Path, segments: list[dict]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="OC-OS HHA-grounded Transcript Cleanup v0.1.0"
+        description="OC-OS HHA-grounded Transcript Cleanup v0.1.1"
     )
     parser.add_argument("transcript_json", type=Path)
     parser.add_argument(
@@ -182,12 +143,6 @@ def main() -> int:
         type=Path,
         default=None,
         help="Default: hha_transcription_terms.json beside this script",
-    )
-    parser.add_argument(
-        "--suggest-threshold",
-        type=float,
-        default=0.64,
-        help="Suggestion-only fuzzy member threshold; never auto-rewrites.",
     )
     args = parser.parse_args()
 
@@ -213,16 +168,12 @@ def main() -> int:
     if not source_segments:
         raise RuntimeError("TRANSCRIPT.json has no clean_segments/raw_segments")
 
-    member_names = [compact_member_name(x["name"]) for x in terms.get("members", [])]
-
     output_segments = []
     applied_log = []
-    suggestion_log = []
 
     for seg in source_segments:
         original = str(seg.get("text", ""))
         corrected, applied = apply_aliases(original, aliases)
-        suggestions = member_suggestions(corrected, member_names, args.suggest_threshold)
 
         out_seg = {
             "start": float(seg["start"]),
@@ -238,14 +189,6 @@ def main() -> int:
                 "before": original,
                 "after": corrected,
                 "replacements": applied,
-            })
-
-        if suggestions:
-            suggestion_log.append({
-                "start": out_seg["start"],
-                "end": out_seg["end"],
-                "text": corrected,
-                "suggestions": suggestions,
             })
 
     base_name = transcript_path.name
@@ -265,6 +208,7 @@ def main() -> int:
         "OC-OS HHA-GROUNDED TRANSCRIPT CORRECTION REPORT",
         f"version: {VERSION}",
         f"terms: {terms_path}",
+        "policy: explicit aliases only; fuzzy matching disabled",
         "",
         "[Automatic replacements: explicit aliases only]",
     ]
@@ -285,25 +229,6 @@ def main() -> int:
                 )
             report_lines.append("")
 
-    report_lines.extend([
-        "[Suggestion-only fuzzy member candidates]",
-        "These are NOT applied automatically.",
-    ])
-
-    if not suggestion_log:
-        report_lines.append("none")
-    else:
-        for item in suggestion_log:
-            report_lines.append(
-                f"{format_clock(item['start'])} --> {format_clock(item['end'])} :: {item['text']}"
-            )
-            for suggestion in item["suggestions"]:
-                report_lines.append(
-                    f"  ? {suggestion['observed']} -> {suggestion['candidate']} "
-                    f"score={suggestion['score']:.3f}"
-                )
-            report_lines.append("")
-
     report_path.write_text("\n".join(report_lines) + "\n", encoding="utf-8")
 
     corrections_payload = {
@@ -311,9 +236,13 @@ def main() -> int:
         "version": VERSION,
         "source_transcript": str(transcript_path),
         "terms_file": str(terms_path),
-        "policy": terms.get("policy", {}),
+        "policy": {
+            "automatic_replacement_requires_explicit_alias": True,
+            "fuzzy_matching_enabled": False,
+            "preserve_surname_only_utterances": True,
+            "preserve_spoken_context_around_names": True,
+        },
         "automatic_replacements": applied_log,
-        "suggestion_only": suggestion_log,
         "output_segments": output_segments,
     }
     corrections_path.write_text(
@@ -323,7 +252,7 @@ def main() -> int:
 
     print("HHA-grounded cleanup complete")
     print(f"automatic replacement segments: {len(applied_log)}")
-    print(f"suggestion-only segments       : {len(suggestion_log)}")
+    print("fuzzy suggestions              : disabled")
     print(f"CLEAN_HHA : {clean_path}")
     print(f"REPORT    : {report_path}")
     print(f"JSON      : {corrections_path}")
