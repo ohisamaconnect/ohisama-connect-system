@@ -7,7 +7,7 @@
  * - Create exactly one human-facing Google Doc in EPISODE/TRANSCRIPT root
  *   from exactly one *_CLEAN_HHA.txt.
  * - Leave EPISODES.Transcript_URL synchronization to
- *   oc_os_post_recording_intake_v0.2.0.gs.
+ *   oc_os_post_recording_integrator_v0.1.0.gs.
  *
  * Canonical structure:
  *   EPISODE/
@@ -31,17 +31,23 @@
  * - Correct confirmed ASR errors through Alias / explicit boundary rules,
  *   rerun the pipeline, then deliberately regenerate the Doc.
  *
+ * Target safety:
+ * - Preview may fall back to nearest Recording_Date when OC_TARGET_EPISODE_KEY
+ *   is absent.
+ * - Drive/Doc WRITE requires OC_TARGET_EPISODE_KEY.
+ *
  * Safety:
  * - Does NOT transcribe.
  * - Does NOT edit machine evidence.
  * - Does NOT update Notion.
  * - Does NOT overwrite or replace an existing formal Google Doc.
- * - Does NOT move files automatically.
+ * - Does NOT move machine files automatically.
  * - No trigger is installed.
  *
- * Required Script Property:
+ * Required Script Properties:
  * - NOTION_API_TOKEN (preferred)
  *   Fallbacks: NOTION_TOKEN / NOTION_SECRET
+ * - OC_TARGET_EPISODE_KEY for WRITE (example: 2026-10-04)
  */
 
 const OC_TRANSCRIPT_MATERIALIZER_V01 = Object.freeze({
@@ -51,18 +57,22 @@ const OC_TRANSCRIPT_MATERIALIZER_V01 = Object.freeze({
   EPISODES_DS: '163867a7-e71c-44d6-8fd3-333c2810746c',
   TRANSCRIPT_FOLDER: 'TRANSCRIPT',
   MACHINE_FOLDER: 'MACHINE',
+  TARGET_KEY_PROPERTY: 'OC_TARGET_EPISODE_KEY',
   TARGET_STATUSES: ['準備中', '収録準備済', '収録済', '放送済'],
   MAX_EPISODES: 50
 });
 
 /** Read-only preview. */
 function previewTranscriptMaterializerV01() {
-  const episode = transcriptV01GetTargetEpisode_();
+  const resolved = transcriptV01ResolveEpisode_(false);
+  const episode = resolved.episode;
   const plan = transcriptV01BuildPlan_(episode);
 
   const out = {
     write: 'NONE',
     version: OC_TRANSCRIPT_MATERIALIZER_V01.VERSION,
+    targetMode: resolved.mode,
+    explicitTargetKey: resolved.requestedKey,
     episodeKey: transcriptV01Title_(episode.properties['Episode_Key']),
     episodeId: transcriptV01Text_(episode.properties['Episode_ID']),
     recordingDate: transcriptV01DateStart_(episode.properties['Recording_Date']),
@@ -95,9 +105,11 @@ function previewTranscriptMaterializerV01() {
 /**
  * Creates TRANSCRIPT/MACHINE if missing.
  * Does not move any existing file.
+ * WRITE requires explicit OC_TARGET_EPISODE_KEY.
  */
 function ensureTranscriptMachineFolderV01() {
-  const episode = transcriptV01GetTargetEpisode_();
+  const resolved = transcriptV01ResolveEpisode_(true);
+  const episode = resolved.episode;
   const episodeFolder = transcriptV01GetEpisodeFolder_(episode);
   const transcriptFolder = transcriptV01GetOrCreateChildFolder_(
     episodeFolder,
@@ -131,15 +143,17 @@ function ensureTranscriptMachineFolderV01() {
  * in TRANSCRIPT/MACHINE.
  *
  * The function stops rather than guessing when:
+ * - OC_TARGET_EPISODE_KEY is not explicitly set
  * - TRANSCRIPT/MACHINE is missing
  * - CLEAN_HHA count is not exactly one
  * - a formal Google Doc already exists in TRANSCRIPT root
  *
- * After review, run syncPostRecordingLinksV02() from the existing
- * Post-Recording Intake module to populate EPISODES.Transcript_URL.
+ * After review, run previewPostRecordingIntegrationV01() and then
+ * syncPostRecordingIntegrationV01() to populate EPISODES.Transcript_URL.
  */
 function materializeFormalTranscriptDocV01() {
-  const episode = transcriptV01GetTargetEpisode_();
+  const resolved = transcriptV01ResolveEpisode_(true);
+  const episode = resolved.episode;
   const plan = transcriptV01BuildPlan_(episode);
 
   if (!plan.transcriptFolder || !plan.machineFolder) {
@@ -211,7 +225,7 @@ function materializeFormalTranscriptDocV01() {
     episodeKey: episodeKey,
     sourceCleanHha: sourceSummary,
     formalTranscript: transcriptV01FileSummary_(docFile),
-    nextAction: 'Review Doc, then run syncPostRecordingLinksV02().',
+    nextAction: 'Review Doc, then run previewPostRecordingIntegrationV01().',
     warnings: plan.warnings
   };
 
@@ -347,6 +361,53 @@ function transcriptV01FileSummary_(f) {
 /* =========================================================
  * EPISODE / DRIVE
  * ========================================================= */
+
+function transcriptV01ResolveEpisode_(requireExplicit) {
+  const key = String(
+    PropertiesService.getScriptProperties().getProperty(
+      OC_TRANSCRIPT_MATERIALIZER_V01.TARGET_KEY_PROPERTY
+    ) || ''
+  ).trim();
+
+  if (key) {
+    const pages = transcriptV01QueryAll_(
+      OC_TRANSCRIPT_MATERIALIZER_V01.EPISODES_DS,
+      {
+        filter: {
+          property: 'Episode_Key',
+          title: { equals: key }
+        },
+        page_size: 10
+      }
+    );
+
+    if (pages.length !== 1) {
+      throw new Error(
+        'OC_TARGET_EPISODE_KEY=' + key +
+        ' に一致するEPISODEが1件ではありません。count=' + pages.length
+      );
+    }
+
+    return {
+      episode: pages[0],
+      mode: 'EXPLICIT_KEY',
+      requestedKey: key
+    };
+  }
+
+  if (requireExplicit) {
+    throw new Error(
+      'WRITEにはScript Property OC_TARGET_EPISODE_KEY が必要です。' +
+      '例: 2026-10-04'
+    );
+  }
+
+  return {
+    episode: transcriptV01GetTargetEpisode_(),
+    mode: 'PREVIEW_NEAREST_RECORDING_DATE',
+    requestedKey: ''
+  };
+}
 
 function transcriptV01GetTargetEpisode_() {
   const filters = OC_TRANSCRIPT_MATERIALIZER_V01.TARGET_STATUSES.map(s => ({
@@ -486,6 +547,14 @@ function transcriptV01Title_(prop) {
 
 function transcriptV01Text_(prop) {
   if (!prop) return '';
+
+  if (prop.unique_id && typeof prop.unique_id.number === 'number') {
+    const prefix = String(prop.unique_id.prefix || '').trim();
+    return prefix
+      ? prefix + '-' + prop.unique_id.number
+      : String(prop.unique_id.number);
+  }
+
   const a = prop.rich_text || prop.title;
   return Array.isArray(a) ? a.map(x => x.plain_text || '').join('') : '';
 }
