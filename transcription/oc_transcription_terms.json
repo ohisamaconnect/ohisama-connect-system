@@ -1,5 +1,5 @@
 {
-  "version": "0.1.3",
+  "version": "0.1.4",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -25,7 +25,9 @@
     "ラヴィット！",
     "TVer",
     "米子と日向坂46繋げていきます",
-    "米子とおひさま繋げていきます"
+    "米子とおひさま繋げていきます",
+    "五期生",
+    "ツアーや新参者"
   ],
   "aliases": [
     {"from":"お日様コネクト","to":"おひさまコネクト","kind":"oc"},
@@ -47,7 +49,9 @@
     {"from":"ヘイ、お日様","to":"HEY!OHISAMA!","kind":"song"},
     {"from":"平尾穂乃香","to":"平尾帆夏","kind":"member"},
     {"from":"よなごとひなつだかOT6つなげていきます","to":"米子と日向坂46繋げていきます","kind":"oc"},
-    {"from":"よなごとおひさまつなげていきます","to":"米子とおひさま繋げていきます","kind":"oc"}
+    {"from":"よなごとおひさまつなげていきます","to":"米子とおひさま繋げていきます","kind":"oc"},
+    {"from":"ご規制","to":"五期生","kind":"oc"},
+    {"from":"ツヤや新山もの","to":"ツアーや新参者","kind":"oc"}
   ],
   "boundary_repairs": [
     {
