@@ -24,32 +24,62 @@ EPISODES.Public_URLは代表URLまたは旧互換のショートカットとし�
 - AI/GASは `Publication_Status = 公開準備済` または `公開済` を勝手に設定しない。
 - 実際に公開されるまで `Public_URL` を作ったことにしない。
 - 外部公開物が存在しない回も正常とする。
+- AI再生成によってPUBLICATIONSレコードを増殖させない。
+- 既存の人間編集・Final_Text・公開済情報をAI再生成で上書きしない。
 
 ## 3. Schema
 
 ```text
-Publication          TITLE
-Publication_ID       UNIQUE_ID (PUB-)
-Episode              RELATION -> EPISODES
-Output_Type          トーク音声 / ショーノート / SNS投稿 / オーディオグラム / その他
-Platform             未定 / Spotify / note / X / Instagram / YouTube / その他
-Publication_Status   未着手 / 下書き / 確認待ち / 公開準備済 / 公開済 / 見送り
-Origin               手動 / AI下書き
-AI_Draft_Text         AIが作成した短文案。人間承認前の素材
-Final_Text            人間が採用・修正した最終短文。AIが自動確定しない
-Draft_URL             下書きのGoogle Docs/Drive等
-Public_URL            実際に公開されたURL
-Scheduled_At          公開予定日時
-Published_At          実公開日時
-Source_Transcript_URL 下書き生成時の正式Transcript
-Generator_Version     AI生成Prompt/Generatorの版
-Draft_Generated_At    AI下書き生成日時
-Human_Memo            人間の補足
+Publication             TITLE
+Publication_ID          UNIQUE_ID (PUB-)
+Episode                 RELATION -> EPISODES
+Publication_Key         公開物自体の安定ID。Episode + Output_Type + Platform等から構成
+Draft_Key               現在のAI下書き生成物を識別するキー
+Output_Type             トーク音声 / ショーノート / SNS投稿 / オーディオグラム / その他
+Platform                未定 / Spotify / note / X / Instagram / YouTube / その他
+Publication_Status      未着手 / 下書き / 確認待ち / 公開準備済 / 公開済 / 見送り
+Origin                  手動 / AI下書き
+AI_Title_Candidates     AIが提案したタイトル候補。確定タイトルではない
+AI_Draft_Text           AIが作成した短文案。人間承認前の素材
+AI_Review_Notes         事実確認・要確認・Transcript外推論回避等の補助メモ
+Final_Text              人間が採用・修正した最終短文。AIが自動確定しない
+Draft_URL               下書きのGoogle Docs/Drive等
+Public_URL              実際に公開されたURL
+Scheduled_At            公開予定日時
+Published_At            実公開日時
+Source_Transcript_URL   下書き生成時の正式Transcript
+Generator_Version       AI生成Prompt/Generatorの版
+Draft_Generated_At      AI下書き生成日時
+Human_Memo              人間の補足
 Created_Time
 Last_Edited
 ```
 
-## 4. Views
+## 4. Identity Rule
+
+### Publication_Key
+
+1つの「公開物」を識別する恒久キー。例:
+
+```text
+2026-10-04|ショーノート|note
+2026-10-04|SNS投稿|X
+2026-10-04|トーク音声|Spotify
+```
+
+同一Publication_KeyのPUBLICATIONSレコードは原則1件とする。
+
+### Draft_Key
+
+同じ公開物について、どの入力とGeneratorで生成したAI下書きかを識別する版キー。
+
+```text
+Publication_Key + Source Transcript + Generator Version + draft artifact identity
+```
+
+AI再生成時にDraft_Keyが変わっても、新しいPUBLICATIONSレコードを自動作成しない。既存Publication_Keyがある場合はPreviewで差分候補として扱い、人間確認なしに既存AI_Draft_Textを置換しない。
+
+## 5. Views
 
 ```text
 00｜進行管理     Publication_StatusでBoard管理
@@ -57,7 +87,7 @@ Last_Edited
 20｜公開済       実際に公開されたもの
 ```
 
-## 5. Status Rule
+## 6. Status Rule
 
 ### 未着手
 
@@ -83,7 +113,7 @@ Last_Edited
 
 その成果物を今回は公開しないと人間が判断した状態。
 
-## 6. AI Draft Rule
+## 7. AI Draft Rule
 
 AIは以下を作成可能:
 
@@ -100,8 +130,10 @@ AIがしてはいけないこと:
 - `公開準備済` / `公開済` を自動確定する
 - 外部サービスへ自動公開する
 - 人間の最終判断なしにPublication_Statusを承認段階へ進める
+- HHAの事実を使って、実際に放送で言った内容を「訂正」する
+- Transcript外の感情を本人の感情として補う
 
-AI生成時は `Origin = AI下書き`、`AI_Draft_Text` または `Draft_URL`、`Generator_Version`、`Draft_Generated_At`、`Source_Transcript_URL` を残す。
+AI生成時は `Origin = AI下書き`、`AI_Draft_Text` または `Draft_URL`、`Generator_Version`、`Draft_Generated_At`、`Source_Transcript_URL`、`Publication_Key`、`Draft_Key` を残す。
 
 短文の場合:
 
@@ -118,7 +150,19 @@ AI → Google Docs等のDraft
 人間確認・修正 → 同Draft上で確定
 ```
 
-## 7. Talk Audio Rule
+## 8. Grounding Rule
+
+AI下書きの主な根拠は以下の順で扱う。
+
+1. 正式Transcript
+2. EPISODEのActuals（Events / Songs / Sources / Structure_Memo / Setlist_Memo）
+3. 人間が確定したSTATEMENTS
+
+HHAは表記・固有名詞・客観事項の確認補助には使えるが、「放送で何を言ったか」の根拠にはしない。
+
+Transcriptにない新しい一人称感情・感想・評価をAIが追加してはいけない。
+
+## 9. Talk Audio Rule
 
 著作権上、放送MASTER（楽曲込み）をそのまま公開用トーク音声として使用しない。
 
@@ -128,7 +172,7 @@ AI → Google Docs等のDraft
 
 公開用音声の編集・品質確認は別工程とする。
 
-## 8. Long-form Text Rule
+## 10. Long-form Text Rule
 
 note等の長文成果物はGoogle Docs等をDraft正本にできる。
 
@@ -136,7 +180,7 @@ PUBLICATIONSには `Draft_URL` を保持し、公開後に `Public_URL` を追�
 
 `AI_Draft_Text` / `Final_Text` に長文全文を重複保存することは必須ではない。
 
-## 9. SNS Rule
+## 11. SNS Rule
 
 SNS投稿は短文なら、AI案を `AI_Draft_Text`、人間が採用・修正した本文を `Final_Text` に保持する。
 
@@ -144,7 +188,19 @@ SNS投稿は短文なら、AI案を `AI_Draft_Text`、人間が採用・修正�
 
 Platformは作成時点で決めなくてもよく、`未定` を許可する。
 
-## 10. Relationship to EPISODE
+## 12. Import Safety
+
+Publication Draft Importerは次を守る。
+
+- WRITEには `OC_TARGET_EPISODE_KEY` を必須とする。
+- JSONのepisode_keyが対象EPISODEと一致しなければBLOCKする。
+- 新規Publication_Keyだけを自動作成対象とする。
+- 既存Publication_Keyは自動更新しない。
+- `Final_Text` / `Public_URL` / `Published_At` を自動設定しない。
+- AI生成レコードは `Publication_Status = 下書き`、`Origin = AI下書き` で作る。
+- AIが指定した `公開準備済` / `公開済` 等のStatusは受け付けない。
+
+## 13. Relationship to EPISODE
 
 ```text
 EPISODE
@@ -160,7 +216,7 @@ EPISODES.Public_URLは代表リンクを必要とする場合のみ利用する�
 
 複数PUBLICATIONSの存在からEPISODEのProduction_Statusを自動変更しない。
 
-## 11. Weekly Position
+## 14. Weekly Position
 
 ```text
 水曜 収録
