@@ -2,18 +2,21 @@
  * OC-OS PUBLICATIONS Plan Seeder
  * v0.1.0-preview (2026-09-26)
  *
- * Purpose:
+ * STATUS: LEGACY / DO NOT RUN.
+ * Superseded by: oc_os_publication_draft_importer_v0.1.0.gs
+ * Current contract: docs/OC-OS_PUBLICATIONS_CONTRACT_v1.0.md
+ *
+ * This file is retained only as implementation history.
+ * Its WRITE handler is intentionally blocked to prevent duplicate PUBLICATIONS records.
+ *
+ * Historical purpose:
  * - Create weekly PUBLICATIONS work slots only.
  * - Does NOT create copy/content, schedule publication, or publish externally.
  * - Does NOT change EPISODES.Production_Status.
- *
- * Required Script Properties:
- * - NOTION_API_TOKEN (preferred; NOTION_TOKEN / NOTION_SECRET fallback)
- * - OC_TARGET_EPISODE_KEY for WRITE
  */
 
 const OC_PUBLICATION_SEEDER_V01 = Object.freeze({
-  VERSION: '0.1.0-preview',
+  VERSION: '0.1.0-preview-LEGACY',
   NOTION_VERSION: '2026-03-11',
   EPISODES_DS: '163867a7-e71c-44d6-8fd3-333c2810746c',
   PUBLICATIONS_DS: 'f192f616-6d18-44b3-a591-825ee285283b',
@@ -46,7 +49,7 @@ const OC_PUBLICATION_SEEDER_V01 = Object.freeze({
   ]
 });
 
-/** Read-only preview. */
+/** Historical read-only preview. */
 function previewPublicationPlanV01() {
   const resolved = pubSeedV01ResolveEpisode_(false);
   const episode = resolved.episode;
@@ -54,82 +57,40 @@ function previewPublicationPlanV01() {
 
   const out = {
     write: 'NONE',
+    legacy: true,
+    doNotRunWrite: true,
+    supersededBy: 'previewPublicationDraftImportV01 / importPublicationDraftsV01',
     version: OC_PUBLICATION_SEEDER_V01.VERSION,
     targetMode: resolved.mode,
     explicitTargetKey: resolved.requestedKey,
     episodeKey: pubSeedV01Title_(episode.properties['Episode_Key']),
     existingCount: plan.existing.length,
     items: plan.items,
-    createCount: plan.items.filter(x => x.action === 'CREATE').length
+    createCount: plan.items.filter(x => x.action === 'CREATE').length,
+    warning: 'LEGACY preview only. PUBPLAN keys are not part of current PUBLICATIONS identity rules.'
   };
 
   console.log('========================================');
-  console.log('OC-OS PUBLICATION PLAN PREVIEW');
+  console.log('OC-OS PUBLICATION PLAN PREVIEW [LEGACY]');
   console.log('VERSION = ' + OC_PUBLICATION_SEEDER_V01.VERSION);
-  console.log('WRITE = NONE');
+  console.log('WRITE = DISABLED');
   console.log('========================================');
   console.log(JSON.stringify(out, null, 2));
   return out;
 }
 
 /**
- * Create missing default work slots.
- * WRITE requires explicit OC_TARGET_EPISODE_KEY.
+ * LEGACY WRITE — intentionally disabled.
  */
 function seedPublicationPlanV01() {
-  const resolved = pubSeedV01ResolveEpisode_(true);
-  const episode = resolved.episode;
-  const plan = pubSeedV01BuildPlan_(episode);
-  const created = [];
-  const skipped = [];
-
-  plan.items.forEach(item => {
-    if (item.action === 'SKIP_EXISTING') {
-      skipped.push({
-        publicationKey: item.publicationKey,
-        title: item.title,
-        reason: 'existing'
-      });
-      return;
-    }
-
-    const page = pubSeedV01Request_('post', '/pages', {
-      parent: { data_source_id: OC_PUBLICATION_SEEDER_V01.PUBLICATIONS_DS },
-      properties: {
-        Publication: pubSeedV01TitleProp_(item.title),
-        Publication_Key: pubSeedV01RichTextProp_(item.publicationKey),
-        Episode: { relation: [{ id: episode.id }] },
-        Output_Type: { select: { name: item.outputType } },
-        Platform: { select: { name: item.platform } },
-        Publication_Status: { select: { name: '未着手' } }
-      }
-    });
-
-    created.push({
-      publicationKey: item.publicationKey,
-      title: item.title,
-      pageId: page.id,
-      url: page.url || ''
-    });
-  });
-
-  const out = {
-    write: 'PUBLICATION_PLAN_CREATED',
-    version: OC_PUBLICATION_SEEDER_V01.VERSION,
-    episodeKey: pubSeedV01Title_(episode.properties['Episode_Key']),
-    createdCount: created.length,
-    skippedCount: skipped.length,
-    created: created,
-    skipped: skipped,
-    nextAction: '必要な成果物だけ進め、不要な枠は人間が見送りにする。'
-  };
-
-  console.log(JSON.stringify(out, null, 2));
-  return out;
+  throw new Error(
+    'LEGACY / WRITE DISABLED: seedPublicationPlanV01() は使用しません。' +
+    ' 現行は Publication Context → Draft JSON → previewPublicationDraftImportV01() → importPublicationDraftsV01() を使用してください。'
+  );
 }
 
 /* =========================================================
- * PLAN
+ * PLAN — historical reference only
  * ========================================================= */
 
 function pubSeedV01BuildPlan_(episode) {
