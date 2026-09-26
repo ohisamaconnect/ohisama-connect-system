@@ -2,6 +2,12 @@
 
 基準日: 2026-09-26
 
+> **LEGACY / Do Not Run**
+>
+> この文書は初期Calendar Bridge設計の履歴として残す。
+> 現行Calendar運用は `docs/OC-OS_CALENDAR_INTEGRATION_v1.0.md` と `gas/oc_os_episode_calendar_sync_v0.1.0.gs` を使用する。
+> 本文に記載する `oc_os_calendar_bridge_v0.1.0.gs` のWRITEは現行運用では使用しない。
+
 ## 1. 目的
 
 Google Calendarを、OC-OSの制作予定と日向坂46関連予定を同じ画面で見渡すための運用レイヤーとして使う。
@@ -146,3 +152,16 @@ Calendar上にあるという理由だけで事実確定しない。
 Calendar同期に失敗しても、水曜日の収録は行える。
 
 Calendar Bridgeは見落とし防止と見通し改善のための補助であり、制作の必須依存にはしない。
+
+## 11. Legacy Status
+
+このBridge設計は、後発のEPISODE Calendar Syncに置き換えられた。
+
+置換理由:
+
+- 実際の収録開始時刻は固定しない方が運用に合うため、Recordingをall-day markerにした。
+- EPISODESへCalendar Event IDを保存し、再同期時に同じイベントを更新できるようにした。
+- 再放送時刻は変更可能性があるため、初期Canonical Syncから外した。
+- 現行Calendar Write handlerを1系統へ統一するため。
+
+この文書は履歴として参照できるが、現行Pilotの手順書として使用しない。
