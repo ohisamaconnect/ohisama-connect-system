@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.2",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -18,6 +18,8 @@
     "山陰",
     "山陰と日向坂46",
     "山陰で日向坂46",
+    "日向坂で会いましょう",
+    "日向で川柳",
     "ラヴィット！",
     "TVer"
   ],
@@ -27,9 +29,13 @@
     {"from":"朝倉潤","to":"あさくらじゅん","kind":"oc"},
     {"from":"夜名護市役所","to":"米子市役所","kind":"oc"},
     {"from":"夜名護","to":"米子","kind":"oc"},
+    {"from":"夜名越し","to":"米子市","kind":"oc"},
     {"from":"たとりけん","to":"鳥取県","kind":"oc"},
     {"from":"サインと日向坂46","to":"山陰と日向坂46","kind":"oc"},
     {"from":"サインで日向坂46","to":"山陰で日向坂46","kind":"oc"},
+    {"from":"日焼け坂で会いましょう","to":"日向坂で会いましょう","kind":"oc"},
+    {"from":"日向坂千流","to":"日向で川柳","kind":"oc"},
+    {"from":"ラビット","to":"ラヴィット！","kind":"oc"},
     {"from":"ヘイ、お日様","to":"HEY!OHISAMA!","kind":"song"},
     {"from":"平尾穂乃香","to":"平尾帆夏","kind":"member"}
   ],
