@@ -1,8 +1,8 @@
-# OC-OS Local Transcription Pilot v0.1.0
+# OC-OS Local Transcription Pilot v0.2.0
 
 ## Purpose
 
-This Pilot transcribes an OC-OS `SPEECH_STEM` locally on the production PC.
+Episode audio is transcribed locally while preserving the MASTER timeline.
 
 Canonical flow:
 
@@ -13,14 +13,14 @@ MASTER
   -> UVR Vocals
   -> 16 kHz mono PCM16 SPEECH_STEM
   -> faster-whisper large-v3
-  -> TXT / SRT / VTT / JSON
+  -> RAW transcript
+  -> deterministic CLEAN draft
 ```
 
-The script does not decide program structure, broadcast adoption, or editorial meaning.
+RAW is the direct ASR record. CLEAN changes only segmentation, whitespace, and terminal punctuation. It does not summarize or semantically rewrite speech.
 
-## Current recommended profile
+## Current Pilot profile
 
-- Python: 3.11 or 3.12
 - faster-whisper: 1.2.1
 - Model: `large-v3`
 - Device: NVIDIA CUDA
@@ -28,34 +28,41 @@ The script does not decide program structure, broadcast adoption, or editorial m
 - Language: `ja`
 - Beam size: 5
 - VAD: enabled
+- Word timestamps: always enabled
 - `condition_on_previous_text=False`
+- Glossary: `glossary_hinatazaka.txt`
 
-The current faster-whisper GPU stack requires CUDA 12 cuBLAS and cuDNN 9.
+Validated local environment:
 
-## Windows setup
+- Windows
+- Python 3.14.7
+- RTX 4060 8 GB
+- CUDA Toolkit 12.9
+- cuDNN 9
 
-Create an isolated virtual environment:
+## PowerShell setup
 
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Confirm CTranslate2 can see the GPU:
+Create the virtual environment:
 
 ```powershell
-python -c "import ctranslate2; print('CUDA devices:', ctranslate2.get_cuda_device_count())"
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Expected on the OC production PC:
+Activation is optional. If PowerShell execution policy blocks `Activate.ps1`, use `.\.venv\Scripts\python.exe` directly.
+
+GPU check:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import ctranslate2; print('CUDA devices:', ctranslate2.get_cuda_device_count())"
+```
+
+Expected:
 
 ```
 CUDA devices: 1
 ```
-
-If this returns 0 or model loading fails, verify the NVIDIA driver plus CUDA 12 / cuDNN 9 runtime libraries before changing transcription settings.
 
 ## Episode 78 Pilot
 
@@ -68,52 +75,39 @@ Input:
 Run:
 
 ```powershell
-python transcribe_episode.py `
-  "D:\\path\\to\\1_PK12281930-おひさまコネクト78回_MUSICCUT_(Vocals).wav" `
-  --model large-v3 `
-  --device cuda `
-  --compute-type int8_float16 `
-  --language ja `
-  --word-timestamps
+.\.venv\Scripts\python.exe .\transcribe_episode.py "G:\マイドライブ\OC-OS\EPISODES\2025-12-28\AUDIO\1_PK12281930-おひさまコネクト78回_MUSICCUT_(Vocals).wav" --model large-v3 --device cuda --compute-type int8_float16 --language ja
 ```
 
-The first run downloads the model, so network access is required once.
+Optional tuning:
+
+- `--split-gap 1.5` : CLEAN starts a new utterance after this word-level silence.
+- `--max-utterance 22` : soft maximum utterance length when punctuation allows.
+- `--glossary-file <path>` : use another UTF-8 glossary.
 
 ## Output
 
-The script creates:
+- `*_16k_mono.wav` — normalized speech input
+- `*_RAW.txt` — direct ASR segments, unchanged
+- `*_CLEAN.txt` — word-gap resegmented readable draft
+- `*_CLEAN.srt` — CLEAN subtitle/timecode form
+- `*_CLEAN.vtt` — CLEAN web timecode form
+- `*_TRANSCRIPT.json` — RAW + CLEAN + word timestamps + model/config metadata
 
-- `*_16k_mono.wav` — candidate canonical SPEECH_STEM
-- `*_TRANSCRIPT.txt` — human review with timestamps
-- `*_TRANSCRIPT.srt` — subtitle/timecode interchange
-- `*_TRANSCRIPT.vtt` — web-friendly timecode interchange
-- `*_TRANSCRIPT.json` — machine-readable archive
+## Glossary
 
-The JSON keeps model/config metadata and segment timestamps so later OC-OS processing can be reproduced and audited.
+The bundled `glossary_hinatazaka.txt` is a starter ASR hint list. It is not a factual source.
 
-## Glossary / names
-
-Use a UTF-8 text file with `--prompt-file` when testing HHA member names, song names, show-specific terms, etc.
-
-Example:
-
-```text
-小坂菜緒、金村美玖、正源司陽子、藤嶌果歩、髙橋未来虹
-おひさま、ひなあい、日向坂ちゃんねる
-```
-
-Do not treat the glossary as a factual source. It is only an ASR spelling hint.
+Future direction: generate episode-specific terms from HHA and EPISODE relations instead of sending the entire archive vocabulary to Whisper every week.
 
 ## Pilot evaluation
 
-For Episode 78, evaluate:
+Compare v0.2.0 with the v0.1.0 Episode 78 result:
 
-1. Normal Japanese sentence accuracy
-2. Hinatazaka46 names and proper nouns
-3. Segment timestamps against MASTER
-4. Hallucination in long silence / music-cut sections
-5. Residual BGM or UVR artifacts
+1. Recognition of 日向坂46 and member names
+2. Whether music/silence gaps are separated correctly
+3. Readability of CLEAN
+4. Timestamp alignment against MASTER
+5. Hallucination in silent/music-cut regions
 6. Processing time and VRAM stability
-7. Whether the generated TXT is readable enough for archive cleanup
 
-Do not change the canonical weekly pipeline from this one sample alone. Use the result to decide whether the profile should become Production.
+Do not treat one Pilot result as Production approval. The purpose is to establish the weekly transcription contract.
