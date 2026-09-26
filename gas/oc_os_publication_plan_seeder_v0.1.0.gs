@@ -19,10 +19,30 @@ const OC_PUBLICATION_SEEDER_V01 = Object.freeze({
   PUBLICATIONS_DS: 'f192f616-6d18-44b3-a591-825ee285283b',
   TARGET_KEY_PROPERTY: 'OC_TARGET_EPISODE_KEY',
   DEFAULT_PLAN: [
-    { label: 'トーク音声', outputType: 'トーク音声', platform: 'Spotify' },
-    { label: 'ショーノート', outputType: 'ショーノート', platform: 'note' },
-    { label: 'SNS投稿', outputType: 'SNS投稿', platform: '未定' },
-    { label: 'オーディオグラム', outputType: 'オーディオグラム', platform: '未定' }
+    {
+      keySuffix: 'TALK_AUDIO',
+      label: 'トーク音声',
+      outputType: 'トーク音声',
+      platform: 'Spotify'
+    },
+    {
+      keySuffix: 'SHOW_NOTES',
+      label: 'ショーノート',
+      outputType: 'ショーノート',
+      platform: 'note'
+    },
+    {
+      keySuffix: 'SOCIAL_PRIMARY',
+      label: 'SNS投稿',
+      outputType: 'SNS投稿',
+      platform: '未定'
+    },
+    {
+      keySuffix: 'AUDIOGRAM_PRIMARY',
+      label: 'オーディオグラム',
+      outputType: 'オーディオグラム',
+      platform: '未定'
+    }
   ]
 });
 
@@ -65,7 +85,11 @@ function seedPublicationPlanV01() {
 
   plan.items.forEach(item => {
     if (item.action === 'SKIP_EXISTING') {
-      skipped.push({ title: item.title, reason: 'existing' });
+      skipped.push({
+        publicationKey: item.publicationKey,
+        title: item.title,
+        reason: 'existing'
+      });
       return;
     }
 
@@ -73,6 +97,7 @@ function seedPublicationPlanV01() {
       parent: { data_source_id: OC_PUBLICATION_SEEDER_V01.PUBLICATIONS_DS },
       properties: {
         Publication: pubSeedV01TitleProp_(item.title),
+        Publication_Key: pubSeedV01RichTextProp_(item.publicationKey),
         Episode: { relation: [{ id: episode.id }] },
         Output_Type: { select: { name: item.outputType } },
         Platform: { select: { name: item.platform } },
@@ -81,6 +106,7 @@ function seedPublicationPlanV01() {
     });
 
     created.push({
+      publicationKey: item.publicationKey,
       title: item.title,
       pageId: page.id,
       url: page.url || ''
@@ -118,23 +144,38 @@ function pubSeedV01BuildPlan_(episode) {
     page_size: 100
   });
 
+  const existingKeys = {};
   const existingTitles = {};
+
   existing.forEach(p => {
-    const t = pubSeedV01Title_(p.properties['Publication']);
-    if (t) existingTitles[t] = true;
+    const key = pubSeedV01RichText_(p.properties['Publication_Key']);
+    const title = pubSeedV01Title_(p.properties['Publication']);
+    if (key) existingKeys[key] = true;
+    if (title) existingTitles[title] = true;
   });
 
   const items = OC_PUBLICATION_SEEDER_V01.DEFAULT_PLAN.map(slot => {
     const title = episodeKey + '｜' + slot.label;
+    const publicationKey = pubSeedV01PublicationKey_(episodeKey, slot.keySuffix);
     return {
+      publicationKey: publicationKey,
+      keySuffix: slot.keySuffix,
       title: title,
       outputType: slot.outputType,
       platform: slot.platform,
-      action: existingTitles[title] ? 'SKIP_EXISTING' : 'CREATE'
+      action:
+        existingKeys[publicationKey] || existingTitles[title]
+          ? 'SKIP_EXISTING'
+          : 'CREATE'
     };
   });
 
   return { existing: existing, items: items };
+}
+
+function pubSeedV01PublicationKey_(episodeKey, keySuffix) {
+  return 'PUBPLAN|' + String(episodeKey || '').trim() + '|' +
+    String(keySuffix || '').trim();
 }
 
 /* =========================================================
@@ -257,8 +298,20 @@ function pubSeedV01Title_(prop) {
   return Array.isArray(a) ? a.map(x => x.plain_text || '').join('') : '';
 }
 
+function pubSeedV01RichText_(prop) {
+  const a = prop && prop.rich_text;
+  return Array.isArray(a) ? a.map(x => x.plain_text || '').join('') : '';
+}
+
 function pubSeedV01TitleProp_(text) {
   return {
     title: [{ type: 'text', text: { content: String(text || '').slice(0, 2000) } }]
   };
+}
+
+function pubSeedV01RichTextProp_(text) {
+  const s = String(text || '');
+  return s
+    ? { rich_text: [{ type: 'text', text: { content: s.slice(0, 2000) } }] }
+    : { rich_text: [] };
 }
