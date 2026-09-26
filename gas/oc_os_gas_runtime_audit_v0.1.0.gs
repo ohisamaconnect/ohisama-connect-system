@@ -88,14 +88,15 @@ function reportGasRuntimeInventoryV01() {
     auditGasModuleV01_(
       'Episode Actuals Finalizer',
       'CURRENT',
-      typeof actualsV01BuildPlan_ === 'function',
+      typeof actualsV01BuildPlan_ === 'function' &&
+        typeof previewEpisodeActualsFinalizerV01 === 'function',
       auditGasConstVersionV01_('OC_ACTUALS_V01')
     ),
     auditGasModuleV01_(
       'Post-Recording Intake',
       'CURRENT',
       typeof postV02BuildPlan_ === 'function',
-      auditGasConstVersionV01_('OC_POST_V02')
+      auditGasConstVersionV01_('OC_POST_RECORDING_V02')
     ),
     auditGasModuleV01_(
       'Transcript Materializer',
@@ -114,22 +115,16 @@ function reportGasRuntimeInventoryV01() {
     auditGasModuleV01_(
       'STATEMENTS Candidate Importer',
       'CURRENT / PREVIEW',
-      typeof previewStatementCandidateImportV01 === 'function' ||
+      typeof previewStatementCandidateImportV01 === 'function' &&
         typeof importStatementCandidatesV01 === 'function',
-      auditGasKnownConstVersionV01_([
-        'OC_STATEMENT_IMPORTER_V01',
-        'OC_STATEMENTS_IMPORTER_V01'
-      ])
+      auditGasConstVersionV01_('OC_STATEMENT_IMPORTER_V01')
     ),
     auditGasModuleV01_(
       'Publication Context Builder',
       'CURRENT / PREVIEW',
-      typeof buildPublicationContextV01 === 'function' ||
-        typeof previewPublicationContextV01 === 'function',
-      auditGasKnownConstVersionV01_([
-        'OC_PUBLICATION_CONTEXT_V01',
-        'OC_PUBLICATION_CONTEXT_BUILDER_V01'
-      ])
+      typeof previewPublicationContextPackV01 === 'function' &&
+        typeof buildPublicationContextPackV01 === 'function',
+      auditGasConstVersionV01_('OC_PUBLICATION_CONTEXT_V01')
     ),
     auditGasModuleV01_(
       'Publication Draft Importer',
@@ -148,12 +143,8 @@ function reportGasRuntimeInventoryV01() {
     auditGasModuleV01_(
       'Lifecycle Auditor',
       'CURRENT / READ ONLY',
-      typeof auditEpisodeLifecycleV01 === 'function' ||
-        typeof reportEpisodeLifecycleV01 === 'function',
-      auditGasKnownConstVersionV01_([
-        'OC_LIFECYCLE_AUDITOR_V01',
-        'OC_EPISODE_LIFECYCLE_AUDITOR_V01'
-      ])
+      typeof auditEpisodeLifecycleV01 === 'function',
+      auditGasConstVersionV01_('OC_LIFECYCLE_AUDITOR_V01')
     ),
     auditGasModuleV01_(
       'Completion Gate',
@@ -262,17 +253,10 @@ function auditGasModuleV01_(name, status, present, versionHint) {
 }
 
 function auditGasConstVersionV01_(constantName) {
-  return auditGasKnownConstVersionV01_([constantName]);
-}
-
-function auditGasKnownConstVersionV01_(names) {
-  for (let i = 0; i < names.length; i++) {
-    const value = auditGasGlobalValueV01_(names[i]);
-    if (value && typeof value === 'object' && value.VERSION) {
-      return String(value.VERSION);
-    }
-  }
-  return '';
+  const value = auditGasGlobalValueV01_(constantName);
+  return value && typeof value === 'object' && value.VERSION
+    ? String(value.VERSION)
+    : '';
 }
 
 function auditGasGlobalValueV01_(name) {
@@ -290,28 +274,22 @@ function auditGasGlobalValueV01_(name) {
       return typeof OC_WEEKLY_BOOTSTRAP_V01 !== 'undefined' ? OC_WEEKLY_BOOTSTRAP_V01 : null;
     case 'OC_ACTUALS_V01':
       return typeof OC_ACTUALS_V01 !== 'undefined' ? OC_ACTUALS_V01 : null;
-    case 'OC_POST_V02':
-      return typeof OC_POST_V02 !== 'undefined' ? OC_POST_V02 : null;
+    case 'OC_POST_RECORDING_V02':
+      return typeof OC_POST_RECORDING_V02 !== 'undefined' ? OC_POST_RECORDING_V02 : null;
     case 'OC_TRANSCRIPT_MATERIALIZER_V01':
       return typeof OC_TRANSCRIPT_MATERIALIZER_V01 !== 'undefined' ? OC_TRANSCRIPT_MATERIALIZER_V01 : null;
     case 'OC_POST_INTEGRATOR_V01':
       return typeof OC_POST_INTEGRATOR_V01 !== 'undefined' ? OC_POST_INTEGRATOR_V01 : null;
     case 'OC_STATEMENT_IMPORTER_V01':
       return typeof OC_STATEMENT_IMPORTER_V01 !== 'undefined' ? OC_STATEMENT_IMPORTER_V01 : null;
-    case 'OC_STATEMENTS_IMPORTER_V01':
-      return typeof OC_STATEMENTS_IMPORTER_V01 !== 'undefined' ? OC_STATEMENTS_IMPORTER_V01 : null;
     case 'OC_PUBLICATION_CONTEXT_V01':
       return typeof OC_PUBLICATION_CONTEXT_V01 !== 'undefined' ? OC_PUBLICATION_CONTEXT_V01 : null;
-    case 'OC_PUBLICATION_CONTEXT_BUILDER_V01':
-      return typeof OC_PUBLICATION_CONTEXT_BUILDER_V01 !== 'undefined' ? OC_PUBLICATION_CONTEXT_BUILDER_V01 : null;
     case 'OC_PUBLICATION_DRAFT_IMPORTER_V01':
       return typeof OC_PUBLICATION_DRAFT_IMPORTER_V01 !== 'undefined' ? OC_PUBLICATION_DRAFT_IMPORTER_V01 : null;
     case 'OC_EPISODE_CALENDAR_V01':
       return typeof OC_EPISODE_CALENDAR_V01 !== 'undefined' ? OC_EPISODE_CALENDAR_V01 : null;
     case 'OC_LIFECYCLE_AUDITOR_V01':
       return typeof OC_LIFECYCLE_AUDITOR_V01 !== 'undefined' ? OC_LIFECYCLE_AUDITOR_V01 : null;
-    case 'OC_EPISODE_LIFECYCLE_AUDITOR_V01':
-      return typeof OC_EPISODE_LIFECYCLE_AUDITOR_V01 !== 'undefined' ? OC_EPISODE_LIFECYCLE_AUDITOR_V01 : null;
     case 'OC_COMPLETION_GATE_V01':
       return typeof OC_COMPLETION_GATE_V01 !== 'undefined' ? OC_COMPLETION_GATE_V01 : null;
     case 'OC_READINESS_V01':
