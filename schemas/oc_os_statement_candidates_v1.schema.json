@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ohisamaconnect.com/schemas/oc_os_statement_candidates_v1.schema.json",
+  "title": "OC-OS STATEMENTS Candidate Artifact v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "extractor_version",
+    "episode_key",
+    "source_transcript_url",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "extractor_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "episode_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_transcript_url": {
+      "type": "string"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "statement",
+          "spoken_text",
+          "source_timecode",
+          "statement_type",
+          "emotion_tags",
+          "related_member_names",
+          "ai_candidate_reason"
+        ],
+        "properties": {
+          "statement": {
+            "type": "string"
+          },
+          "spoken_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_timecode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement_type": {
+            "enum": ["名言", "価値観", "変化", "瞬間", "その他"]
+          },
+          "emotion_tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": ["喜び", "感謝", "誇り", "驚き", "期待", "愛着", "寂しさ", "葛藤", "熱量", "その他"]
+            }
+          },
+          "related_member_names": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "ai_candidate_reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
