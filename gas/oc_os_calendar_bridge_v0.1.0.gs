@@ -2,7 +2,14 @@
  * OC-OS Calendar Bridge
  * v0.1.0-preview (2026-09-26)
  *
- * Purpose:
+ * STATUS: LEGACY / DO NOT RUN.
+ * Superseded by: oc_os_episode_calendar_sync_v0.1.0.gs
+ * Current contract: docs/OC-OS_CALENDAR_INTEGRATION_v1.0.md
+ *
+ * This file is retained only as implementation history.
+ * Its WRITE handler is intentionally blocked to prevent accidental dual Calendar writes.
+ *
+ * Purpose (historical):
  * - Mirror OC-OS EPISODE production/broadcast markers to the user's
  *   writable "おひさまコネクト" Google Calendar.
  * - Keep Calendar as a schedule/display layer, never as Canonical truth.
@@ -13,26 +20,14 @@
  * - Repeat broadcast: Air_Date + 1 day 20:00–20:28 JST (transparent)
  *
  * Safety:
- * - Preview is read-only.
- * - WRITE requires OC_TARGET_EPISODE_KEY.
- * - Create-missing-only: existing matching events are never edited.
+ * - Preview is historical/read-only reference.
+ * - WRITE IS DISABLED because this module is Legacy.
  * - Existing events are never deleted.
- * - Multiple exact markers block creation for that event type.
- * - No recurring series is created.
  * - No trigger is installed.
- * - Calendar never writes back to Notion.
- *
- * Required Script Properties:
- * - NOTION_API_TOKEN (preferred; NOTION_TOKEN / NOTION_SECRET fallback)
- * - OC_TARGET_EPISODE_KEY for WRITE
- *
- * Optional Script Property:
- * - OC_CALENDAR_ID
- *   If absent, CalendarApp.getDefaultCalendar() is used.
  */
 
 const OC_CALENDAR_BRIDGE_V01 = Object.freeze({
-  VERSION: '0.1.0-preview',
+  VERSION: '0.1.0-preview-LEGACY',
   TIME_ZONE: 'Asia/Tokyo',
   NOTION_VERSION: '2026-03-11',
   EPISODES_DS: '163867a7-e71c-44d6-8fd3-333c2810746c',
@@ -50,6 +45,9 @@ function previewEpisodeCalendarBridgeV01() {
 
   const out = {
     write: 'NONE',
+    legacy: true,
+    doNotRunWrite: true,
+    supersededBy: 'previewEpisodeCalendarSyncV01 / syncEpisodeCalendarV01',
     version: OC_CALENDAR_BRIDGE_V01.VERSION,
     targetMode: resolved.mode,
     explicitTargetKey: resolved.requestedKey,
@@ -62,75 +60,24 @@ function previewEpisodeCalendarBridgeV01() {
     createCount: plan.filter(x => x.action === 'CREATE').length,
     existingCount: plan.filter(x => x.action === 'KEEP_EXISTING').length,
     blockedCount: plan.filter(x => x.action === 'BLOCK').length,
-    warnings: calendarV01PlanWarnings_(plan),
-    principle: 'Calendar is advisory display only; Notion remains Canonical for EPISODE dates.'
+    warnings: ['LEGACY module: do not execute syncEpisodeCalendarBridgeV01().'].concat(calendarV01PlanWarnings_(plan)),
+    principle: 'Historical preview only. Current Calendar Sync is canonical candidate.'
   };
 
   console.log('========================================');
-  console.log('OC-OS EPISODE CALENDAR BRIDGE PREVIEW');
+  console.log('OC-OS EPISODE CALENDAR BRIDGE PREVIEW [LEGACY]');
   console.log('VERSION = ' + OC_CALENDAR_BRIDGE_V01.VERSION);
-  console.log('WRITE = NONE');
+  console.log('WRITE = DISABLED');
   console.log('========================================');
   console.log(JSON.stringify(out, null, 2));
   return out;
 }
 
 function syncEpisodeCalendarBridgeV01() {
-  const resolved = calendarV01ResolveEpisode_(true);
-  const episode = resolved.episode;
-  const calendar = calendarV01GetCalendar_();
-  const specs = calendarV01BuildSpecs_(episode);
-  const plan = calendarV01BuildPlan_(calendar, specs);
-
-  const blocked = plan.filter(x => x.action === 'BLOCK');
-  if (blocked.length) {
-    throw new Error('Calendar Bridge BLOCKがあります。Previewを確認してください。count=' + blocked.length);
-  }
-
-  const created = [];
-  const kept = [];
-
-  plan.forEach(item => {
-    if (item.action === 'KEEP_EXISTING') {
-      kept.push({ type: item.type, eventId: item.existingEventId, marker: item.marker });
-      return;
-    }
-    if (item.action !== 'CREATE') return;
-
-    const spec = item.spec;
-    const event = calendar.createEvent(spec.title, spec.start, spec.end, {
-      description: spec.description
-    });
-    try {
-      event.setTransparency(CalendarApp.EventTransparency.TRANSPARENT);
-    } catch (e) {
-      // Transparency is helpful but non-critical. Do not fail event creation.
-    }
-
-    created.push({
-      type: item.type,
-      eventId: event.getId(),
-      title: event.getTitle(),
-      start: event.getStartTime().toISOString(),
-      end: event.getEndTime().toISOString(),
-      marker: item.marker
-    });
-  });
-
-  const out = {
-    write: created.length ? 'CALENDAR_EVENTS_CREATED' : 'NONE',
-    version: OC_CALENDAR_BRIDGE_V01.VERSION,
-    episodeKey: calendarV01Title_(episode.properties['Episode_Key']),
-    calendar: { id: calendar.getId(), name: calendar.getName() },
-    createdCount: created.length,
-    keptCount: kept.length,
-    created: created,
-    kept: kept,
-    warnings: calendarV01PlanWarnings_(plan)
-  };
-
-  console.log(JSON.stringify(out, null, 2));
-  return out;
+  throw new Error(
+    'LEGACY / WRITE DISABLED: syncEpisodeCalendarBridgeV01() は使用しません。' +
+    ' 現行は previewEpisodeCalendarSyncV01() → syncEpisodeCalendarV01() を使用してください。'
+  );
 }
 
 function calendarV01BuildSpecs_(episode) {
