@@ -127,15 +127,6 @@ function stmtV01BuildPlan_(episode, artifact, existingKeys, members) {
   const transcriptUrl = stmtV01PropUrl_(episode.properties['Transcript_URL']);
   const warnings = [];
 
-  if (artifact.data.schema_version !== '1.0') {
-    warnings.push('schema_version is not 1.0: ' + String(artifact.data.schema_version || ''));
-  }
-  if (artifact.data.episode_key !== episodeKey) {
-    warnings.push(
-      'artifact episode_key mismatch: artifact=' + artifact.data.episode_key +
-      ' / target=' + episodeKey
-    );
-  }
   if (artifact.data.source_transcript_url && transcriptUrl &&
       artifact.data.source_transcript_url !== transcriptUrl) {
     warnings.push('source_transcript_url differs from current EPISODES.Transcript_URL');
@@ -265,7 +256,7 @@ function stmtV01LoadCandidateArtifact_(episode) {
   while (files.hasNext()) {
     const f = files.next();
     if (String(f.getName() || '').toUpperCase().endsWith(
-      OC_STATEMENT_IMPORTER_V01.CANDIDATE_SUFFIX
+      OC_STATEMENT_IMPORTER_V01.CANDIDATE_SUFFIX.toUpperCase()
     )) {
       hits.push(f);
     }
@@ -287,6 +278,12 @@ function stmtV01LoadCandidateArtifact_(episode) {
   }
 
   if (!data || typeof data !== 'object') throw new Error('candidate JSON root invalid');
+  if (data.schema_version !== '1.0') {
+    throw new Error(
+      'unsupported schema_version: ' + String(data.schema_version || '')
+    );
+  }
+  if (!stmtV01Trim_(data.episode_key)) throw new Error('episode_key missing');
   if (!Array.isArray(data.candidates)) throw new Error('candidates array missing');
 
   return {
