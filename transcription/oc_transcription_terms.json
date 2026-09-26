@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -11,10 +11,13 @@
     "おひさま",
     "あさくらじゅん",
     "DARAZ FM",
+    "米子",
     "米子市",
     "米子市役所",
     "鳥取県",
     "山陰",
+    "山陰と日向坂46",
+    "山陰で日向坂46",
     "ラヴィット！",
     "TVer"
   ],
