@@ -1,0 +1,56 @@
+{
+  "version": "0.1.0",
+  "generated_from": {
+    "members_data_source": "df86e0ba-5478-4fc6-b30a-49cb1bd6c83d",
+    "songs_data_source": "a3c08149-498d-4e02-aded-0c5640e5a033",
+    "generated_at": "2026-09-26"
+  },
+  "policy": {
+    "canonical_targets_only": true,
+    "automatic_replacement_requires_explicit_alias": true,
+    "fuzzy_match_may_suggest_but_must_not_rewrite": true
+  },
+  "fixed_terms": [
+    "日向坂46",
+    "おひさまコネクト",
+    "おひさま",
+    "あさくらじゅん",
+    "DARAZ FM",
+    "米子市",
+    "鳥取県",
+    "山陰"
+  ],
+  "members": [
+    {"id":1,"name":"長濱 ねる"},{"id":2,"name":"井口 眞緒"},{"id":3,"name":"潮 紗理菜"},{"id":4,"name":"柿崎 芽実"},{"id":5,"name":"影山 優佳"},{"id":6,"name":"加藤 史帆"},{"id":7,"name":"齊藤 京子"},{"id":8,"name":"佐々木 久美"},{"id":9,"name":"佐々木 美玲"},{"id":10,"name":"高瀬 愛奈"},{"id":11,"name":"高本 彩花"},{"id":12,"name":"東村 芽依"},{"id":13,"name":"金村 美玖"},{"id":14,"name":"河田 陽菜"},{"id":15,"name":"小坂 菜緒"},{"id":16,"name":"富田 鈴花"},{"id":17,"name":"丹生 明里"},{"id":18,"name":"濱岸 ひより"},{"id":19,"name":"松田 好花"},{"id":20,"name":"宮田 愛萌"},{"id":21,"name":"渡邉 美穂"},{"id":22,"name":"上村 ひなの"},{"id":23,"name":"髙橋 未来虹"},{"id":24,"name":"森本 茉莉"},{"id":25,"name":"山口 陽世"},{"id":26,"name":"石塚 瑶季"},{"id":27,"name":"岸 帆夏"},{"id":28,"name":"小西 夏菜実"},{"id":29,"name":"清水 理央"},{"id":30,"name":"正源司 陽子"},{"id":31,"name":"竹内 希来里"},{"id":32,"name":"平尾 帆夏"},{"id":33,"name":"平岡 海月"},{"id":34,"name":"藤嶌 果歩"},{"id":35,"name":"宮地 すみれ"},{"id":36,"name":"山下 葉留花"},{"id":37,"name":"渡辺 莉奈"},{"id":38,"name":"大田 美月"},{"id":39,"name":"大野 愛実"},{"id":40,"name":"片山 紗希"},{"id":41,"name":"蔵盛 妃那乃"},{"id":42,"name":"坂井 新奈"},{"id":43,"name":"佐藤 優羽"},{"id":44,"name":"下田 衣珠季"},{"id":45,"name":"高井 俐香"},{"id":46,"name":"鶴崎 仁香"},{"id":47,"name":"松尾 桜"}
+  ],
+  "songs": [
+    {"id":1,"title":"ひらがなけやき"},{"id":2,"title":"誰よりも高く跳べ!"},{"id":3,"title":"W-KEYAKIZAKAの詩"},{"id":4,"title":"僕たちは付き合っている"},{"id":5,"title":"沈黙した恋人よ"},{"id":6,"title":"永遠の白線"},{"id":7,"title":"猫の名前"},{"id":8,"title":"太陽は見上げる人を選ばない"},{"id":9,"title":"それでも歩いてる"},{"id":10,"title":"NO WAR in the future"},{"id":11,"title":"イマニミテイロ"},{"id":12,"title":"半分の記憶"},{"id":13,"title":"期待していない自分"},{"id":14,"title":"線香花火が消えるまで"},{"id":15,"title":"キレイになりたい"},{"id":16,"title":"三輪車に乗りたい"},{"id":17,"title":"未熟な怒り"},{"id":18,"title":"夏色のミュール"},{"id":19,"title":"こんな整列を誰がさせるのか?"},{"id":20,"title":"わずかな光"},{"id":21,"title":"男友達だから"},{"id":22,"title":"居心地悪く、大人になった"},{"id":23,"title":"ノックをするな！"},{"id":24,"title":"最前列へ"},{"id":25,"title":"割れないシャボン玉"},{"id":26,"title":"ハロウィンのカボチャが割れた"},{"id":27,"title":"おいで夏の境界線"},{"id":28,"title":"ひらがなで恋したい"},{"id":29,"title":"約束の卵"},{"id":30,"title":"車輪が軋むように君が泣く"},{"id":31,"title":"ハッピーオーラ"},{"id":32,"title":"君に話しておきたいこと"},{"id":33,"title":"抱きしめてやる"},{"id":34,"title":"キュン"},{"id":35,"title":"JOYFUL LOVE"},{"id":36,"title":"耳に落ちる涙"},{"id":37,"title":"Footsteps"},{"id":38,"title":"ときめき草"},{"id":39,"title":"沈黙が愛なら"},{"id":40,"title":"ドレミソラシド"},{"id":41,"title":"キツネ"},{"id":42,"title":"My god"},{"id":43,"title":"Cage"},{"id":44,"title":"やさしさが邪魔をする"},{"id":45,"title":"Dash&Rush"},{"id":46,"title":"こんなに好きになっちゃっていいの？"},{"id":47,"title":"ホントの時間"},{"id":48,"title":"まさか 偶然…"},{"id":49,"title":"一番好きだとみんなに言っていた小説のタイトルを思い出せない"},{"id":50,"title":"ママのドレス"},{"id":51,"title":"川は流れる"},{"id":52,"title":"ソンナコトナイヨ"},{"id":53,"title":"青春の馬"},{"id":54,"title":"好きということは…"},{"id":55,"title":"窓を開けなくても"},{"id":56,"title":"ナゼー"},{"id":57,"title":"君のため何ができるだろう"},{"id":58,"title":"Overture"},{"id":59,"title":"アザトカワイイ"},{"id":60,"title":"NO WAR in the future 2020"},{"id":61,"title":"この夏をジャムにしよう"},{"id":62,"title":"ただがむしゃらに"},{"id":63,"title":"どうして雨だと言ったんだろう？"},{"id":64,"title":"誰よりも高く跳べ！2020"},{"id":65,"title":"My fans"},{"id":66,"title":"日向坂"},{"id":67,"title":"See Through"},{"id":68,"title":"約束の卵 2020"},{"id":69,"title":"君しか勝たん"},{"id":70,"title":"声の足跡"},{"id":71,"title":"嘆きのDelete"},{"id":72,"title":"Right?"},{"id":73,"title":"どうする？どうする？どうする？"},{"id":74,"title":"世界にはThank you!が溢れている"},{"id":75,"title":"膨大な夢に押し潰されて"},{"id":76,"title":"ってか"},{"id":77,"title":"何度でも何度でも"},{"id":78,"title":"思いがけないダブルレインボー"},{"id":79,"title":"夢は何歳まで？"},{"id":80,"title":"あくびLetter"},{"id":81,"title":"酸っぱい自己嫌悪"},{"id":82,"title":"アディショナルタイム"},{"id":83,"title":"僕なんか"},{"id":84,"title":"飛行機雲ができる理由"},{"id":85,"title":"もうこんなに好きになれない"},{"id":86,"title":"ゴーフルと君"},{"id":87,"title":"真夜中の懺悔大会"},{"id":88,"title":"恋した魚は空を飛ぶ"},{"id":89,"title":"知らないうちに愛されていた"},{"id":90,"title":"月と星が踊るMidnight"},{"id":91,"title":"HEY!OHISAMA!"},{"id":92,"title":"孤独な瞬間"},{"id":93,"title":"10秒天使"},{"id":94,"title":"その他大勢タイプ"},{"id":95,"title":"ブルーベリー＆ラズベリー"},{"id":96,"title":"一生一度の夏"},{"id":97,"title":"One choice"},{"id":98,"title":"恋は逃げ足が早い"},{"id":99,"title":"愛はこっちのものだ"},{"id":100,"title":"You’re in my way"},{"id":101,"title":"パクチー ピーマン グリーンピース"},{"id":102,"title":"シーラカンス"},{"id":103,"title":"友よ 一番星だ"},{"id":104,"title":"Am I ready?"},{"id":105,"title":"見たことない魔物"},{"id":106,"title":"接触と感情"},{"id":107,"title":"骨組みだらけの夏休み"},{"id":108,"title":"君は逆立ちできるか？"},{"id":109,"title":"愛のひきこもり"},{"id":110,"title":"ガラス窓が汚れてる"},{"id":111,"title":"君は0から1になれ"},{"id":112,"title":"自販機と主体性"},{"id":113,"title":"青春ポップコーン"},{"id":114,"title":"最初の白夜"},{"id":115,"title":"ロッククライミング"},{"id":116,"title":"君はハニーデュー"},{"id":117,"title":"錆つかない剣を持て!"},{"id":118,"title":"どこまでが道なんだ？"},{"id":119,"title":"恋とあんバター"},{"id":120,"title":"夜明けのスピード"},{"id":121,"title":"雨が降ったって"},{"id":122,"title":"僕に続け"},{"id":123,"title":"絶対的第六感"},{"id":124,"title":"君を覚えてない"},{"id":125,"title":"永遠のソフィア"},{"id":126,"title":"どっちが先に言う？"},{"id":127,"title":"妄想コスモス"},{"id":128,"title":"雪は降る 心の世界に"},{"id":129,"title":"夕陽Dance"},{"id":130,"title":"卒業写真だけが知ってる"},{"id":131,"title":"SUZUKA"},{"id":132,"title":"孤独たちよ"},{"id":133,"title":"あの娘にグイグイ"},{"id":134,"title":"43年待ちのコロッケ"},{"id":135,"title":"Instead of you"},{"id":136,"title":"足の小指を箪笥の角にぶつけた"},{"id":137,"title":"Love yourself!"},{"id":138,"title":"ジャーマンアイリス"},{"id":139,"title":"You are forever"},{"id":140,"title":"やらかした"},{"id":141,"title":"What you like!"},{"id":142,"title":"あのね そのね"},{"id":143,"title":"海風とわがまま"},{"id":144,"title":"お願いバッハ！"},{"id":145,"title":"空飛ぶ車"},{"id":146,"title":"ライバル多すぎ問題"},{"id":147,"title":"愛はこっちのものだ 2025"},{"id":148,"title":"言葉の限界"},{"id":149,"title":"ハロウィンのカボチャが割れた 2025"},{"id":150,"title":"Expected value"},{"id":151,"title":"クリフハンガー"},{"id":152,"title":"君と生きる"},{"id":153,"title":"好きになるクレッシェンド"},{"id":154,"title":"Surf's up girl"},{"id":155,"title":"涙目の太陽"},{"id":156,"title":"恋と慣性の法則"},{"id":157,"title":"Second Jump"},{"id":158,"title":"Kind of love"},{"id":159,"title":"Empty"},{"id":160,"title":"円周率"},{"id":161,"title":"心のブランコ"},{"id":162,"title":"SHUWA SHUWA"},{"id":163,"title":"サラバ サラバ"},{"id":164,"title":"君にやられた！"},{"id":165,"title":"イチャイチャ虫"},{"id":166,"title":"風にキンモクセイ"},{"id":167,"title":"それでもいつか"},{"id":168,"title":"ピンクのコスモス"},{"id":169,"title":"イントロ"},{"id":170,"title":"クリスマスカウントダウン"},{"id":171,"title":"僕はAnytime"}
+  ],
+  "aliases": [
+    {"from":"日夏坂OT6","to":"日向坂46","kind":"fixed"},
+    {"from":"日向オーティシックス","to":"日向坂46","kind":"fixed"},
+    {"from":"日向オーディジックス","to":"日向坂46","kind":"fixed"},
+    {"from":"日向坂OT6","to":"日向坂46","kind":"fixed"},
+    {"from":"日焼け坂OT6","to":"日向坂46","kind":"fixed"},
+    {"from":"お日様コネクト","to":"おひさまコネクト","kind":"fixed"},
+    {"from":"朝倉潤","to":"あさくらじゅん","kind":"fixed"},
+    {"from":"山口ハリオ","to":"山口陽世","kind":"member","target_id":25},
+    {"from":"山口春代","to":"山口陽世","kind":"member","target_id":25},
+    {"from":"平尾ほのか","to":"平尾帆夏","kind":"member","target_id":32},
+    {"from":"平尾穂のか","to":"平尾帆夏","kind":"member","target_id":32},
+    {"from":"平尾穂のかっ","to":"平尾帆夏","kind":"member","target_id":32},
+    {"from":"平尾小野香","to":"平尾帆夏","kind":"member","target_id":32},
+    {"from":"松田小野香","to":"松田好花","kind":"member","target_id":19},
+    {"from":"山下遥","to":"山下葉留花","kind":"member","target_id":36},
+    {"from":"高橋美久美","to":"髙橋未来虹","kind":"member","target_id":23},
+    {"from":"あの子にグイグイ","to":"あの娘にグイグイ","kind":"song","target_id":133},
+    {"from":"足の小指をタンスの角にぶつけた","to":"足の小指を箪笥の角にぶつけた","kind":"song","target_id":136},
+    {"from":"ラブユアセルフ","to":"Love yourself!","kind":"song","target_id":137},
+    {"from":"Love Yourself","to":"Love yourself!","kind":"song","target_id":137},
+    {"from":"錆びつかない剣表","to":"錆つかない剣を持て!","kind":"song","target_id":117},
+    {"from":"錆びつかない剣","to":"錆つかない剣を持て!","kind":"song","target_id":117},
+    {"from":"ヘイおひさま","to":"HEY!OHISAMA!","kind":"song","target_id":91},
+    {"from":"ヘイ、おひさま","to":"HEY!OHISAMA!","kind":"song","target_id":91},
+    {"from":"エクスペクテッドバリュー","to":"Expected value","kind":"song","target_id":150}
+  ]
+}
