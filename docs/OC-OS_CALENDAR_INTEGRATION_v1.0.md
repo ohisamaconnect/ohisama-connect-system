@@ -2,6 +2,12 @@
 
 基準日: 2026-09-26
 
+> **CURRENT / Canonical運用候補**
+>
+> 現行Calendar実装は `gas/oc_os_episode_calendar_sync_v0.1.0.gs` を使用する。
+> `gas/oc_os_calendar_bridge_v0.1.0.gs` および `docs/OC-OS_CALENDAR_CONTRACT_v1.0.md` は初期設計履歴として **Legacy / Do Not Run** とする。
+> 両系統を同時に実行しない。
+
 ## 1. 目的
 
 Google CalendarをOC-OSと日向坂46予定の共通時間軸として使う。
@@ -51,7 +57,9 @@ Calendar descriptionへEPISODE Notion URL / Episode Folder URLを入れる。
 
 `Air_Date` に作成。
 
-通常の放送開始は設定値 `OC_AIR_START_TIME` を使う。未設定時のDefaultは `19:30`、Duration Defaultは30分とする。
+通常の放送開始は設定値 `OC_AIR_START_TIME` を使う。未設定時のDefaultは `19:30`。
+
+通常の放送尺は `OC_AIR_DURATION_MIN` を使う。現行番組尺に合わせたDefaultは **28分** とする。
 
 放送枠変更時はScript Propertyで変更でき、コード改修を不要にする。
 
@@ -60,6 +68,8 @@ Calendar descriptionへEPISODE Notion URL / Episode Folder URLを入れる。
 再放送は時期により変更可能性があるため、初期EPISODE Calendar Mirrorでは自動生成しない。
 
 将来、再放送時刻をEPISODEまたは番組設定としてCanonical化した場合に追加する。
+
+旧Calendar Bridgeが生成対象としていた「Air_Date翌日20:00の再放送」はLegacy仕様であり、現行Syncでは作成しない。
 
 ## 5. EPISODES Properties
 
@@ -94,6 +104,15 @@ Writeには `OC_TARGET_EPISODE_KEY` を必須とする。
 - Event IDがない → createしてID保存
 - Production_Statusは変更しない
 - 日向坂46カレンダーは変更しない
+
+**使用しない旧Handler:**
+
+```text
+previewEpisodeCalendarBridgeV01()
+syncEpisodeCalendarBridgeV01()
+```
+
+旧BridgeのWRITEはLegacy guardで停止させる。
 
 ## 7. Calendar Is a Mirror
 
@@ -130,3 +149,9 @@ OC-OSの制作予定
 ```
 
 を一つの時間軸で見られるようにすることにある。
+
+## 10. Legacy Rule
+
+Legacyファイルは設計履歴確認のためGitHub上に残してよいが、現行GASプロジェクトへ新規導入しない。
+
+すでにGASプロジェクトへ旧Bridgeが存在する場合も、Pilotでは旧WRITEを実行しない。Calendarの実地Pilotは `previewEpisodeCalendarSyncV01()` → 人間確認 → `syncEpisodeCalendarV01()` の1系統だけで行う。
