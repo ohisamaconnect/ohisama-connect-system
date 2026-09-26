@@ -2,6 +2,12 @@
 
 基準日: 2026-09-26
 
+> **CURRENT / Canonical運用候補**
+>
+> PUBLICATIONSの現行自動作成入口は `gas/oc_os_publication_draft_importer_v0.1.0.gs` とする。
+> `gas/oc_os_publication_plan_seeder_v0.1.0.gs` は初期設計履歴として **Legacy / Do Not Run** とする。
+> 現行Pilotでは両者を併用しない。
+
 ## 1. 目的
 
 PUBLICATIONSは、1つのEPISODEから派生する外部公開物を1成果物1レコードで管理するDBである。
@@ -26,6 +32,7 @@ EPISODES.Public_URLは代表URLまたは旧互換のショートカットとし�
 - 外部公開物が存在しない回も正常とする。
 - AI再生成によってPUBLICATIONSレコードを増殖させない。
 - 既存の人間編集・Final_Text・公開済情報をAI再生成で上書きしない。
+- 各回について「トーク音声・note・SNS・オーディオグラム」を必ず作るとは仮定しない。
 
 ## 3. Schema
 
@@ -59,7 +66,13 @@ Last_Edited
 
 ### Publication_Key
 
-1つの「公開物」を識別する恒久キー。例:
+1つの「公開物」を識別する恒久キー。現行形式:
+
+```text
+<Episode_Key>|<Output_Type>|<Platform>
+```
+
+例:
 
 ```text
 2026-10-04|ショーノート|note
@@ -68,6 +81,16 @@ Last_Edited
 ```
 
 同一Publication_KeyのPUBLICATIONSレコードは原則1件とする。
+
+旧Plan Seederが使用していた
+
+```text
+PUBPLAN|<Episode_Key>|TALK_AUDIO
+PUBPLAN|<Episode_Key>|SHOW_NOTES
+...
+```
+
+形式は**Legacy Key**であり、現行Importerでは使用しない。
 
 ### Draft_Key
 
@@ -83,6 +106,7 @@ AI再生成時にDraft_Keyが変わっても、新しいPUBLICATIONSレコード
 
 ```text
 00｜進行管理     Publication_StatusでBoard管理
+05｜下書き確認   AI下書きの人間レビュー
 10｜公開準備済   人間が公開可能と判断したもの
 20｜公開済       実際に公開されたもの
 ```
@@ -91,7 +115,7 @@ AI再生成時にDraft_Keyが変わっても、新しいPUBLICATIONSレコード
 
 ### 未着手
 
-公開物を作る予定だけ存在する状態。
+公開物を作る予定だけ存在する状態。手動で必要な場合に使用できるが、全EPISODEへ定型枠を自動Seederする現行運用は採用しない。
 
 ### 下書き
 
@@ -200,6 +224,20 @@ Publication Draft Importerは次を守る。
 - AI生成レコードは `Publication_Status = 下書き`、`Origin = AI下書き` で作る。
 - AIが指定した `公開準備済` / `公開済` 等のStatusは受け付けない。
 
+現行Handler:
+
+```text
+previewPublicationDraftImportV01()
+importPublicationDraftsV01()
+```
+
+Legacy / 使用禁止:
+
+```text
+previewPublicationPlanV01()   # 履歴確認用Previewのみ
+seedPublicationPlanV01()      # WRITE disabled
+```
+
 ## 13. Relationship to EPISODE
 
 ```text
@@ -233,3 +271,16 @@ Public_URL / Published_At記録
 ```
 
 PUBLICATIONSが制作を支配してはいけない。水曜収録に間に合わせることを最優先とし、公開工程は放送本体から分離する。
+
+## 15. Legacy Plan Seeder
+
+`oc_os_publication_plan_seeder_v0.1.0.gs` は、各EPISODEに対してトーク音声・ショーノート・SNS・オーディオグラムの作業枠を先に作る初期案だった。
+
+現行では採用しない理由:
+
+1. 公開物が0件の回も正常であり、不要な枠を毎週作る必要がない。
+2. 旧Seederの `PUBPLAN|...` Keyと現行Draft Importerの `Episode_Key|Output_Type|Platform` Keyが一致しない。
+3. 両方を併用すると同じ意図の公開物が二重レコードになる可能性がある。
+4. 「実際に作るものだけPUBLICATIONSへ入る」方が、ひとり制作の運用負荷が小さい。
+
+したがって、旧Seederは履歴として残すがWRITEは停止し、現行PilotではDraft Importerのみを使用する。
