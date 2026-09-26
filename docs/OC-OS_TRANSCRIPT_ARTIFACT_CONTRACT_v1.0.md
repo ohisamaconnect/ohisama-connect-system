@@ -84,13 +84,13 @@ gas/oc_os_post_recording_intake_v0.2.0.gs
 
 役割:
 
-- MASTERからAudio_URLを設定
-- TRANSCRIPT直下の正式TranscriptからTranscript_URLを設定
+- MASTERからAudio_URL候補を得る
+- TRANSCRIPT直下の正式Transcriptを検査する
 - 既存値を上書きしない
 - Production_Statusを変更しない
 - STUDIO ITEMSを変更しない
 
-### Added
+### Added: Transcript Materializer
 
 ```text
 gas/oc_os_transcript_materializer_v0.1.0.gs
@@ -106,14 +106,24 @@ materializeFormalTranscriptDocV01()
 
 MaterializerはNotionを書き換えない。
 
-正式Google Doc生成後、既存の
+Drive/Docへ書く処理ではScript Property `OC_TARGET_EPISODE_KEY` を必須とし、対象EPISODEを明示的に固定する。
+
+### Added: Post-Recording Integrator
 
 ```text
-previewPostRecordingIntakeV02()
-syncPostRecordingLinksV02()
+gas/oc_os_post_recording_integrator_v0.1.0.gs
 ```
 
-を使ってTranscript_URLへ接続する。
+正式Google Doc生成後は、
+
+```text
+previewPostRecordingIntegrationV01()
+syncPostRecordingIntegrationV01()
+```
+
+を使用する。
+
+統合Writeは同一EPISODEに対して、使用済STUDIO ITEM由来の不足Relationと、空欄のAudio_URL / Transcript_URLだけを反映する。
 
 ## 6. Weekly Post-Recording Flow
 
@@ -144,9 +154,11 @@ Transcript Materializer Preview
   ↓
 人間確認
   ↓
-Post-Recording Intake Preview
+Post-Recording Integration Preview
   ↓
-Transcript_URL sync
+人間確認
+  ↓
+Actual Relations + Audio_URL + Transcript_URL sync
 ```
 
 ## 7. Pipeline Output Rule
@@ -174,7 +186,7 @@ Transcript_URL sync
 
 ## 9. Episode Actualsとの関係
 
-Transcript IntegrationとEpisode Actuals Finalizerは別責務とする。
+Transcript IntegrationとEpisode Actuals Finalizerは別責務のまま維持し、Post-Recording Integratorが同一EPISODEへの反映を束ねる。
 
 Episode Actuals Finalizerは、`Studio_Status = 使用済`だけを放送実績としてEVENT / SONG / SOURCE Relationへ反映する。
 
@@ -205,6 +217,12 @@ Recording_Date: 2026-09-30
 Air_Date: 2026-10-04
 ```
 
+Write前にScript Propertyを固定する。
+
+```text
+OC_TARGET_EPISODE_KEY = 2026-10-04
+```
+
 この回で以下を通す。
 
 ```text
@@ -212,7 +230,6 @@ Candidate Seeder
 → Studio Pack
 → 水曜収録
 → STUDIO ITEMS使用実績確定
-→ Episode Actuals Finalizer
 → MASTER格納
 → Post-Recording Intake
 → Proxy
@@ -221,7 +238,8 @@ Candidate Seeder
 → CLEAN_HHA
 → TRANSCRIPT/MACHINE
 → Formal Google Doc
-→ Transcript_URL
+→ Post-Recording Integration Preview
+→ Actual Relations + Audio_URL + Transcript_URL
 ```
 
 これをOC-OS最初のEnd-to-End Production Pilotとする。
