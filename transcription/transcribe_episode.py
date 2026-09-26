@@ -31,17 +31,18 @@ Canonical safety:
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import os
 import re
 import shutil
+import site
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-from faster_whisper import WhisperModel
-
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 BASE_GLOSSARY = [
     "おひさまコネクト",
@@ -54,6 +55,51 @@ BASE_GLOSSARY = [
 ]
 
 TERMINAL_PUNCTUATION = "。！？!?…"
+
+
+def configure_windows_gpu_dlls() -> list[str]:
+    """
+    Add CUDA / pip-installed cuDNN DLL directories for the current process only.
+    This avoids requiring a permanent PATH edit on Windows.
+    """
+    if os.name != "nt":
+        return []
+
+    candidates: list[str] = []
+
+    cuda_path = os.environ.get("CUDA_PATH")
+    if cuda_path:
+        candidates.append(str(Path(cuda_path) / "bin"))
+
+    try:
+        site_dirs = site.getsitepackages()
+    except Exception:
+        site_dirs = []
+
+    for root in site_dirs:
+        candidates.extend(
+            glob.glob(str(Path(root) / "nvidia" / "cudnn" / "bin"))
+        )
+
+    added: list[str] = []
+    seen = set()
+
+    for raw in candidates:
+        path = str(Path(raw).resolve())
+        key = path.casefold()
+        if key in seen or not Path(path).is_dir():
+            continue
+        seen.add(key)
+
+        try:
+            os.add_dll_directory(path)
+        except (AttributeError, FileNotFoundError, OSError):
+            pass
+
+        os.environ["PATH"] = path + os.pathsep + os.environ.get("PATH", "")
+        added.append(path)
+
+    return added
 
 
 def format_clock(seconds: float, sep: str = ".") -> str:
@@ -286,7 +332,7 @@ def build_clean_segments(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="OC-OS Local Transcription Pilot v0.2.0"
+        description="OC-OS Local Transcription Pilot v0.2.1"
     )
 
     parser.add_argument(
@@ -374,6 +420,14 @@ def main() -> int:
         audio_for_asr = normalize_audio(input_path, normalized)
     else:
         print("[1/4] 音声変換を省略します。")
+
+    dll_dirs = configure_windows_gpu_dlls()
+    if dll_dirs:
+        print("      GPU DLL dirs:")
+        for d in dll_dirs:
+            print(f"        - {d}")
+
+    from faster_whisper import WhisperModel
 
     print(
         f"[2/4] model={args.model} device={args.device} "
