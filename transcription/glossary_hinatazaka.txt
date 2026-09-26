@@ -1,0 +1,24 @@
+# OC-OS transcription glossary
+# One canonical term per line.
+# This file is an ASR hint only. It is not a factual source.
+#
+# Pilot starter terms for Episode 78.
+# Future direction: generate episode-specific terms from HHA/EPISODE relations.
+
+おひさまコネクト
+日向坂46
+おひさま
+あさくらじゅん
+DARAZ FM
+米子市
+鳥取県
+山口陽世
+平尾帆夏
+松田好花
+髙橋未来虹
+山下葉留花
+清水理央
+ラヴィット！
+TVer
+日向坂で会いましょう
+日向坂ちゃんねる
