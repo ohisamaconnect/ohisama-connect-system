@@ -13,13 +13,15 @@
  *   - Observation_Type はこの段階では変更しない
  *   - Stage対象は semantic content version が2つ以上ある Stable Source chain の全 physical rows
  *   - 同一contentの単純重複は Stage対象外
+ *   - 各Stage対象ページをGETで再読込し、Observation_Typeが空欄であることを確認する
  *
  * Dependencies in same Apps Script project:
  *   - ohisama_inbox_crawler_v1.2.7_duplicate_cleanup_preview_only.gs
  *       loadV127DuplicateCleanupState_()
  *       groupRowsBySemanticContentV127DC_()
- *   - ohisama_inbox_crawler_v1.2.7_production_runner.gs
- *       notionRequest_() or equivalent is NOT used here
+ *       notionSelectV127DC_()
+ *   - v1.2.6 main crawler
+ *       notionRequest_()
  */
 
 const OCOS_REVISION_STAGE_010 = Object.freeze({
@@ -27,6 +29,7 @@ const OCOS_REVISION_STAGE_010 = Object.freeze({
   TARGET_VALUE: 'SOURCE_REVISION',
   EXPECTED_REVISION_KEYS: 4,
   EXPECTED_ROWS: 9,
+  EXPECTED_ALREADY_TYPED: 0,
   META_KEY: 'OCOS_REVISION_OBSERVATION_STAGE_010_META',
   CHUNK_PREFIX: 'OCOS_REVISION_OBSERVATION_STAGE_010_CHUNK_',
   CHUNK_SIZE: 7000
@@ -34,7 +37,7 @@ const OCOS_REVISION_STAGE_010 = Object.freeze({
 
 /**
  * Revision chainを再計算し、対象行をPreviewしてからScript PropertiesにStage保存する。
- * Notionは変更しない。
+ * NotionはREAD ONLY。ページ/Schemaは変更しない。
  */
 function previewAndStageInboxRevisionObservationTypeV010() {
   console.log('========================================');
@@ -60,18 +63,25 @@ function previewAndStageInboxRevisionObservationTypeV010() {
   const stageRows = [];
   let rowsAlreadyTypedRevision = 0;
   let rowsUnexpectedType = 0;
+  let rowsTrashed = 0;
   let semanticVersions = 0;
 
   revisionGroups.forEach(group => {
     semanticVersions += group.versions.length;
 
     group.rows.forEach(row => {
-      const observationType = String(row.observationType || '').trim();
+      // LoaderはObservation_Type追加前の実装なので、各ページをREAD ONLY GETで再確認する。
+      const currentPage = notionRequest_(`/v1/pages/${row.pageId}`, 'get');
+      const currentProps = (currentPage && currentPage.properties) || {};
+      const observationType = notionSelectV127DC_(currentProps.Observation_Type);
+      const isTrashed = Boolean(currentPage && (currentPage.in_trash || currentPage.archived));
+
       if (observationType === OCOS_REVISION_STAGE_010.TARGET_VALUE) {
         rowsAlreadyTypedRevision++;
       } else if (observationType) {
         rowsUnexpectedType++;
       }
+      if (isTrashed) rowsTrashed++;
 
       stageRows.push({
         stableKey: group.stableKey,
@@ -85,7 +95,8 @@ function previewAndStageInboxRevisionObservationTypeV010() {
         sourceIds: row.sourceIds || [],
         suggestedDecision: row.suggestedDecision || '',
         currentObservationType: observationType,
-        targetObservationType: OCOS_REVISION_STAGE_010.TARGET_VALUE
+        targetObservationType: OCOS_REVISION_STAGE_010.TARGET_VALUE,
+        inTrash: isTrashed
       });
     });
   });
@@ -105,6 +116,7 @@ function previewAndStageInboxRevisionObservationTypeV010() {
   console.log(`STAGE_ROWS = ${stageRows.length}`);
   console.log(`ALREADY_SOURCE_REVISION = ${rowsAlreadyTypedRevision}`);
   console.log(`UNEXPECTED_NONBLANK_OBSERVATION_TYPE = ${rowsUnexpectedType}`);
+  console.log(`TRASHED_STAGE_ROWS = ${rowsTrashed}`);
   console.log('----------------------------------------');
 
   stageRows.forEach((row, i) => {
@@ -113,7 +125,7 @@ function previewAndStageInboxRevisionObservationTypeV010() {
     );
     console.log(
       `   stableKey=${row.stableKey} / currentObservationType=${row.currentObservationType || '(blank)'} / ` +
-      `target=${row.targetObservationType}`
+      `target=${row.targetObservationType} / inTrash=${row.inTrash ? 'YES' : 'NO'}`
     );
     console.log(
       `   Decision=${row.decision || '-'} / Status=${row.status || '-'} / ` +
@@ -135,8 +147,16 @@ function previewAndStageInboxRevisionObservationTypeV010() {
       `Expected stage rows=${OCOS_REVISION_STAGE_010.EXPECTED_ROWS}, actual=${stageRows.length}`
     );
   }
+  if (rowsAlreadyTypedRevision !== OCOS_REVISION_STAGE_010.EXPECTED_ALREADY_TYPED) {
+    blockingErrors.push(
+      `Expected already SOURCE_REVISION=${OCOS_REVISION_STAGE_010.EXPECTED_ALREADY_TYPED}, actual=${rowsAlreadyTypedRevision}`
+    );
+  }
   if (rowsUnexpectedType > 0) {
     blockingErrors.push(`Unexpected nonblank Observation_Type rows=${rowsUnexpectedType}`);
+  }
+  if (rowsTrashed > 0) {
+    blockingErrors.push(`Stage target rows already in trash=${rowsTrashed}`);
   }
 
   if (blockingErrors.length > 0) {
