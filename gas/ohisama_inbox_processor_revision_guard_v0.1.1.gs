@@ -8,42 +8,44 @@
  * Safety design:
  *   1) Query-level guard: candidate load時点で SOURCE_REVISION を除外
  *   2) Validation-level guard: 実行直前にも SOURCE_REVISION をBLOCK
- *   3) SOURCE_REVISIONを理由にINBOXを書き換えない（skip only）
+ *   3) blank / NORMAL のみ通常処理対象として明示
+ *   4) SOURCE_REVISIONを理由にINBOXを書き換えない（skip only）
  *
  * Dependencies in same Apps Script project:
  *   ohisama_inbox_processor_v0.1.gs
- *     OCOS_PROCESSOR
- *     processorValidateConfig_()
- *     processorNotionRequest_()
- *     processorParseInboxPage_()
- *     processorValidateItem_()
- *     processorProcessItem_()
- *     processorMarkRuntimeError_()
- *     processorErrorMessage_()
- *     processorSelect_()
  */
 
 const OCOS_PROCESSOR_REVISION_GUARD_011 = Object.freeze({
   VERSION: '0.1.1-revision-guard',
-  REVISION_VALUE: 'SOURCE_REVISION'
+  REVISION_VALUE: 'SOURCE_REVISION',
+  NORMAL_VALUE: 'NORMAL'
 });
 
 function previewInboxProcessorV011() {
   processorValidateConfig_();
-  const pages = processorLoadCandidatesV011_(OCOS_PROCESSOR.MAX_PER_RUN);
 
-  let revisionBlocked = 0;
+  const excludedRevisionPages = processorLoadRevisionExposureV011_();
+  const pages = processorLoadCandidatesV011_(OCOS_PROCESSOR.MAX_PER_RUN);
+  let runtimeRevisionBlocked = 0;
 
   console.log('========================================');
   console.log(`OC-OS INBOX PROCESSOR ${OCOS_PROCESSOR_REVISION_GUARD_011.VERSION} PREVIEW`);
   console.log('WRITE = NONE');
+  console.log(`REVISION_ROWS_EXCLUDED_BY_QUERY = ${excludedRevisionPages.length}`);
   console.log(`QUERY_CANDIDATES = ${pages.length}`);
   console.log('========================================');
+
+  excludedRevisionPages.forEach((page, index) => {
+    const item = processorParseInboxPageV011_(page);
+    console.log(`REVISION_EXCLUDED ${index + 1}. ${item.decision} | ${item.title}`);
+  });
+
+  if (excludedRevisionPages.length) console.log('----------------------------------------');
 
   pages.forEach((page, index) => {
     const item = processorParseInboxPageV011_(page);
     const validation = processorValidateItemV011_(item);
-    if (isSourceRevisionProcessorV011_(item)) revisionBlocked++;
+    if (isSourceRevisionProcessorV011_(item)) runtimeRevisionBlocked++;
 
     console.log(
       `${index + 1}. ${validation.ok ? '[READY]' : '[BLOCKED]'} ` +
@@ -59,7 +61,7 @@ function previewInboxProcessorV011() {
   });
 
   console.log('----------------------------------------');
-  console.log(`RUNTIME_REVISION_BLOCKED = ${revisionBlocked}`);
+  console.log(`RUNTIME_REVISION_BLOCKED = ${runtimeRevisionBlocked}`);
   console.log('SOURCE_REVISION = EXCLUDED / BLOCKED');
   console.log('========================================');
   console.log('PREVIEW COMPLETE');
@@ -108,7 +110,6 @@ function runInboxProcessorV011() {
       const validation = processorValidateItemV011_(item);
       if (!validation.ok) {
         blocked++;
-        // v0.1.0と同様のvalidation記録は通常行だけに行う。
         processorMarkValidationBlocked_(item, validation.errors.join(' / '));
         console.warn(`[BLOCKED] ${item.title}: ${validation.errors.join(' / ')}`);
         Utilities.sleep(OCOS_PROCESSOR.WRITE_INTERVAL_MS);
@@ -158,15 +159,13 @@ function processorLoadCandidatesV011_(pageSize) {
       page_size: Math.min(pageSize || 20, 100),
       filter: {
         and: [
+          ...processorBaseCandidateFiltersV011_(),
           {
             or: [
-              { property: 'Status', select: { equals: '未処理' } },
-              { property: 'Status', select: { equals: '確認中' } }
+              { property: 'Observation_Type', select: { is_empty: true } },
+              { property: 'Observation_Type', select: { equals: OCOS_PROCESSOR_REVISION_GUARD_011.NORMAL_VALUE } }
             ]
-          },
-          { property: 'Decision', select: { does_not_equal: '未判断' } },
-          // blank / NORMAL は従来通り通常処理。SOURCE_REVISIONだけ除外。
-          { property: 'Observation_Type', select: { does_not_equal: OCOS_PROCESSOR_REVISION_GUARD_011.REVISION_VALUE } }
+          }
         ]
       },
       sorts: [
@@ -179,6 +178,41 @@ function processorLoadCandidatesV011_(pageSize) {
     const item = processorParseInboxPageV011_(page);
     return !isSourceRevisionProcessorV011_(item);
   });
+}
+
+function processorLoadRevisionExposureV011_() {
+  const result = processorNotionRequest_(
+    `/v1/data_sources/${OCOS_PROCESSOR.INBOX_DATA_SOURCE_ID}/query`,
+    'post',
+    {
+      page_size: 100,
+      filter: {
+        and: [
+          ...processorBaseCandidateFiltersV011_(),
+          {
+            property: 'Observation_Type',
+            select: { equals: OCOS_PROCESSOR_REVISION_GUARD_011.REVISION_VALUE }
+          }
+        ]
+      },
+      sorts: [
+        { property: 'Detected_At', direction: 'ascending' }
+      ]
+    }
+  );
+  return result.results || [];
+}
+
+function processorBaseCandidateFiltersV011_() {
+  return [
+    {
+      or: [
+        { property: 'Status', select: { equals: '未処理' } },
+        { property: 'Status', select: { equals: '確認中' } }
+      ]
+    },
+    { property: 'Decision', select: { does_not_equal: '未判断' } }
+  ];
 }
 
 function processorParseInboxPageV011_(page) {
