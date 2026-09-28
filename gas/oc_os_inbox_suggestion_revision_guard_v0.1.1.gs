@@ -8,24 +8,17 @@
  * Safety design:
  *   1) Query-level guard: candidate load時点で SOURCE_REVISION を除外
  *   2) Runtime guard: parse後にも SOURCE_REVISION を再確認してskip
- *   3) Decision / Event / Status は変更しない
+ *   3) blank / NORMAL のみ通常処理対象として明示
+ *   4) Decision / Event / Status は変更しない
  *
  * Dependencies in same Apps Script project:
  *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *     OCOS_SUGGESTION
- *     suggestionValidateConfig_()
- *     suggestionLoadEvents_()
- *     suggestionNotionRequest_()
- *     suggestionParseInboxPage_()
- *     suggestionBuildProposal_()
- *     suggestionPatchProposal_()
- *     suggestionErrorMessage_()
- *     suggestionSelect_()
  */
 
 const OCOS_SUGGESTION_REVISION_GUARD_011 = Object.freeze({
   VERSION: '0.1.1-revision-guard',
-  REVISION_VALUE: 'SOURCE_REVISION'
+  REVISION_VALUE: 'SOURCE_REVISION',
+  NORMAL_VALUE: 'NORMAL'
 });
 
 function previewInboxSuggestionV011() {
@@ -47,15 +40,16 @@ function runInboxSuggestionBackfillV011() {
 function suggestionPreviewRunV011_(mode) {
   suggestionValidateConfig_();
   const events = suggestionLoadEvents_();
+  const excludedRevisionPages = suggestionLoadRevisionExposureV011_(mode);
   const pages = suggestionLoadInboxCandidatesV011_(mode);
 
-  let revisionSkipped = 0;
+  let runtimeRevisionSkipped = 0;
   const candidates = [];
 
   pages.forEach(page => {
     const item = suggestionParseInboxPageV011_(page);
     if (isSourceRevisionSuggestionV011_(item)) {
-      revisionSkipped++;
+      runtimeRevisionSkipped++;
       return;
     }
     candidates.push({ page, item });
@@ -65,10 +59,18 @@ function suggestionPreviewRunV011_(mode) {
   console.log(`OC-OS INBOX SUGGESTION ${OCOS_SUGGESTION_REVISION_GUARD_011.VERSION} PREVIEW`);
   console.log('WRITE = NONE');
   console.log(`MODE = ${mode.backfill ? 'BACKFILL' : 'CURRENT'}`);
+  console.log(`REVISION_ROWS_EXCLUDED_BY_QUERY = ${excludedRevisionPages.length}`);
   console.log(`QUERY_CANDIDATES = ${pages.length}`);
-  console.log(`RUNTIME_REVISION_SKIPPED = ${revisionSkipped}`);
+  console.log(`RUNTIME_REVISION_SKIPPED = ${runtimeRevisionSkipped}`);
   console.log(`FINAL_CANDIDATES = ${candidates.length}`);
   console.log('========================================');
+
+  excludedRevisionPages.forEach((page, index) => {
+    const item = suggestionParseInboxPageV011_(page);
+    console.log(`REVISION_EXCLUDED ${index + 1}. ${item.title}`);
+  });
+
+  if (excludedRevisionPages.length) console.log('----------------------------------------');
 
   candidates.forEach(({ item }, index) => {
     const proposal = suggestionBuildProposal_(item, events);
@@ -162,28 +164,13 @@ function suggestionLoadInboxCandidatesV011_(mode) {
     ? OCOS_SUGGESTION.BACKFILL_MAX_PER_RUN
     : OCOS_SUGGESTION.MAX_PER_RUN;
 
-  const andFilters = [
-    {
-      or: [
-        { property: 'Status', select: { equals: '未処理' } },
-        { property: 'Status', select: { equals: '確認中' } }
-      ]
-    },
-    { property: 'Decision', select: { equals: '未判断' } },
-    // blank / NORMAL は従来通り通常処理。SOURCE_REVISIONだけ除外。
-    { property: 'Observation_Type', select: { does_not_equal: OCOS_SUGGESTION_REVISION_GUARD_011.REVISION_VALUE } }
-  ];
-
-  if (mode.backfill) {
-    andFilters.push({
-      property: 'Published_At',
-      date: { on_or_after: OCOS_SUGGESTION.BACKFILL_FROM }
-    });
-    andFilters.push({
-      property: 'Published_At',
-      date: { on_or_before: OCOS_SUGGESTION.BACKFILL_TO }
-    });
-  }
+  const andFilters = suggestionBaseCandidateFiltersV011_(mode);
+  andFilters.push({
+    or: [
+      { property: 'Observation_Type', select: { is_empty: true } },
+      { property: 'Observation_Type', select: { equals: OCOS_SUGGESTION_REVISION_GUARD_011.NORMAL_VALUE } }
+    ]
+  });
 
   const result = suggestionNotionRequest_(
     `/v1/data_sources/${OCOS_SUGGESTION.INBOX_DATA_SOURCE_ID}/query`,
@@ -200,6 +187,54 @@ function suggestionLoadInboxCandidatesV011_(mode) {
     if (isSourceRevisionSuggestionV011_(item)) return false;
     return !item.suggestedDecision || item.suggestedDecision === '未提案';
   });
+}
+
+function suggestionLoadRevisionExposureV011_(mode) {
+  const andFilters = suggestionBaseCandidateFiltersV011_(mode);
+  andFilters.push({
+    property: 'Observation_Type',
+    select: { equals: OCOS_SUGGESTION_REVISION_GUARD_011.REVISION_VALUE }
+  });
+
+  const result = suggestionNotionRequest_(
+    `/v1/data_sources/${OCOS_SUGGESTION.INBOX_DATA_SOURCE_ID}/query`,
+    'post',
+    {
+      page_size: 100,
+      filter: { and: andFilters },
+      sorts: [{ property: 'Published_At', direction: 'ascending' }]
+    }
+  );
+
+  return (result.results || []).filter(page => {
+    const item = suggestionParseInboxPageV011_(page);
+    return !item.suggestedDecision || item.suggestedDecision === '未提案';
+  });
+}
+
+function suggestionBaseCandidateFiltersV011_(mode) {
+  const andFilters = [
+    {
+      or: [
+        { property: 'Status', select: { equals: '未処理' } },
+        { property: 'Status', select: { equals: '確認中' } }
+      ]
+    },
+    { property: 'Decision', select: { equals: '未判断' } }
+  ];
+
+  if (mode.backfill) {
+    andFilters.push({
+      property: 'Published_At',
+      date: { on_or_after: OCOS_SUGGESTION.BACKFILL_FROM }
+    });
+    andFilters.push({
+      property: 'Published_At',
+      date: { on_or_before: OCOS_SUGGESTION.BACKFILL_TO }
+    });
+  }
+
+  return andFilters;
 }
 
 function suggestionParseInboxPageV011_(page) {
