@@ -87,7 +87,6 @@ function previewInboxAiSuggestionRevisionGuardV025() {
 
   console.log('========================================');
   const safeCurrent = current.runtimeRevisionLeak === 0;
-  const safeBackfill = true; // preview explicitly identifies rows to exclude in v0.2.5
   const safeStageAudit = !stage.exists || (stage.unexpected === 0 && stage.missing === 0);
   console.log(`CURRENT_GUARD_STATUS = ${safeCurrent ? 'PASS' : 'FAIL'}`);
   console.log(`BACKFILL_GUARD_IMPLEMENTATION_NEEDED = ${backfill.revisionExposure > 0 ? 'YES' : 'YES (STRUCTURAL)'}`);
@@ -185,16 +184,17 @@ function auditAiSuggestionExistingStageRevisionExposureV025_() {
         return;
       }
 
-      const p = page.properties || {};
-      const observationType = suggestionSelect_(p.Observation_Type);
-      const title = suggestionTitle_(p.Inbox_Title) || stagedItem.title || '';
+      // Use the canonical v0.1.1 parser so title and Observation_Type are read
+      // through functions that actually exist in the current Apps Script project.
+      const current = suggestionParseInboxPageV011_(page);
+      const observationType = current.observationType || '';
       const row = {
         pageId: stagedItem.pageId,
-        title,
-        observationType: observationType || ''
+        title: current.title || stagedItem.title || '',
+        observationType
       };
 
-      if (String(observationType || '').trim() === OCOS_AI_SUGGESTION_REVISION_GUARD_025_PREVIEW.REVISION) {
+      if (String(observationType).trim() === OCOS_AI_SUGGESTION_REVISION_GUARD_025_PREVIEW.REVISION) {
         result.revision++;
         result.revisionRows.push(row);
       } else if (isAllowedNormalObservationV025_(observationType)) {
