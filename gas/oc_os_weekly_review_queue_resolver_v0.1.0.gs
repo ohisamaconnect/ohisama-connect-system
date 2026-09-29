@@ -1,65 +1,30 @@
 /**
  * OC-OS Weekly Review Queue Resolver
- * v0.1.0-preview (2026-09-29)
+ * v0.1.1-preview (2026-09-29)
  *
- * Purpose:
- * - Resolve the weekly Review Queue window from EPISODES.
- * - Inspect the four saved INBOX views used by Weekly Control.
- * - Produce a read-only preview of the Detected_At date changes that would be needed.
- *
- * Safety:
- * - READ ONLY. This file contains no PATCH/DELETE/CREATE operation.
- * - Notion access is limited to GET and data-source query POST requests.
- * - No trigger installer is included.
- * - No Notion page, data-source row, view, Drive file, or Script Property is modified.
- * - Existing view conditions other than the two Detected_At boundary conditions are never rebuilt.
- * - If the expected structure is ambiguous, the resolver BLOCKs instead of guessing.
- *
- * Window rule:
- * - Current = the single active EPISODE (準備中 / 収録準備済).
- * - Previous = latest EPISODE whose Recording_Date is before Current Recording_Date.
- * - Window is inclusive: Previous Recording_Date <= Detected_At <= Current Recording_Date.
- * - Only the initial 2026-10-04 Pilot may use the approved Bootstrap Anchor 2026-09-23
- *   when no previous EPISODE exists.
- *
- * Required Script Property:
- * - NOTION_API_TOKEN (preferred; NOTION_TOKEN / NOTION_SECRET fallback)
+ * READ ONLY preview.
+ * Resolves the weekly review window from EPISODES and inspects four saved INBOX views.
+ * No PATCH/DELETE/CREATE operation is implemented in this preview.
  */
 
 const OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01 = Object.freeze({
-  VERSION: '0.1.0-preview',
+  VERSION: '0.1.1-preview',
   NOTION_VERSION: '2026-03-11',
   EPISODES_DS: '163867a7-e71c-44d6-8fd3-333c2810746c',
+  INBOX_DS: '7e3a247d-8d7b-4ed7-a4b1-cfac6ec45f16',
   ACTIVE_STATUSES: ['準備中', '収録準備済'],
   DETECTED_AT_PROPERTY: 'Detected_At',
   BOOTSTRAP_ANCHORS: Object.freeze({
     '2026-10-04': '2026-09-23'
   }),
   REVIEW_VIEWS: Object.freeze([
-    Object.freeze({
-      key: 'GENERAL',
-      name: '要判断・要確認 INBOX',
-      id: '3e7031bc-0d45-810d-994e-000c5ce4ea76'
-    }),
-    Object.freeze({
-      key: 'OFFICIAL_UNDECIDED',
-      name: '① 公式優先｜未判断',
-      id: '3e7031bc-0d45-810c-b376-000ce812b80a'
-    }),
-    Object.freeze({
-      key: 'EXTERNAL_UNDECIDED',
-      name: '② 外部未判定｜未判断',
-      id: '3e7031bc-0d45-8116-823f-000ce92f1635'
-    }),
-    Object.freeze({
-      key: 'DECIDED_PROCESSOR_WAIT',
-      name: '③ 判断済み｜Processor待ち',
-      id: '3e7031bc-0d45-81af-b5b7-000c31b455e1'
-    })
+    Object.freeze({ key: 'GENERAL', name: '要判断・要確認 INBOX', id: '3e7031bc-0d45-810d-994e-000c5ce4ea76' }),
+    Object.freeze({ key: 'OFFICIAL_UNDECIDED', name: '① 公式優先｜未判断', id: '3e7031bc-0d45-810c-b376-000ce812b80a' }),
+    Object.freeze({ key: 'EXTERNAL_UNDECIDED', name: '② 外部未判定｜未判断', id: '3e7031bc-0d45-8116-823f-000ce92f1635' }),
+    Object.freeze({ key: 'DECIDED_PROCESSOR_WAIT', name: '③ 判断済み｜Processor待ち', id: '3e7031bc-0d45-81af-b5b7-000c31b455e1' })
   ])
 });
 
-/** READ ONLY public entry point. */
 function previewWeeklyReviewQueueResolverV01() {
   const plan = weeklyReviewV01BuildPlan_();
   const out = {
@@ -70,6 +35,7 @@ function previewWeeklyReviewQueueResolverV01() {
     currentEpisode: plan.currentEpisode,
     previous: plan.previous,
     window: plan.window,
+    detectedAtProperty: plan.detectedAtProperty,
     views: plan.views,
     warnings: plan.warnings
   };
@@ -88,98 +54,48 @@ function weeklyReviewV01BuildPlan_() {
   const activeEpisodes = weeklyReviewV01GetActiveEpisodes_();
 
   if (activeEpisodes.length === 0) {
-    return weeklyReviewV01Blocked_(
-      'BLOCK_NO_ACTIVE_EPISODE',
-      '準備中 / 収録準備済 のEPISODEが存在しません。',
-      null,
-      null,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_NO_ACTIVE_EPISODE', '準備中 / 収録準備済 のEPISODEが存在しません。', null, null, null, null, warnings);
   }
-
   if (activeEpisodes.length > 1) {
     warnings.push('Active EPISODE count=' + activeEpisodes.length);
-    return weeklyReviewV01Blocked_(
-      'BLOCK_MULTIPLE_ACTIVE_EPISODES',
-      '準備中 / 収録準備済 のEPISODEが複数存在します。',
-      null,
-      null,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_MULTIPLE_ACTIVE_EPISODES', '準備中 / 収録準備済 のEPISODEが複数存在します。', null, null, null, null, warnings);
   }
 
-  const currentPage = activeEpisodes[0];
-  const currentEpisode = weeklyReviewV01EpisodeSummary_(currentPage);
+  const currentEpisode = weeklyReviewV01EpisodeSummary_(activeEpisodes[0]);
   const currentRecordingDate = weeklyReviewV01DateOnly_(currentEpisode.recordingDate);
 
   if (!currentEpisode.episodeKey) {
-    return weeklyReviewV01Blocked_(
-      'BLOCK_CURRENT_EPISODE_KEY_MISSING',
-      'Current EPISODEにEpisode_Keyがありません。',
-      currentEpisode,
-      null,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_CURRENT_EPISODE_KEY_MISSING', 'Current EPISODEにEpisode_Keyがありません。', currentEpisode, null, null, null, warnings);
   }
-
   if (!currentRecordingDate) {
-    return weeklyReviewV01Blocked_(
-      'BLOCK_CURRENT_RECORDING_DATE_MISSING',
-      'Current EPISODEにRecording_Dateがありません。',
-      currentEpisode,
-      null,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_CURRENT_RECORDING_DATE_MISSING', 'Current EPISODEにRecording_Dateがありません。', currentEpisode, null, null, null, warnings);
   }
 
-  const previousResolved = weeklyReviewV01ResolvePrevious_(
-    currentEpisode.episodeKey,
-    currentRecordingDate
-  );
-
+  const previousResolved = weeklyReviewV01ResolvePrevious_(currentEpisode.episodeKey, currentRecordingDate);
   if (previousResolved.action !== 'READY') {
-    return weeklyReviewV01Blocked_(
-      previousResolved.action,
-      previousResolved.reason,
-      currentEpisode,
-      previousResolved.previous,
-      warnings.concat(previousResolved.warnings || [])
-    );
+    return weeklyReviewV01Blocked_(previousResolved.action, previousResolved.reason, currentEpisode, previousResolved.previous, null, null, warnings.concat(previousResolved.warnings || []));
   }
 
   const previousDate = weeklyReviewV01DateOnly_(previousResolved.previous.recordingDate);
   if (!previousDate) {
-    return weeklyReviewV01Blocked_(
-      'BLOCK_PREVIOUS_RECORDING_DATE_MISSING',
-      'Previous Recording_Dateを安全に確定できません。',
-      currentEpisode,
-      previousResolved.previous,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_PREVIOUS_RECORDING_DATE_MISSING', 'Previous Recording_Dateを安全に確定できません。', currentEpisode, previousResolved.previous, null, null, warnings);
   }
-
   if (previousDate > currentRecordingDate) {
-    return weeklyReviewV01Blocked_(
-      'BLOCK_INVALID_WINDOW_ORDER',
-      'Previous Recording_DateがCurrent Recording_Dateより後です。',
-      currentEpisode,
-      previousResolved.previous,
-      warnings
-    );
+    return weeklyReviewV01Blocked_('BLOCK_INVALID_WINDOW_ORDER', 'Previous Recording_DateがCurrent Recording_Dateより後です。', currentEpisode, previousResolved.previous, null, null, warnings);
   }
 
-  const window = {
-    from: previousDate,
-    to: currentRecordingDate,
-    inclusive: true
-  };
+  const window = { from: previousDate, to: currentRecordingDate, inclusive: true };
+  const detectedResolved = weeklyReviewV01ResolveDetectedAtProperty_();
+  if (detectedResolved.action !== 'READY') {
+    return weeklyReviewV01Blocked_(detectedResolved.action, detectedResolved.reason, currentEpisode, previousResolved.previous, window, detectedResolved.property, warnings.concat(detectedResolved.warnings || []));
+  }
 
+  const detectedAtProperty = detectedResolved.property;
   const viewPlans = [];
   for (let i = 0; i < OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.REVIEW_VIEWS.length; i++) {
     const spec = OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.REVIEW_VIEWS[i];
-    const viewPlan = weeklyReviewV01InspectView_(spec, window);
+    const viewPlan = weeklyReviewV01InspectView_(spec, window, detectedAtProperty);
     viewPlans.push(viewPlan);
-
     if (viewPlan.action !== 'READY') {
       return {
         action: viewPlan.action,
@@ -187,6 +103,7 @@ function weeklyReviewV01BuildPlan_() {
         currentEpisode: currentEpisode,
         previous: previousResolved.previous,
         window: window,
+        detectedAtProperty: detectedAtProperty,
         views: viewPlans,
         warnings: warnings.concat(viewPlan.warnings || [])
       };
@@ -199,18 +116,20 @@ function weeklyReviewV01BuildPlan_() {
     currentEpisode: currentEpisode,
     previous: previousResolved.previous,
     window: window,
+    detectedAtProperty: detectedAtProperty,
     views: viewPlans,
     warnings: warnings
   };
 }
 
-function weeklyReviewV01Blocked_(action, reason, currentEpisode, previous, warnings) {
+function weeklyReviewV01Blocked_(action, reason, currentEpisode, previous, window, detectedAtProperty, warnings) {
   return {
     action: action,
     reason: reason,
     currentEpisode: currentEpisode || null,
     previous: previous || null,
-    window: null,
+    window: window || null,
+    detectedAtProperty: detectedAtProperty || null,
     views: [],
     warnings: warnings || []
   };
@@ -218,12 +137,8 @@ function weeklyReviewV01Blocked_(action, reason, currentEpisode, previous, warni
 
 function weeklyReviewV01GetActiveEpisodes_() {
   const filters = OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.ACTIVE_STATUSES.map(function(status) {
-    return {
-      property: 'Production_Status',
-      select: { equals: status }
-    };
+    return { property: 'Production_Status', select: { equals: status } };
   });
-
   return weeklyReviewV01QueryAll_(OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.EPISODES_DS, {
     filter: { or: filters },
     sorts: [{ property: 'Recording_Date', direction: 'ascending' }],
@@ -233,40 +148,22 @@ function weeklyReviewV01GetActiveEpisodes_() {
 
 function weeklyReviewV01ResolvePrevious_(currentEpisodeKey, currentRecordingDate) {
   const warnings = [];
-
-  // Two rows are enough to detect whether the latest prior Recording_Date is duplicated.
   const result = weeklyReviewV01QueryPage_(OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.EPISODES_DS, {
-    filter: {
-      property: 'Recording_Date',
-      date: { before: currentRecordingDate }
-    },
+    filter: { property: 'Recording_Date', date: { before: currentRecordingDate } },
     sorts: [{ property: 'Recording_Date', direction: 'descending' }],
     page_size: 2
   });
-
   const pages = result.results || [];
 
   if (pages.length === 0) {
     const anchor = OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.BOOTSTRAP_ANCHORS[currentEpisodeKey];
     if (!anchor) {
-      return {
-        action: 'BLOCK_NO_PREVIOUS_EPISODE',
-        reason: '前回EPISODEが存在せず、このEpisode_KeyにはBootstrap Anchorもありません。',
-        previous: null,
-        warnings: warnings
-      };
+      return { action: 'BLOCK_NO_PREVIOUS_EPISODE', reason: '前回EPISODEが存在せず、このEpisode_KeyにはBootstrap Anchorもありません。', previous: null, warnings: warnings };
     }
-
     return {
       action: 'READY',
       reason: '初回Pilotの承認済みBootstrap Anchorを使用します。',
-      previous: {
-        source: 'BOOTSTRAP_ANCHOR',
-        episodeKey: null,
-        recordingDate: anchor,
-        pageId: null,
-        url: null
-      },
+      previous: { source: 'BOOTSTRAP_ANCHOR', episodeKey: null, recordingDate: anchor, pageId: null, url: null },
       warnings: warnings
     };
   }
@@ -274,37 +171,79 @@ function weeklyReviewV01ResolvePrevious_(currentEpisodeKey, currentRecordingDate
   const first = weeklyReviewV01EpisodeSummary_(pages[0]);
   const firstDate = weeklyReviewV01DateOnly_(first.recordingDate);
   if (!firstDate) {
-    return {
-      action: 'BLOCK_PREVIOUS_RECORDING_DATE_MISSING',
-      reason: '直前EPISODE候補にRecording_Dateがありません。',
-      previous: first,
-      warnings: warnings
-    };
+    return { action: 'BLOCK_PREVIOUS_RECORDING_DATE_MISSING', reason: '直前EPISODE候補にRecording_Dateがありません。', previous: first, warnings: warnings };
   }
 
   if (pages.length > 1) {
-    const second = weeklyReviewV01EpisodeSummary_(pages[1]);
-    const secondDate = weeklyReviewV01DateOnly_(second.recordingDate);
+    const secondDate = weeklyReviewV01DateOnly_(weeklyReviewV01EpisodeSummary_(pages[1]).recordingDate);
     if (secondDate && secondDate === firstDate) {
       warnings.push('Duplicate previous Recording_Date=' + firstDate);
-      return {
-        action: 'BLOCK_DUPLICATE_PREVIOUS_RECORDING_DATE',
-        reason: '直前Recording_Dateを持つEPISODEが複数存在します。',
-        previous: first,
-        warnings: warnings
-      };
+      return { action: 'BLOCK_DUPLICATE_PREVIOUS_RECORDING_DATE', reason: '直前Recording_Dateを持つEPISODEが複数存在します。', previous: first, warnings: warnings };
     }
   }
 
   return {
     action: 'READY',
     reason: 'EPISODESの直前Recording_Dateを使用します。',
-    previous: {
-      source: 'EPISODES',
-      episodeKey: first.episodeKey,
-      recordingDate: firstDate,
-      pageId: first.pageId,
-      url: first.url
+    previous: { source: 'EPISODES', episodeKey: first.episodeKey, recordingDate: firstDate, pageId: first.pageId, url: first.url },
+    warnings: warnings
+  };
+}
+
+function weeklyReviewV01ResolveDetectedAtProperty_() {
+  const warnings = [];
+  let dataSource;
+  try {
+    dataSource = weeklyReviewV01GetDataSource_(OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.INBOX_DS);
+  } catch (err) {
+    return {
+      action: 'BLOCK_INBOX_DATA_SOURCE_FETCH_FAILED',
+      reason: String(err && err.message ? err.message : err),
+      property: null,
+      warnings: warnings
+    };
+  }
+
+  const properties = dataSource && dataSource.properties ? dataSource.properties : null;
+  if (!properties || !Object.prototype.hasOwnProperty.call(properties, OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY)) {
+    return {
+      action: 'BLOCK_DETECTED_AT_PROPERTY_NOT_FOUND',
+      reason: 'INBOX Data SourceにDetected_At propertyがありません。',
+      property: null,
+      warnings: warnings
+    };
+  }
+
+  const prop = properties[OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY] || {};
+  if (!prop.id) {
+    return {
+      action: 'BLOCK_DETECTED_AT_PROPERTY_ID_MISSING',
+      reason: 'Detected_At propertyのIDを取得できません。',
+      property: { name: prop.name || OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY, id: null, type: prop.type || '' },
+      warnings: warnings
+    };
+  }
+  if (prop.type && prop.type !== 'date') {
+    return {
+      action: 'BLOCK_DETECTED_AT_PROPERTY_TYPE_MISMATCH',
+      reason: 'Detected_At propertyがdate型ではありません。type=' + prop.type,
+      property: { name: prop.name || OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY, id: prop.id, type: prop.type },
+      warnings: warnings
+    };
+  }
+
+  return {
+    action: 'READY',
+    reason: 'Detected_Atのproperty name / IDを解決しました。',
+    property: {
+      name: prop.name || OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY,
+      id: String(prop.id),
+      type: prop.type || 'date',
+      acceptedRefs: weeklyReviewV01UniqueStrings_([
+        prop.name || OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY,
+        String(prop.id),
+        weeklyReviewV01SafeDecode_(String(prop.id))
+      ])
     },
     warnings: warnings
   };
@@ -322,73 +261,34 @@ function weeklyReviewV01EpisodeSummary_(page) {
   };
 }
 
-function weeklyReviewV01InspectView_(spec, window) {
+function weeklyReviewV01InspectView_(spec, window, detectedAtProperty) {
   const warnings = [];
   let view;
-
   try {
     view = weeklyReviewV01GetView_(spec.id);
   } catch (err) {
-    return {
-      key: spec.key,
-      name: spec.name,
-      viewId: spec.id,
-      action: 'BLOCK_VIEW_FETCH_FAILED',
-      reason: String(err && err.message ? err.message : err),
-      wouldChange: null,
-      dateAudit: null,
-      proposedFilter: null,
-      warnings: warnings
-    };
+    return weeklyReviewV01ViewBlocked_(spec, null, 'BLOCK_VIEW_FETCH_FAILED', String(err && err.message ? err.message : err), { lower: [], upper: [], observedDatePropertyRefs: [] }, warnings);
   }
 
   if (!view || !view.filter) {
-    return {
-      key: spec.key,
-      name: spec.name,
-      viewId: spec.id,
-      actualName: view && view.name ? view.name : '',
-      action: 'BLOCK_VIEW_FILTER_MISSING',
-      reason: '保存ViewにFilterがありません。',
-      wouldChange: null,
-      dateAudit: null,
-      proposedFilter: null,
-      warnings: warnings
-    };
+    return weeklyReviewV01ViewBlocked_(spec, view, 'BLOCK_VIEW_FILTER_MISSING', '保存ViewにFilterがありません。', { lower: [], upper: [], observedDatePropertyRefs: [] }, warnings);
   }
-
   if (view.name && view.name !== spec.name) {
     warnings.push('Configured name differs from actual view name: ' + view.name);
   }
 
   const proposedFilter = weeklyReviewV01Clone_(view.filter);
-  const matches = weeklyReviewV01FindDetectedAtBoundaries_(proposedFilter);
+  const matches = weeklyReviewV01FindDetectedAtBoundaries_(proposedFilter, detectedAtProperty);
 
   if (matches.lower.length !== 1) {
-    return weeklyReviewV01ViewBlocked_(
-      spec,
-      view,
-      'BLOCK_VIEW_LOWER_BOUNDARY_AMBIGUOUS',
-      'Detected_At on_or_after が1件ちょうどではありません。count=' + matches.lower.length,
-      matches,
-      warnings
-    );
+    return weeklyReviewV01ViewBlocked_(spec, view, 'BLOCK_VIEW_LOWER_BOUNDARY_AMBIGUOUS', 'Detected_At on_or_after が1件ちょうどではありません。count=' + matches.lower.length, matches, warnings);
   }
-
   if (matches.upper.length !== 1) {
-    return weeklyReviewV01ViewBlocked_(
-      spec,
-      view,
-      'BLOCK_VIEW_UPPER_BOUNDARY_AMBIGUOUS',
-      'Detected_At on_or_before が1件ちょうどではありません。count=' + matches.upper.length,
-      matches,
-      warnings
-    );
+    return weeklyReviewV01ViewBlocked_(spec, view, 'BLOCK_VIEW_UPPER_BOUNDARY_AMBIGUOUS', 'Detected_At on_or_before が1件ちょうどではありません。count=' + matches.upper.length, matches, warnings);
   }
 
   const beforeLower = matches.lower[0].date.on_or_after;
   const beforeUpper = matches.upper[0].date.on_or_before;
-
   matches.lower[0].date.on_or_after = window.from;
   matches.upper[0].date.on_or_before = window.to;
 
@@ -401,18 +301,13 @@ function weeklyReviewV01InspectView_(spec, window) {
     reason: '既存Filterを保持し、Detected_At境界だけを置換可能です。',
     wouldChange: beforeLower !== window.from || beforeUpper !== window.to,
     dateAudit: {
-      current: {
-        onOrAfter: beforeLower,
-        onOrBefore: beforeUpper
-      },
-      proposed: {
-        onOrAfter: window.from,
-        onOrBefore: window.to
-      },
+      matchedPropertyRefs: weeklyReviewV01UniqueStrings_(matches.lower.concat(matches.upper).map(function(node) { return String(node.property || ''); })),
+      observedDatePropertyRefs: matches.observedDatePropertyRefs,
+      current: { onOrAfter: beforeLower, onOrBefore: beforeUpper },
+      proposed: { onOrAfter: window.from, onOrBefore: window.to },
       lowerMatchCount: matches.lower.length,
       upperMatchCount: matches.upper.length
     },
-    // Preview only. This object is never PATCHed by v0.1.0-preview.
     proposedFilter: proposedFilter,
     warnings: warnings
   };
@@ -429,61 +324,58 @@ function weeklyReviewV01ViewBlocked_(spec, view, action, reason, matches, warnin
     wouldChange: null,
     dateAudit: {
       lowerMatchCount: matches && matches.lower ? matches.lower.length : 0,
-      upperMatchCount: matches && matches.upper ? matches.upper.length : 0
+      upperMatchCount: matches && matches.upper ? matches.upper.length : 0,
+      observedDatePropertyRefs: matches && matches.observedDatePropertyRefs ? matches.observedDatePropertyRefs : []
     },
     proposedFilter: null,
     warnings: warnings || []
   };
 }
 
-/**
- * Find the two date-boundary leaf filters in the native Notion filter object.
- * The traversal is intentionally generic so AND/OR nesting may evolve without
- * requiring this resolver to rebuild unrelated conditions.
- */
-function weeklyReviewV01FindDetectedAtBoundaries_(filter) {
-  const out = { lower: [], upper: [] };
+function weeklyReviewV01FindDetectedAtBoundaries_(filter, detectedAtProperty) {
+  const out = { lower: [], upper: [], observedDatePropertyRefs: [] };
   weeklyReviewV01WalkObject_(filter, function(node) {
     if (!node || typeof node !== 'object' || Array.isArray(node)) return;
-    if (node.property !== OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.DETECTED_AT_PROPERTY) return;
     if (!node.date || typeof node.date !== 'object') return;
 
-    if (Object.prototype.hasOwnProperty.call(node.date, 'on_or_after')) {
-      out.lower.push(node);
+    if (node.property !== undefined && node.property !== null) {
+      out.observedDatePropertyRefs.push(String(node.property));
     }
-    if (Object.prototype.hasOwnProperty.call(node.date, 'on_or_before')) {
-      out.upper.push(node);
-    }
+    if (!weeklyReviewV01PropertyRefMatches_(node.property, detectedAtProperty)) return;
+
+    if (Object.prototype.hasOwnProperty.call(node.date, 'on_or_after')) out.lower.push(node);
+    if (Object.prototype.hasOwnProperty.call(node.date, 'on_or_before')) out.upper.push(node);
   });
+  out.observedDatePropertyRefs = weeklyReviewV01UniqueStrings_(out.observedDatePropertyRefs);
   return out;
+}
+
+function weeklyReviewV01PropertyRefMatches_(ref, detectedAtProperty) {
+  if (ref === undefined || ref === null || !detectedAtProperty) return false;
+  const candidate = String(ref);
+  const accepted = weeklyReviewV01UniqueStrings_([
+    detectedAtProperty.name,
+    detectedAtProperty.id,
+    weeklyReviewV01SafeDecode_(detectedAtProperty.id)
+  ]);
+  const decodedCandidate = weeklyReviewV01SafeDecode_(candidate);
+  return accepted.indexOf(candidate) >= 0 || accepted.indexOf(decodedCandidate) >= 0;
 }
 
 function weeklyReviewV01WalkObject_(value, visitor) {
   if (Array.isArray(value)) {
-    value.forEach(function(item) {
-      weeklyReviewV01WalkObject_(item, visitor);
-    });
+    value.forEach(function(item) { weeklyReviewV01WalkObject_(item, visitor); });
     return;
   }
-
   if (!value || typeof value !== 'object') return;
   visitor(value);
-
-  Object.keys(value).forEach(function(key) {
-    weeklyReviewV01WalkObject_(value[key], visitor);
-  });
+  Object.keys(value).forEach(function(key) { weeklyReviewV01WalkObject_(value[key], visitor); });
 }
 
 function weeklyReviewV01Token_() {
   const p = PropertiesService.getScriptProperties();
-  const token =
-    p.getProperty('NOTION_API_TOKEN') ||
-    p.getProperty('NOTION_TOKEN') ||
-    p.getProperty('NOTION_SECRET');
-
-  if (!token) {
-    throw new Error('NOTION_API_TOKEN / NOTION_TOKEN / NOTION_SECRET が必要です。');
-  }
+  const token = p.getProperty('NOTION_API_TOKEN') || p.getProperty('NOTION_TOKEN') || p.getProperty('NOTION_SECRET');
+  if (!token) throw new Error('NOTION_API_TOKEN / NOTION_TOKEN / NOTION_SECRET が必要です。');
   return token;
 }
 
@@ -491,46 +383,34 @@ function weeklyReviewV01GetView_(viewId) {
   return weeklyReviewV01Request_('get', '/views/' + encodeURIComponent(viewId), null);
 }
 
+function weeklyReviewV01GetDataSource_(dataSourceId) {
+  return weeklyReviewV01Request_('get', '/data_sources/' + encodeURIComponent(dataSourceId), null);
+}
+
 function weeklyReviewV01QueryPage_(dataSourceId, body) {
   const req = weeklyReviewV01Clone_(body || {});
   req.page_size = Math.min(req.page_size || 100, 100);
-
-  return weeklyReviewV01Request_(
-    'post',
-    '/data_sources/' + encodeURIComponent(dataSourceId) + '/query',
-    req
-  );
+  return weeklyReviewV01Request_('post', '/data_sources/' + encodeURIComponent(dataSourceId) + '/query', req);
 }
 
 function weeklyReviewV01QueryAll_(dataSourceId, body) {
   const out = [];
   let cursor = null;
-
   do {
     const req = weeklyReviewV01Clone_(body || {});
     req.page_size = Math.min(req.page_size || 100, 100);
     if (cursor) req.start_cursor = cursor;
-
-    const r = weeklyReviewV01Request_(
-      'post',
-      '/data_sources/' + encodeURIComponent(dataSourceId) + '/query',
-      req
-    );
-
-    (r.results || []).forEach(function(item) {
-      out.push(item);
-    });
+    const r = weeklyReviewV01Request_('post', '/data_sources/' + encodeURIComponent(dataSourceId) + '/query', req);
+    (r.results || []).forEach(function(item) { out.push(item); });
     cursor = r.has_more ? r.next_cursor : null;
   } while (cursor);
-
   return out;
 }
 
 /**
- * Hard read-only gate.
- * GET is permitted for view retrieval.
- * POST is permitted only for /query endpoints, which are read operations.
- * Any other method/path combination throws before UrlFetchApp is called.
+ * Hard READ ONLY gate.
+ * GET is permitted for view / data-source retrieval.
+ * POST is permitted only for /query endpoints.
  */
 function weeklyReviewV01Request_(method, path, payload) {
   const normalizedMethod = String(method || '').toLowerCase();
@@ -539,10 +419,7 @@ function weeklyReviewV01Request_(method, path, payload) {
   const isReadQuery = normalizedMethod === 'post' && /\/query$/.test(normalizedPath);
 
   if (!isReadGet && !isReadQuery) {
-    throw new Error(
-      'READ ONLY guard blocked Notion request: method=' +
-      normalizedMethod + ' path=' + normalizedPath
-    );
+    throw new Error('READ ONLY guard blocked Notion request: method=' + normalizedMethod + ' path=' + normalizedPath);
   }
 
   const options = {
@@ -554,27 +431,18 @@ function weeklyReviewV01Request_(method, path, payload) {
       'Notion-Version': OC_WEEKLY_REVIEW_QUEUE_RESOLVER_V01.NOTION_VERSION
     }
   };
-
-  if (payload !== undefined && payload !== null) {
-    options.payload = JSON.stringify(payload);
-  }
+  if (payload !== undefined && payload !== null) options.payload = JSON.stringify(payload);
 
   const res = UrlFetchApp.fetch('https://api.notion.com/v1' + normalizedPath, options);
   const code = res.getResponseCode();
   const text = res.getContentText();
-
-  if (code < 200 || code >= 300) {
-    throw new Error('Notion API ' + code + ': ' + text);
-  }
-
+  if (code < 200 || code >= 300) throw new Error('Notion API ' + code + ': ' + text);
   return text ? JSON.parse(text) : {};
 }
 
 function weeklyReviewV01Title_(prop) {
   const a = prop && prop.title;
-  return Array.isArray(a) ? a.map(function(x) {
-    return x.plain_text || '';
-  }).join('') : '';
+  return Array.isArray(a) ? a.map(function(x) { return x.plain_text || ''; }).join('') : '';
 }
 
 function weeklyReviewV01Select_(prop) {
@@ -588,6 +456,22 @@ function weeklyReviewV01DateStart_(prop) {
 function weeklyReviewV01DateOnly_(value) {
   const m = String(value || '').match(/^(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : '';
+}
+
+function weeklyReviewV01SafeDecode_(value) {
+  const s = String(value || '');
+  try { return decodeURIComponent(s); } catch (err) { return s; }
+}
+
+function weeklyReviewV01UniqueStrings_(values) {
+  const out = [];
+  (values || []).forEach(function(value) {
+    if (value === undefined || value === null) return;
+    const s = String(value);
+    if (!s) return;
+    if (out.indexOf(s) < 0) out.push(s);
+  });
+  return out;
 }
 
 function weeklyReviewV01Clone_(value) {
