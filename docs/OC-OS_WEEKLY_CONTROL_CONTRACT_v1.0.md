@@ -1,6 +1,6 @@
 # OC-OS Weekly Control Contract v1.0
 
-基準日: 2026-09-26
+基準日: 2026-09-29
 
 ## 1. Purpose
 
@@ -59,7 +59,21 @@ EPISODESから対象回を1件表示する。
 
 ### 3. 情報確認キュー｜INBOX
 
-通常運用開始日 2026-09-24 以降のINBOXから、Statusが `未処理` または `確認中` のものを表示する。
+対象EPISODEの `Recording_Date` をCurrent、その直前EPISODEの `Recording_Date` をPreviousとして、INBOXの `Detected_At` が次のinclusive Windowに入るものを表示する。
+
+```text
+Previous Recording_Date <= Detected_At <= Current Recording_Date
+```
+
+通常運用ではWeekly Review Queue ResolverがこのWindowを解決し、Weekly Controlで使う4 saved Viewの `Detected_At` 境界だけを同期する。
+
+初回Pilot `Episode_Key = 2026-10-04` では直前EPISODEがOC-OSに存在しないため、承認済みBootstrap Anchor `2026-09-23` をPreviousとして使用する。
+
+```text
+Pilot Review Window = 2026-09-23 ～ 2026-09-30 inclusive
+```
+
+このBootstrap Anchorは初回Pilot専用であり、将来の欠落EPISODEに対する自動 `-7日` 推測ルールにはしない。
 
 旧バックログをWeekly Controlへ大量表示しない。
 
