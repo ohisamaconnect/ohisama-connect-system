@@ -1,5 +1,5 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.5",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -27,7 +27,10 @@
     "米子と日向坂46繋げていきます",
     "米子とおひさま繋げていきます",
     "五期生",
-    "ツアーや新参者"
+    "ツアーや新参者",
+    "角盤町TSUTAYA",
+    "あじぽん",
+    "ないそではむれない"
   ],
   "aliases": [
     {"from":"お日様コネクト","to":"おひさまコネクト","kind":"oc"},
@@ -51,7 +54,20 @@
     {"from":"よなごとひなつだかOT6つなげていきます","to":"米子と日向坂46繋げていきます","kind":"oc"},
     {"from":"よなごとおひさまつなげていきます","to":"米子とおひさま繋げていきます","kind":"oc"},
     {"from":"ご規制","to":"五期生","kind":"oc"},
-    {"from":"ツヤや新山もの","to":"ツアーや新参者","kind":"oc"}
+    {"from":"ツヤや新山もの","to":"ツアーや新参者","kind":"oc"},
+    {"from":"与那五市","to":"米子市","kind":"oc"},
+    {"from":"ダラゼフム","to":"DARAZ FM","kind":"oc"},
+    {"from":"おひともコネクト","to":"おひさまコネクト","kind":"oc"},
+    {"from":"あさくら純","to":"あさくらじゅん","kind":"oc"},
+    {"from":"キナタザカ46","to":"日向坂46","kind":"oc"},
+    {"from":"稲妻が46","to":"日向坂46","kind":"oc"},
+    {"from":"高橋みずに","to":"髙橋未来虹","kind":"member"},
+    {"from":"アジッポン","to":"あじぽん","kind":"oc"},
+    {"from":"アジボン","to":"あじぽん","kind":"oc"},
+    {"from":"アジポン","to":"あじぽん","kind":"oc"},
+    {"from":"ナイスレアムレナイ","to":"ないそではむれない","kind":"oc"},
+    {"from":"各番長蔦谷","to":"角盤町TSUTAYA","kind":"oc"},
+    {"from":"各番長ツタヤ","to":"角盤町TSUTAYA","kind":"oc"}
   ],
   "boundary_repairs": [
     {
