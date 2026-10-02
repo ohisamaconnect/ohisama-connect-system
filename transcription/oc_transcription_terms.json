@@ -1,5 +1,5 @@
 {
-  "version": "0.1.5",
+  "version": "0.1.6",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -36,9 +36,12 @@
     {"from":"お日様コネクト","to":"おひさまコネクト","kind":"oc"},
     {"from":"お日様","to":"おひさま","kind":"oc"},
     {"from":"朝倉潤","to":"あさくらじゅん","kind":"oc"},
+    {"from":"朝倉純","to":"あさくらじゅん","kind":"oc"},
     {"from":"朝倉","to":"あさくら","kind":"oc"},
+    {"from":"あさくら純","to":"あさくらじゅん","kind":"oc"},
     {"from":"夜名護市役所","to":"米子市役所","kind":"oc"},
     {"from":"夜名護","to":"米子","kind":"oc"},
+    {"from":"夜なご","to":"米子","kind":"oc"},
     {"from":"夜名越し","to":"米子市","kind":"oc"},
     {"from":"たとりけん","to":"鳥取県","kind":"oc"},
     {"from":"三陰","to":"山陰","kind":"oc"},
@@ -58,7 +61,6 @@
     {"from":"与那五市","to":"米子市","kind":"oc"},
     {"from":"ダラゼフム","to":"DARAZ FM","kind":"oc"},
     {"from":"おひともコネクト","to":"おひさまコネクト","kind":"oc"},
-    {"from":"あさくら純","to":"あさくらじゅん","kind":"oc"},
     {"from":"キナタザカ46","to":"日向坂46","kind":"oc"},
     {"from":"稲妻が46","to":"日向坂46","kind":"oc"},
     {"from":"高橋みずに","to":"髙橋未来虹","kind":"member"},
