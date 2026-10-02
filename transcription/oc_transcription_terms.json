@@ -1,5 +1,5 @@
 {
-  "version": "0.1.6",
+  "version": "0.1.7",
   "policy": {
     "explicit_alias_only": true,
     "preserve_spoken_connectives": true,
@@ -30,7 +30,11 @@
     "ツアーや新参者",
     "角盤町TSUTAYA",
     "あじぽん",
-    "ないそではむれない"
+    "ないそではむれない",
+    "ひなくり",
+    "リアルミート&グリート",
+    "ひなた坂46 LIVE",
+    "森本連れ出し隊"
   ],
   "aliases": [
     {"from":"お日様コネクト","to":"おひさまコネクト","kind":"oc"},
@@ -43,6 +47,7 @@
     {"from":"夜名護","to":"米子","kind":"oc"},
     {"from":"夜なご","to":"米子","kind":"oc"},
     {"from":"夜名越し","to":"米子市","kind":"oc"},
+    {"from":"よなご","to":"米子","kind":"oc"},
     {"from":"たとりけん","to":"鳥取県","kind":"oc"},
     {"from":"三陰","to":"山陰","kind":"oc"},
     {"from":"FMサイン","to":"FM山陰","kind":"oc"},
@@ -61,15 +66,31 @@
     {"from":"与那五市","to":"米子市","kind":"oc"},
     {"from":"ダラゼフム","to":"DARAZ FM","kind":"oc"},
     {"from":"おひともコネクト","to":"おひさまコネクト","kind":"oc"},
+    {"from":"ひともコネクト","to":"おひさまコネクト","kind":"oc"},
+    {"from":"おきさまコネクト","to":"おひさまコネクト","kind":"oc"},
+    {"from":"おきさま","to":"おひさま","kind":"oc"},
     {"from":"キナタザカ46","to":"日向坂46","kind":"oc"},
     {"from":"稲妻が46","to":"日向坂46","kind":"oc"},
+    {"from":"日立坂46","to":"日向坂46","kind":"oc"},
+    {"from":"ひなつ坂46","to":"日向坂46","kind":"oc"},
     {"from":"高橋みずに","to":"髙橋未来虹","kind":"member"},
+    {"from":"森本麻里","to":"森本茉莉","kind":"member"},
+    {"from":"森本マリー","to":"森本茉莉","kind":"member"},
     {"from":"アジッポン","to":"あじぽん","kind":"oc"},
     {"from":"アジボン","to":"あじぽん","kind":"oc"},
     {"from":"アジポン","to":"あじぽん","kind":"oc"},
     {"from":"ナイスレアムレナイ","to":"ないそではむれない","kind":"oc"},
     {"from":"各番長蔦谷","to":"角盤町TSUTAYA","kind":"oc"},
-    {"from":"各番長ツタヤ","to":"角盤町TSUTAYA","kind":"oc"}
+    {"from":"各番長ツタヤ","to":"角盤町TSUTAYA","kind":"oc"},
+    {"from":"ビンクのコスモス","to":"ピンクのコスモス","kind":"song"},
+    {"from":"ひらくり","to":"ひなくり","kind":"oc"},
+    {"from":"ひながなひなた坂ライブ","to":"ひなた坂46 LIVE","kind":"oc"},
+    {"from":"ディアリミット&グリート","to":"リアルミート&グリート","kind":"oc"},
+    {"from":"リアルミーダントグリート","to":"リアルミート&グリート","kind":"oc"},
+    {"from":"ミーグル","to":"ミーグリ","kind":"oc"},
+    {"from":"イチャイチャ虫のCTが4枚","to":"イチャイチャ虫のCDが4枚","kind":"oc"},
+    {"from":"森本連田主体","to":"森本連れ出し隊","kind":"oc"},
+    {"from":"森本連れ出したい","to":"森本連れ出し隊","kind":"oc"}
   ],
   "boundary_repairs": [
     {
