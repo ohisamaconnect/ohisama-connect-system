@@ -1,6 +1,6 @@
 /**
  * OC-OS GAS Runtime Audit
- * v0.1.0-preview (2026-09-26)
+ * v0.1.1-preview (2026-10-04)
  *
  * Purpose:
  * - Read-only runtime self-check for the currently open Apps Script project.
@@ -18,13 +18,15 @@
  */
 
 const OC_GAS_RUNTIME_AUDIT_V01 = Object.freeze({
-  VERSION: '0.1.0-preview',
+  VERSION: '0.1.1-preview',
   EXPECTED_PROPERTIES: [
     'NOTION_API_TOKEN',
     'NOTION_TOKEN',
     'NOTION_SECRET',
     'YOUTUBE_API_KEY',
     'OC_TARGET_EPISODE_KEY',
+    'OC_TARGET_EPISODE_LOCK_MODE',
+    'OC_TARGET_EPISODE_LOCKED_AT',
     'OC_CALENDAR_ID',
     'OC_AIR_START_TIME',
     'OC_AIR_DURATION_MIN'
@@ -84,6 +86,17 @@ function reportGasRuntimeInventoryV01() {
       'CURRENT / PREVIEW',
       typeof previewWeeklyEpisodeBootstrapV01 === 'function',
       auditGasConstVersionV01_('OC_WEEKLY_BOOTSTRAP_V01')
+    ),
+    auditGasModuleV01_(
+      'Target Episode Lock Manager',
+      'CURRENT / PREVIEW+MANUAL LOCK',
+      typeof previewTargetEpisodeLocksV01 === 'function' &&
+        typeof previewPreRecordingTargetLockV01 === 'function' &&
+        typeof lockPreRecordingTargetV01 === 'function' &&
+        typeof previewPostRecordingTargetLockV01 === 'function' &&
+        typeof lockPostRecordingTargetV01 === 'function' &&
+        typeof clearTargetEpisodeLockV01 === 'function',
+      auditGasConstVersionV01_('OC_TARGET_LOCK_V01')
     ),
     auditGasModuleV01_(
       'Episode Actuals Finalizer',
@@ -203,6 +216,9 @@ function reportGasRuntimeInventoryV01() {
   if (!modules.find(x => x.name === 'STUDIO Automation').present) {
     missingCritical.push('STUDIO Automation entrypoints missing');
   }
+  if (!modules.find(x => x.name === 'Target Episode Lock Manager').present) {
+    missingCritical.push('Target Episode Lock Manager entrypoints missing');
+  }
   if (!notionTokenPresent) {
     missingCritical.push('No Notion token property is present');
   }
@@ -272,6 +288,8 @@ function auditGasGlobalValueV01_(name) {
       return typeof OC_MESSAGES_GMAIL_SYNC_V01 !== 'undefined' ? OC_MESSAGES_GMAIL_SYNC_V01 : null;
     case 'OC_WEEKLY_BOOTSTRAP_V01':
       return typeof OC_WEEKLY_BOOTSTRAP_V01 !== 'undefined' ? OC_WEEKLY_BOOTSTRAP_V01 : null;
+    case 'OC_TARGET_LOCK_V01':
+      return typeof OC_TARGET_LOCK_V01 !== 'undefined' ? OC_TARGET_LOCK_V01 : null;
     case 'OC_ACTUALS_V01':
       return typeof OC_ACTUALS_V01 !== 'undefined' ? OC_ACTUALS_V01 : null;
     case 'OC_POST_RECORDING_V02':
