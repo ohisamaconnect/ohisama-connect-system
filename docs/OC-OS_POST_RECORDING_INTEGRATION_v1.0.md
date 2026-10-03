@@ -1,12 +1,15 @@
 # OC-OS Post-Recording Integration v1.0
 
 基準日: 2026-09-26
+更新: 2026-10-04 — 第118回Pilot結果を標準運用へ反映
 
 ## 1. 目的
 
 収録後に確定する「放送実績」と「成果物リンク」を、同じEPISODEへ安全に戻す。
 
 既存モジュールの責務は維持し、統合層で対象EPISODEだけを固定する。
+
+上位の週次運用Contractは `OC-OS_WEEKLY_STANDARD_OPERATION_v1.0.md` とする。
 
 ## 2. Modules
 
@@ -15,6 +18,7 @@ gas/oc_os_episode_actuals_finalizer_v0.1.0.gs
 gas/oc_os_post_recording_intake_v0.2.0.gs
 gas/oc_os_transcript_materializer_v0.1.0.gs
 gas/oc_os_post_recording_integrator_v0.1.0.gs
+gas/oc_os_target_episode_lock_manager_v0.1.0.gs
 ```
 
 ### Episode Actuals Finalizer
@@ -41,41 +45,63 @@ TRANSCRIPT直下の一意な正式TranscriptをTranscript_URL候補とする。
 
 上記のActualsとArtifact Linkを、同一EPISODEへまとめて反映する安全な統合層。
 
+### Target Episode Lock Manager
+
+`OC_TARGET_EPISODE_KEY` を毎週人間がScript Propertiesへ入力する運用を廃止する。
+
+収録後対象をPreviewし、人間確認後にSafety Lockとして設定する。
+
 ## 3. Target Safety
+
+標準運用では、まずTarget Lock Managerを使う。
 
 Preview:
 
-```text
-previewPostRecordingIntegrationV01()
+```javascript
+previewPostRecordingTargetLockV01()
 ```
 
-`OC_TARGET_EPISODE_KEY` が設定済みならそのEPISODEを使う。
+Lock:
 
-未設定時はPreviewに限り、既存のRecording_Date近傍選択を使用できる。
-
-Write:
-
-```text
-syncPostRecordingIntegrationV01()
+```javascript
+lockPostRecordingTargetV01()
 ```
 
-Write時はScript Property
+Lock Managerが既存互換用Script Property
 
 ```text
 OC_TARGET_EPISODE_KEY
 ```
 
-を必須とする。
+へ対象Episode_Keyを設定する。
 
-例:
+通常運用ではProject Settingsからこの値を直接入力しない。
 
-```text
-OC_TARGET_EPISODE_KEY = 2026-10-04
+その後、Integration Preview:
+
+```javascript
+previewPostRecordingIntegrationV01()
 ```
+
+Write:
+
+```javascript
+syncPostRecordingIntegrationV01()
+```
+
+Write時は従来どおり `OC_TARGET_EPISODE_KEY` を必須とする。
 
 一致するEPISODEが1件でなければ停止する。
 
 これにより、複数モジュールがそれぞれ独立に「最寄りのEPISODE」を選び、異なる回へ書き込む危険を避ける。
+
+### Lockの位置づけ
+
+`OC_TARGET_EPISODE_KEY` は週次設定値ではない。
+
+**今このWrite処理をどのEPISODEへ向けるかを固定する一時Safety Lock** である。
+
+収録前対象と収録後対象は同時に別EPISODEになり得るため、Weekly Bootstrapが新規EPISODEを作っただけでLockを自動切替しない。
 
 ## 4. Combined Write
 
@@ -139,13 +165,15 @@ HHA + OC grounded cleanup
 ↓
 成果物をTRANSCRIPT/MACHINEへ配置
 ↓
+previewPostRecordingTargetLockV01()
+↓
+lockPostRecordingTargetV01()
+↓
 previewTranscriptMaterializerV01()
 ↓
 materializeFormalTranscriptDocV01()
 ↓
 正式Google Docを人間確認
-↓
-OC_TARGET_EPISODE_KEYを対象回へ固定
 ↓
 previewPostRecordingIntegrationV01()
 ↓
@@ -154,9 +182,13 @@ previewPostRecordingIntegrationV01()
 syncPostRecordingIntegrationV01()
 ↓
 EPISODEへActual Relations + Audio_URL + Transcript_URL
+↓
+実使用Songs / Setlist_Memo / Structure_Memoを人間確認で確定
 ```
 
-## 7. 2026-10-04 Pilot
+Target LockはMaterializerとIntegratorの両方へ同じ対象回を与える。
+
+## 7. 2026-10-04 Pilot結果
 
 ```text
 Episode_Key: 2026-10-04
@@ -164,13 +196,20 @@ Recording_Date: 2026-09-30
 Air_Date: 2026-10-04
 ```
 
-PilotのWrite前にScript Propertyを以下へ固定する。
+Pilotでは `OC_TARGET_EPISODE_KEY = 2026-10-04` を手動で設定してEnd-to-Endを通した。
 
-```text
-OC_TARGET_EPISODE_KEY = 2026-10-04
-```
+結果:
 
-収録前の現時点では、実績Relation・Audio_URL・Transcript_URLを確定しない。
+- Actual Events反映成功
+- Audio_URL反映成功
+- Transcript_URL反映成功
+- Formal Transcript再生成フロー成功
+- 実使用Songs 3件確定
+- Setlist_Memo確定
+- Structure_Memo確定
+- Production_Statusその他の非対象項目を自動変更しないことを確認
+
+Pilot後の標準運用では、手動Property入力をTarget Lock Managerへ置き換える。
 
 ## 8. Canonical Principle
 
