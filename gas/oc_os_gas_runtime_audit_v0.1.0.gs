@@ -1,11 +1,11 @@
 /**
  * OC-OS GAS Runtime Audit
- * v0.1.1-preview (2026-10-04)
+ * v0.1.2-preview (2026-10-04)
  *
  * Purpose:
  * - Read-only runtime self-check for the currently open Apps Script project.
- * - Detect whether expected OC-OS handlers/constants are actually loaded.
- * - List installed triggers.
+ * - Detect current OC-OS production runners and their required base dependencies.
+ * - List installed triggers and detect missing/duplicate current triggers.
  * - Check only PRESENCE of expected Script Properties; never print secret values.
  * - Warn when known Legacy handlers are present.
  *
@@ -18,7 +18,7 @@
  */
 
 const OC_GAS_RUNTIME_AUDIT_V01 = Object.freeze({
-  VERSION: '0.1.1-preview',
+  VERSION: '0.1.2-preview',
   EXPECTED_PROPERTIES: [
     'NOTION_API_TOKEN',
     'NOTION_TOKEN',
@@ -30,6 +30,12 @@ const OC_GAS_RUNTIME_AUDIT_V01 = Object.freeze({
     'OC_CALENDAR_ID',
     'OC_AIR_START_TIME',
     'OC_AIR_DURATION_MIN'
+  ],
+  CURRENT_TRIGGER_HANDLERS: [
+    'runFrequentCrawlerV128',
+    'runScheduleCrawlerV128',
+    'runDailyCrawlerV128',
+    'runInboxProcessorV012'
   ]
 });
 
@@ -37,7 +43,15 @@ function reportGasRuntimeInventoryV01() {
   const modules = [
     auditGasModuleV01_(
       'INBOX Crawler',
-      'CURRENT',
+      'CURRENT / v1.2.8 RUNNER',
+      typeof runFrequentCrawlerV128 === 'function' &&
+        typeof runScheduleCrawlerV128 === 'function' &&
+        typeof runDailyCrawlerV128 === 'function',
+      auditGasConstVersionV01_('V128_PRODUCTION')
+    ),
+    auditGasModuleV01_(
+      'INBOX Crawler Base',
+      'CURRENT DEPENDENCY / v1.2.6',
       typeof runFrequentCrawler === 'function' &&
         typeof runScheduleCrawler === 'function' &&
         typeof runDailyCrawler === 'function',
@@ -49,7 +63,14 @@ function reportGasRuntimeInventoryV01() {
     ),
     auditGasModuleV01_(
       'INBOX Processor',
-      'CURRENT / SOURCE-GAP-CHECK',
+      'CURRENT / v0.1.2 READY-ONLY',
+      typeof runInboxProcessorV012 === 'function' &&
+        typeof previewInboxProcessorProductionV012 === 'function',
+      auditGasConstVersionV01_('OCOS_PROCESSOR_READY_ONLY_012')
+    ),
+    auditGasModuleV01_(
+      'INBOX Processor Base',
+      'CURRENT DEPENDENCY / v0.1',
       typeof runInboxProcessorV01 === 'function',
       ''
     ),
@@ -83,8 +104,9 @@ function reportGasRuntimeInventoryV01() {
     ),
     auditGasModuleV01_(
       'Weekly Episode Bootstrap',
-      'CURRENT / PREVIEW',
-      typeof previewWeeklyEpisodeBootstrapV01 === 'function',
+      'CURRENT / PREVIEW+MANUAL WRITE',
+      typeof previewWeeklyEpisodeBootstrapV01 === 'function' &&
+        typeof createNextWeeklyEpisodeV01 === 'function',
       auditGasConstVersionV01_('OC_WEEKLY_BOOTSTRAP_V01')
     ),
     auditGasModuleV01_(
@@ -113,14 +135,14 @@ function reportGasRuntimeInventoryV01() {
     ),
     auditGasModuleV01_(
       'Transcript Materializer',
-      'CURRENT / PREVIEW',
+      'CURRENT / PREVIEW+MANUAL WRITE',
       typeof previewTranscriptMaterializerV01 === 'function' &&
         typeof materializeFormalTranscriptDocV01 === 'function',
       auditGasConstVersionV01_('OC_TRANSCRIPT_MATERIALIZER_V01')
     ),
     auditGasModuleV01_(
       'Post-Recording Integrator',
-      'CURRENT / PREVIEW',
+      'CURRENT / PREVIEW+MANUAL WRITE',
       typeof previewPostRecordingIntegrationV01 === 'function' &&
         typeof syncPostRecordingIntegrationV01 === 'function',
       auditGasConstVersionV01_('OC_POST_INTEGRATOR_V01')
@@ -194,6 +216,11 @@ function reportGasRuntimeInventoryV01() {
     sourceId: auditGasSafeV01_(() => t.getTriggerSourceId() || '')
   }));
 
+  const triggerCounts = {};
+  OC_GAS_RUNTIME_AUDIT_V01.CURRENT_TRIGGER_HANDLERS.forEach(h => {
+    triggerCounts[h] = triggers.filter(t => t.handler === h).length;
+  });
+
   const props = PropertiesService.getScriptProperties().getProperties();
   const propertyPresence = {};
   OC_GAS_RUNTIME_AUDIT_V01.EXPECTED_PROPERTIES.forEach(k => {
@@ -207,32 +234,49 @@ function reportGasRuntimeInventoryV01() {
     propertyPresence.NOTION_SECRET;
 
   const missingCritical = [];
-  if (!modules.find(x => x.name === 'INBOX Crawler').present) {
-    missingCritical.push('INBOX Crawler entrypoints missing');
-  }
-  if (!modules.find(x => x.name === 'INBOX Processor').present) {
-    missingCritical.push('runInboxProcessorV01 missing');
-  }
-  if (!modules.find(x => x.name === 'STUDIO Automation').present) {
-    missingCritical.push('STUDIO Automation entrypoints missing');
-  }
-  if (!modules.find(x => x.name === 'Target Episode Lock Manager').present) {
-    missingCritical.push('Target Episode Lock Manager entrypoints missing');
-  }
+  [
+    'INBOX Crawler',
+    'INBOX Crawler Base',
+    'INBOX Processor',
+    'INBOX Processor Base',
+    'STUDIO Automation',
+    'Weekly Episode Bootstrap',
+    'Target Episode Lock Manager'
+  ].forEach(name => {
+    const m = modules.find(x => x.name === name);
+    if (!m || !m.present) missingCritical.push(name + ' missing');
+  });
   if (!notionTokenPresent) {
     missingCritical.push('No Notion token property is present');
   }
 
-  const legacyPresent = legacy.filter(x => x.present);
   const warnings = [];
 
-  const crawlerVersion = modules.find(x => x.name === 'INBOX Crawler').versionHint;
-  if (crawlerVersion && crawlerVersion.indexOf('/1.2.6') < 0) {
-    warnings.push('Crawler runtime version hint is not 1.2.6: ' + crawlerVersion);
+  const crawler = modules.find(x => x.name === 'INBOX Crawler');
+  if (crawler && crawler.versionHint && crawler.versionHint !== '1.2.8') {
+    warnings.push('Crawler current runner version is not 1.2.8: ' + crawler.versionHint);
   }
+
+  const crawlerBase = modules.find(x => x.name === 'INBOX Crawler Base');
+  if (crawlerBase && crawlerBase.versionHint && crawlerBase.versionHint.indexOf('/1.2.6') < 0) {
+    warnings.push('Crawler base dependency user-agent is not 1.2.6: ' + crawlerBase.versionHint);
+  }
+
+  const processor = modules.find(x => x.name === 'INBOX Processor');
+  if (processor && processor.versionHint && processor.versionHint !== '0.1.2-ready-only') {
+    warnings.push('Processor current runner version is not 0.1.2-ready-only: ' + processor.versionHint);
+  }
+
+  Object.keys(triggerCounts).forEach(h => {
+    if (triggerCounts[h] !== 1) {
+      warnings.push('Current trigger count must be 1: ' + h + '=' + triggerCounts[h]);
+    }
+  });
+
+  const legacyPresent = legacy.filter(x => x.present);
   if (legacyPresent.length) {
     warnings.push(
-      'Legacy handlers are present. Verify that these files are the guarded LEGACY versions or remove them: ' +
+      'Legacy handlers are present. Verify guarded LEGACY status or remove: ' +
       legacyPresent.map(x => x.handler).join(', ')
     );
   }
@@ -244,6 +288,7 @@ function reportGasRuntimeInventoryV01() {
     modules: modules,
     legacy: legacy,
     triggers: triggers,
+    currentTriggerCounts: triggerCounts,
     scriptPropertyPresence: propertyPresence,
     notionTokenPresent: notionTokenPresent,
     missingCritical: missingCritical,
@@ -278,6 +323,10 @@ function auditGasConstVersionV01_(constantName) {
 function auditGasGlobalValueV01_(name) {
   // Avoid eval. Explicit known-name switch keeps the audit safe and static.
   switch (name) {
+    case 'V128_PRODUCTION':
+      return typeof V128_PRODUCTION !== 'undefined' ? V128_PRODUCTION : null;
+    case 'OCOS_PROCESSOR_READY_ONLY_012':
+      return typeof OCOS_PROCESSOR_READY_ONLY_012 !== 'undefined' ? OCOS_PROCESSOR_READY_ONLY_012 : null;
     case 'OC_STUDIO_V01':
       return typeof OC_STUDIO_V01 !== 'undefined' ? OC_STUDIO_V01 : null;
     case 'OC_MESSAGES_V01':
