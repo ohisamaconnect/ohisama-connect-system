@@ -1,6 +1,7 @@
 # OC-OS Transcript Artifact Contract v1.0
 
 基準日: 2026-09-26
+更新: 2026-10-04 — 第118回End-to-End Pilot結果を反映
 
 ## 1. 目的
 
@@ -13,6 +14,8 @@
 - EPISODES.Transcript_URLを一意に決められる
 - ASR誤認識修正と、人間による発言書き換えを混同しない
 - 既存のPost-Recording Intake v0.2.0の安全設計を維持する
+
+上位の週次運用Contractは `OC-OS_WEEKLY_STANDARD_OPERATION_v1.0.md` とする。
 
 ## 2. Canonical Folder Structure
 
@@ -90,7 +93,7 @@ gas/oc_os_post_recording_intake_v0.2.0.gs
 - Production_Statusを変更しない
 - STUDIO ITEMSを変更しない
 
-### Added: Transcript Materializer
+### Transcript Materializer
 
 ```text
 gas/oc_os_transcript_materializer_v0.1.0.gs
@@ -106,9 +109,22 @@ materializeFormalTranscriptDocV01()
 
 MaterializerはNotionを書き換えない。
 
-Drive/Docへ書く処理ではScript Property `OC_TARGET_EPISODE_KEY` を必須とし、対象EPISODEを明示的に固定する。
+Drive/Docへ書く処理では `OC_TARGET_EPISODE_KEY` を必須とし、対象EPISODEを明示的に固定する。
 
-### Added: Post-Recording Integrator
+標準運用ではScript Propertiesへ日付を手入力せず、次を使用する。
+
+```text
+gas/oc_os_target_episode_lock_manager_v0.1.0.gs
+```
+
+収録後対象:
+
+```javascript
+previewPostRecordingTargetLockV01()
+lockPostRecordingTargetV01()
+```
+
+### Post-Recording Integrator
 
 ```text
 gas/oc_os_post_recording_integrator_v0.1.0.gs
@@ -128,6 +144,10 @@ syncPostRecordingIntegrationV01()
 ## 6. Weekly Post-Recording Flow
 
 ```text
+POST_RECORDING Target Preview
+  ↓
+Target Lock
+  ↓
 MASTER
   ↓
 Post-Recording Intake folder structure
@@ -169,28 +189,81 @@ Actual Relations + Audio_URL + Transcript_URL sync
 
 `hha_clean_transcript.py`は入力TRANSCRIPT.jsonと同じディレクトリへCLEAN_HHA等を生成するため、同じMACHINEフォルダ内で成果物を完結できる。
 
-## 8. Regeneration Rule
+## 8. Grounded Cleanup Rule
+
+第118回PilotでvalidatorによるAlias target検査が実際に機能した。
+
+標準ルール:
+
+- Alias targetはCanonical / fixed termでなければならない
+- Fuzzy rewriteをしない
+- Semantic paraphraseをしない
+- 文脈依存の一般文修正を固有名詞Aliasへ混ぜない
+- 不確実なASR文を「正しそう」という理由だけで直さない
+
+例:
+
+```text
+日立坂46 → 日向坂46
+森本マリー → 森本茉莉
+```
+
+のようなGrounded correctionは許容する。
+
+一方、文脈だけで推測する一般文補正はAliasへ入れない。
+
+validatorが停止した場合はvalidatorを弱めず、辞書設計を見直す。
+
+## 9. Coverage Audit Rule
+
+Coverage gap検出 = Transcriptへ必ず文字を追加、ではない。
+
+標準順序:
+
+```text
+Coverage gap検出
+↓
+該当音声を人間が実聴
+↓
+意味のある発話欠落か確認
+↓
+必要な場合だけ明示対応
+```
+
+フィラー、探索音、意味を持たない発声等であれば、人為的にTranscriptへ挿入しない。
+
+## 10. Regeneration Rule
 
 正式Google Docが既に存在する場合、Materializerは上書きしない。
 
 修正が必要な場合は、以下を人間が確認してから再生成する。
 
-1. 誤認識が本当にASR誤認識か確認
+1. 誤認識が本当にASR誤認識か音声/sourceで確認
 2. 必要ならAlias / Boundary Ruleを追加
-3. Pipelineを再実行
-4. 新CLEAN_HHAを確認
-5. 既存正式Google Docの扱いを人間が決定
-6. その後に新しい正式Docを生成
+3. validatorを通す
+4. Pipeline / Grounded Cleanupを再実行
+5. 新CLEAN_HHAを確認
+6. 既存正式Google Docの扱いを人間が決定
+7. `previewTranscriptMaterializerV01()`
+8. 新しい正式Docを生成
+9. 新正式Docを人間確認
+10. Post-Recording Integration Previewへ進む
 
 自動で既存Docを削除・置換しない。
 
-## 9. Episode Actualsとの関係
+第118回Pilotではこのフローを実際に通し、正式Docを再生成できた。
+
+## 11. Episode Actualsとの関係
 
 Transcript IntegrationとEpisode Actuals Finalizerは別責務のまま維持し、Post-Recording Integratorが同一EPISODEへの反映を束ねる。
 
 Episode Actuals Finalizerは、`Studio_Status = 使用済`だけを放送実績としてEVENT / SONG / SOURCE Relationへ反映する。
 
 Transcriptから使用実績や発言内容を推測してRelationを確定しない。
+
+特に曲間をMUSICCUTしているため、Transcriptだけでは実使用曲を完全に再構成できない場合がある。
+
+Songs / Setlist_Memo / Structure_Memoの最終実績は人間確認で確定する。
 
 両方が完了した状態で、収録後EPISODEは次の実績を持つ。
 
@@ -207,7 +280,7 @@ Setlist_Memo
 
 Structure_Memo / Setlist_Memo / Production_Statusは自動確定しない。
 
-## 10. 2026-10-04 End-to-End Pilot
+## 12. 2026-10-04 End-to-End Pilot結果
 
 対象:
 
@@ -217,13 +290,7 @@ Recording_Date: 2026-09-30
 Air_Date: 2026-10-04
 ```
 
-Write前にScript Propertyを固定する。
-
-```text
-OC_TARGET_EPISODE_KEY = 2026-10-04
-```
-
-この回で以下を通す。
+Pilotで実際に通過:
 
 ```text
 Candidate Seeder
@@ -231,26 +298,29 @@ Candidate Seeder
 → 水曜収録
 → STUDIO ITEMS使用実績確定
 → MASTER格納
-→ Post-Recording Intake
 → Proxy
 → UVR
 → Transcription Pipeline
+→ Coverage Audit
 → CLEAN_HHA
-→ TRANSCRIPT/MACHINE
 → Formal Google Doc
+→ Grounded correction追加
+→ Formal Google Doc再生成
 → Post-Recording Integration Preview
 → Actual Relations + Audio_URL + Transcript_URL
+→ 実使用Songs / Setlist / Structure確定
 ```
 
-これをOC-OS最初のEnd-to-End Production Pilotとする。
+Pilotでは `OC_TARGET_EPISODE_KEY` を手動設定したが、標準運用ではTarget Lock Managerへ置き換える。
 
-## 11. 維持する原則
+## 13. 維持する原則
 
 - MASTERは不変
 - Primary ASRはCoverage First
 - AIは発言を書き換えない
 - ASR誤認識だけを補正する
 - Fuzzy自動補正を行わない
+- Alias target validationを維持する
 - 機械証拠を残す
 - Transcriptから放送実績を推測しない
 - 既存値を勝手に上書きしない
