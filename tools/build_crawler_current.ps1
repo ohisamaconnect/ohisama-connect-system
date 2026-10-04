@@ -44,12 +44,17 @@ $base = Read-Source $basePath
 $stable = Read-Source $stablePath
 $revision = Read-Source $revisionPath
 
+# IMPORTANT: use ASCII-only extraction markers so Windows PowerShell 5.1
+# cannot corrupt the boundary strings through legacy code-page handling.
+# The generated GAS may still contain Japanese comments/content; only the
+# extraction anchors are restricted to ASCII.
+
 # Base: retain current configuration + collectors/storage/API/helpers only.
 # Legacy public runners, old trigger installers, old orchestrator and historical
 # preview-only entry points are intentionally not shipped to Production Runtime.
-$baseConfig = Slice-Between $base 'const OCOS = Object.freeze({' '// 初期セットアップ'
+$baseConfig = Slice-Between $base 'const OCOS = Object.freeze({' 'function setupCrawlerV12()'
 $baseCollectorsList = Slice-Between $base 'function fullCollectors_() {' '// Orchestrator'
-$baseCore = Slice-Between $base '// Collector A:' '// v1.2.2 Member Google News 実収集 Preview'
+$baseCore = Slice-Between $base '// Collector A:' 'function previewV122MemberGoogleNewsActual()'
 
 # Stable-source generation: only the classifier/state/key implementation is needed.
 $stableCore = Slice-From $stable '// Decision logic'
