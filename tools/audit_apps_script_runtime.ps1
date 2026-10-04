@@ -16,8 +16,7 @@ $expectedRuntimeFiles = @(
   'OCOS_Messages_Current.gs',
   'OCOS_Calendar_Current.gs',
   'OCOS_ArchivePublishing_Current.gs',
-  'OCOS_Diagnostics_Current.gs',
-  'OCOS_Deployment_Bridge.gs'
+  'OCOS_Diagnostics_Current.gs'
 )
 
 $requiredFunctions = @(
@@ -33,23 +32,17 @@ $requiredFunctions = @(
   'previewCalendarCurrent','syncCalendarCurrent',
   'previewStatementArchiveCurrent','previewPublicationContextCurrent','previewPublicationDraftsCurrent',
   'auditEpisodeLifecycleV01','previewEpisodeCompletionGateV01','reportWeeklyReadinessV01',
-  'reportGasRuntimeInventoryCurrent','previewDeploymentBridgeCurrent'
+  'reportGasRuntimeInventoryCurrent'
 )
 
-$bridgeTargets = [ordered]@{
-  runFrequentCrawler = 'runFrequentCrawlerCurrent'
-  runScheduleCrawler = 'runScheduleCrawlerCurrent'
-  runDailyCrawler = 'runDailyCrawlerCurrent'
-  runFrequentCrawlerV127 = 'runFrequentCrawlerCurrent'
-  runScheduleCrawlerV127 = 'runScheduleCrawlerCurrent'
-  runDailyCrawlerV127 = 'runDailyCrawlerCurrent'
-  runFrequentCrawlerV128 = 'runFrequentCrawlerCurrent'
-  runScheduleCrawlerV128 = 'runScheduleCrawlerCurrent'
-  runDailyCrawlerV128 = 'runDailyCrawlerCurrent'
-  runInboxProcessorV01 = 'runInboxProcessorCurrent'
-  runInboxProcessorV011 = 'runInboxProcessorCurrent'
-  runInboxProcessorV012 = 'runInboxProcessorCurrent'
-}
+$forbiddenLegacyFunctions = @(
+  'runFrequentCrawler','runScheduleCrawler','runDailyCrawler',
+  'runFrequentCrawlerV127','runScheduleCrawlerV127','runDailyCrawlerV127',
+  'runFrequentCrawlerV128','runScheduleCrawlerV128','runDailyCrawlerV128',
+  'runInboxProcessorV01','runInboxProcessorV011','runInboxProcessorV012',
+  'syncEpisodeCalendarBridgeV01','seedPublicationPlanV01',
+  'previewDeploymentBridgeCurrent'
+)
 
 $failures = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
@@ -59,7 +52,7 @@ function Fail([string]$m) { $script:failures.Add($m); Write-Host ('FAIL  ' + $m)
 function Warn([string]$m) { $script:warnings.Add($m); Write-Host ('WARN  ' + $m) }
 
 Write-Host '============================================================'
-Write-Host 'OC-OS APPS SCRIPT RUNTIME PRE-PUSH STATIC AUDIT'
+Write-Host 'OC-OS APPS SCRIPT CURRENT RUNTIME STATIC AUDIT'
 Write-Host 'WRITE = NONE'
 Write-Host '============================================================'
 
@@ -70,7 +63,7 @@ $actualGs = @(Get-ChildItem $runtimeDir -File -Filter '*.gs' | ForEach-Object { 
 $expectedGs = @($expectedRuntimeFiles | Sort-Object)
 $missing = @($expectedGs | Where-Object { $_ -notin $actualGs })
 $extra = @($actualGs | Where-Object { $_ -notin $expectedGs })
-if ($missing.Count -eq 0) { Pass 'All expected Runtime .gs files exist.' } else { Fail ('Missing Runtime file(s): ' + ($missing -join ', ')) }
+if ($missing.Count -eq 0) { Pass 'All expected Current Runtime .gs files exist.' } else { Fail ('Missing Runtime file(s): ' + ($missing -join ', ')) }
 if ($extra.Count -eq 0) { Pass 'No unexpected Runtime .gs files.' } else { Fail ('Unexpected Runtime .gs file(s): ' + ($extra -join ', ')) }
 
 # 2. Manifest
@@ -149,30 +142,16 @@ if ($dupConst.Count -eq 0) { Pass 'No duplicate top-level const declarations acr
   foreach ($n in $dupConst) { Fail ("Duplicate const $n => " + (($constOwners[$n] | Sort-Object) -join ', ')) }
 }
 
-# 5. Required surface
+# 5. Required Current surface
 $missingFns = @($requiredFunctions | Where-Object { -not $functionOwners.ContainsKey($_) -or $functionOwners[$_].Count -ne 1 })
 if ($missingFns.Count -eq 0) { Pass 'Required Current public/runtime surface is present.' } else { Fail ('Required function(s) missing/duplicated: ' + ($missingFns -join ', ')) }
 
-# 6. Deployment Bridge isolation and delegation
-$bridgeFile = 'OCOS_Deployment_Bridge.gs'
-$bridgeText = $fileTexts[$bridgeFile]
-$bridgeOk = $true
-foreach ($legacy in $bridgeTargets.Keys) {
-  if (-not $functionOwners.ContainsKey($legacy)) { Fail ('Bridge legacy handler missing: ' + $legacy); $bridgeOk = $false; continue }
-  $owners = @($functionOwners[$legacy])
-  if ($owners.Count -ne 1 -or $owners[0] -ne $bridgeFile) { Fail ('Legacy handler must exist only in Bridge: ' + $legacy + ' => ' + ($owners -join ', ')); $bridgeOk = $false }
-  $target = $bridgeTargets[$legacy]
-  if (-not $functionOwners.ContainsKey($target)) { Fail ('Bridge target missing: ' + $legacy + ' -> ' + $target); $bridgeOk = $false }
-  $pattern = 'function\s+' + [regex]::Escape($legacy) + '\s*\(\s*\)\s*\{\s*return\s+' + [regex]::Escape($target) + '\s*\(\s*\)\s*;?\s*\}'
-  if (-not [regex]::IsMatch($bridgeText, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)) { Fail ('Bridge delegation not exact: ' + $legacy + ' -> ' + $target); $bridgeOk = $false }
-}
-if ($bridgeOk) { Pass 'Deployment Bridge is isolated and delegates exactly to Current handlers.' }
+# 6. Legacy/temporary functions must be absent after migration completion
+$legacyPresent = @($forbiddenLegacyFunctions | Where-Object { $functionOwners.ContainsKey($_) })
+if ($legacyPresent.Count -eq 0) { Pass 'No legacy trigger shim or temporary deployment bridge functions remain.' }
+else { Fail ('Legacy/temporary function(s) still present: ' + ($legacyPresent -join ', ')) }
 
-foreach ($forbidden in @('syncEpisodeCalendarBridgeV01','seedPublicationPlanV01')) {
-  if ($functionOwners.ContainsKey($forbidden)) { Fail ('Forbidden legacy Runtime symbol present: ' + $forbidden) }
-}
-
-# 7. Cross-family dependencies and migration tools
+# 7. Cross-family dependencies and operations tools
 $requiredDeps = @(
   'actualsV01BuildPlan_','postV02BuildPlan_','postV02GetTargetEpisode_',
   'postV02PatchPage_','transcriptV01BuildPlan_'
@@ -186,7 +165,7 @@ $triggerTools = @(
   'installMessagesFormSubmitTriggerV01','reportGasRuntimeInventoryCurrent'
 )
 $missingTriggerTools = @($triggerTools | Where-Object { -not $functionOwners.ContainsKey($_) })
-if ($missingTriggerTools.Count -eq 0) { Pass 'Trigger migration/audit tools are present.' } else { Fail ('Trigger migration/audit tool missing: ' + ($missingTriggerTools -join ', ')) }
+if ($missingTriggerTools.Count -eq 0) { Pass 'Current trigger maintenance/audit tools are present.' } else { Fail ('Trigger maintenance/audit tool missing: ' + ($missingTriggerTools -join ', ')) }
 
 # 8. Static Script Property reference inventory
 $propertyPattern = 'getProperty\(\s*[''"]([^''"]+)[''"]\s*\)'
@@ -195,22 +174,20 @@ foreach ($file in $runtimeFiles) {
   foreach ($m in [regex]::Matches($fileTexts[$file.Name], $propertyPattern)) { [void]$propertyNames.Add($m.Groups[1].Value) }
 }
 Write-Host ('INFO  Script Property references: ' + (($propertyNames | Sort-Object) -join ', '))
-Warn 'Static audit cannot verify actual Script Property values; post-deploy Current Runtime Audit must verify presence.'
+Warn 'Static audit cannot verify actual Script Property values; reportGasRuntimeInventoryCurrent() verifies presence in Apps Script.'
 
 # 9. Safety markers
 if ($fileTexts['OCOS_Suggestion_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Suggestion remains no-auto-trigger Pilot.' } else { Warn 'Suggestion AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_Calendar_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Calendar remains no-auto-trigger Pilot.' } else { Warn 'Calendar AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_ArchivePublishing_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Archive/Publishing remains no-auto-trigger Pilot.' } else { Warn 'Archive/Publishing AUTO_TRIGGER:false marker not found.' }
-if ($fileTexts['OCOS_Deployment_Bridge.gs'] -match 'TEMPORARY:\s*true') { Pass 'Deployment Bridge is marked temporary.' } else { Fail 'Deployment Bridge TEMPORARY:true marker missing.' }
 
 Write-Host '============================================================'
 Write-Host ('FAILURES = ' + $failures.Count)
 Write-Host ('WARNINGS = ' + $warnings.Count)
 if ($failures.Count -eq 0) {
-  Write-Host 'RESULT = STATIC AUDIT PASS'
-  Write-Host 'NOTE = Do not clasp push yet; review trigger state and migration sequence next.'
+  Write-Host 'RESULT = CURRENT RUNTIME STATIC AUDIT PASS'
   exit 0
 }
-Write-Host 'RESULT = STATIC AUDIT FAIL'
+Write-Host 'RESULT = CURRENT RUNTIME STATIC AUDIT FAIL'
 Write-Host 'DO NOT RUN clasp push.'
 exit 1
