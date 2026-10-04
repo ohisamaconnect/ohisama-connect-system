@@ -5,16 +5,41 @@
 ## 原則
 
 - `gas/` は開発履歴・Pilot・Legacy・ONE-OFFを含むため、直接pushしない。
-- この `apps-script/runtime/` には、現行Productionとして必要な統合済みGASだけを置く。
-- 過去Version依存（例: v1.2.8がv1.2.7/v1.2.6を必要とする構成）は、可能な限り現行系へ統合する。
+- `apps-script/runtime/` には、現行Productionとして必要な統合済みGASだけを置く。
+- 過去Version依存（例: v1.2.8がv1.2.7/v1.2.6を必要とする構成）は、Current系へ統合する。
 - 現行系でも責務が異なるモジュール分割は許容する。
-- `appsscript.json` は実際のProduction Projectから取得したmanifestを基準に管理する。
+- `appsscript.json` は実際のProduction Project由来のmanifestを基準に管理する。
 - `.clasp.json` とOAuth認証情報はGitへcommitしない。
-- `clasp push` 前に必ず `clasp status` と差分確認を行う。
+- `clasp push` 前に `clasp status` と `tools/audit_apps_script_runtime.ps1` を確認する。
 
-## 初期状態
+## Current Runtime
 
-このREADMEだけではProduction Runtimeは完成していません。
-Crawler / Processor等を系統ごとに統合・検証した後、このディレクトリへ昇格します。
+2026-10-05の初回clasp移行で、旧約60ファイル構成からCurrent Runtimeへ統合した。
+
+現行Production Runtimeは次の9ファミリ。
+
+- `OCOS_Crawler_Current.gs`
+- `OCOS_Processor_Current.gs`
+- `OCOS_Suggestion_Current.gs`
+- `OCOS_Weekly_Current.gs`
+- `OCOS_PostRecording_Current.gs`
+- `OCOS_Messages_Current.gs`
+- `OCOS_Calendar_Current.gs`
+- `OCOS_ArchivePublishing_Current.gs`
+- `OCOS_Diagnostics_Current.gs`
+
+`OCOS_Deployment_Bridge.gs` は初回移行時のみ使用し、Crawler / ProcessorのCurrent Trigger移行完了と `reportGasRuntimeInventoryCurrent()` の `migrationComplete=true` 確認後に削除した。Git履歴には移行証跡として残る。
+
+## Trigger移行後の基準
+
+Current必須Triggerは、少なくとも次を各1本とする。
+
+- `runFrequentCrawlerCurrent`
+- `runScheduleCrawlerCurrent`
+- `runDailyCrawlerCurrent`
+- `runInboxProcessorCurrent`
+- `onMessageFormSubmitV01`
+
+Studio系の `runStudioCandidateSeederV01` / `generateStudioPackV01` はWeekly Current内で同名handlerを維持する。
 
 詳細: `docs/OC-OS_CLASP_SETUP_v1.0.md`
