@@ -1,0 +1,19 @@
+# clasp / Google OAuth local state
+.clasp.json
+.clasprc.json
+**/.clasprc.json
+client_secret*.json
+credentials*.json
+
+# Node / local tooling
+node_modules/
+npm-debug.log*
+
+# Local clasp snapshots / scratch
+.clasp-local/
+.clasp-snapshot/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
