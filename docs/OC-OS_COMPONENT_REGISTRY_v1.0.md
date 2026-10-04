@@ -20,6 +20,8 @@ OC-OSの構築では、現行Production、まだPilot中の機能、診断・構
 | LEGACY / HISTORY | 設計履歴・比較・回帰確認用。現行Runtimeでは使わない | GASへ新規導入しない・Triggerを付けない |
 | ONE-OFF / MIGRATION | Backfill、Cleanup、競合解消等の一度きりの処理 | GitHub履歴に残すが通常Runtimeへ置かない |
 
+**コードがRuntimeに存在すること、GASへ導入済みであること、実データPilotに成功したこと、継続安定運用できていることは別の状態として扱う。**
+
 ## 3. CURRENT / PRODUCTION — 毎週残す中核
 
 2026-10-04 Runtime ValidationでCore Production Runtime Confirmedとなった系統。
@@ -42,11 +44,11 @@ OC-OSの構築では、現行Production、まだPilot中の機能、診断・構
 - `gas/oc_os_transcript_materializer_v0.1.0.gs`
 - `gas/oc_os_post_recording_integrator_v0.1.0.gs`
 
-### MESSAGES
+### MESSAGES — confirmed route
 
 - `gas/oc_os_messages_form_sync_v0.1.1.gs`
-- `gas/oc_os_messages_gmail_preview_v0.1.2.gs`
-- `gas/oc_os_messages_gmail_sync_v0.1.0.gs`
+
+Form→MESSAGESは実装・稼働記録がある。Gmail routeは下記Pilotへ分ける。
 
 ### Local transcription
 
@@ -63,6 +65,13 @@ OC-OSの構築では、現行Production、まだPilot中の機能、診断・構
 ## 4. CURRENT / PILOT — 完成形に必要なのでまだ残す
 
 以下は現行設計であり、Legacyではない。ただし2026-10-04時点では別Pilotまたは日常運用確認が残る。
+
+### MESSAGES Gmail route
+
+- `gas/oc_os_messages_gmail_preview_v0.1.2.gs`
+- `gas/oc_os_messages_gmail_sync_v0.1.0.gs`
+
+本番Runtimeでモジュールの存在は確認済み。ただし実メールを用いた取込成功の確認とは別なので、実地確認が終わるまではPilot扱いとする。
 
 ### STATEMENTS
 
@@ -123,6 +132,8 @@ Weekly Controlの考え方は残す。2026-10-04用Pilot画面を永久UIに固�
 - 旧OCOS V5系 `00_Config`, `10_Crawlers`, `20_Logic`, `30_Utils` など（現行依存がないことを確認した上でRuntimeから隔離）
 - Crawlerの旧版 v1.1.x / v1.2.0〜v1.2.5、v1.2.7検証系
 - Processor旧Trigger・テスト系
+- `transcription/transcribe_episode.py` — v0.3.0。正式ContractのCurrent entryではない
+- 古いTranscription Pilot説明・検証手順（履歴としてのみ保持）
 
 Legacyは削除必須ではない。GitHubは履歴保管場所として残してよいが、Currentと同じ意味で `gas/` 直下に見えること自体は将来の誤導入リスクになるため、後続整理で `legacy/` への移動を検討する。
 
@@ -177,7 +188,7 @@ Legacyは削除必須ではない。GitHubは履歴保管場所として残し�
 
 Legacy DBはCanonical移行元ではない。参照価値があるため、削除より先に一箇所へ隔離する。
 
-現在の親ページ名 `おひさまコネクト｜制作DB（新規構築）` は、Core Production Runtime Confirmed後は意味が古いため、後続整理で `OC-OS｜制作基盤` 等への改称を検討する。
+現在の親ページはCore Production Runtime Confirmed後の実態に合わせて `OC-OS｜制作基盤` を使用する。
 
 ## 9. Google Driveの整理方針
 
@@ -231,9 +242,10 @@ GitHub、GAS、Runtime Audit、Migration scriptsは「裏側」。通常はChatG
 1. NotionのCurrent UIとLegacy UIを分離する。
 2. Driveの`.venv`とStudio Pack世代を整理する。
 3. GitHubのLegacy / One-offを物理フォルダ分離する前に依存参照を監査する。
-4. STATEMENTSを実回でPilotする。
-5. PUBLICATIONS / Public Talk Audioを必要な回だけPilotする。
-6. Calendar Syncを実EPISODEで確認する。
-7. Weekly Controlの次週切替を確認し、`Current Week`入口を固定する。
+4. MESSAGES Gmail routeを実メールでPilotする。
+5. STATEMENTSを実回でPilotする。
+6. PUBLICATIONS / Public Talk Audioを必要な回だけPilotする。
+7. Calendar Syncを実EPISODEで確認する。
+8. Weekly Controlの次週切替を確認し、`Current Week`入口を固定する。
 
 削除よりも先に「Currentから見えなくする」「再導入されない状態にする」ことを優先する。
