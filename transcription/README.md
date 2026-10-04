@@ -28,7 +28,7 @@ MASTER
 - Terms: `hha_transcription_terms.json`, `oc_transcription_terms.json`
 - Python dependencies: `requirements.txt`
 
-`transcribe_episode.py` is the older v0.3.0 Pilot entry and is not the current production entry.
+旧 v0.3.0 Pilot entry `transcribe_episode.py` は現行依存がないことを確認し、2026-10-04にmain branchから削除した。必要な場合はGit履歴から参照・復元できる。
 
 ## Output location
 
