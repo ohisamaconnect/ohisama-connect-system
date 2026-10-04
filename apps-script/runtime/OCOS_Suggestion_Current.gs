@@ -1,41 +1,20 @@
 /**
- * OC-OS Suggestion Current - consolidated PILOT Runtime
- * Generated from the latest verified Suggestion dependency chain.
+ * OC-OS Suggestion Current - PILOT Runtime
+ * Current public-surface consolidation generated from the verified Suggestion lineage.
  *
  * Runtime policy:
  * - Suggestion only; human Decision / Event / Status remain authoritative.
- * - SOURCES / EVENTS are not created here.
- * - SOURCE_REVISION is excluded by the v0.2.5 guard path.
- * - Preview/Stage and Commit remain separated.
- * - Commit does not call Gemini; it writes only the reviewed staged snapshot.
- * - No automatic trigger is installed while this layer remains Pilot.
- * - Phase 1 preserves verified internal versioned symbols while removing
- *   deployment-time cross-file dependency.
+ * - SOURCES / EVENTS are never created by this layer.
+ * - SOURCE_REVISION and unexpected Observation_Type values are excluded.
+ * - Rule suggestion and AI suggestion remain separate responsibilities.
+ * - AI Preview/Stage and Commit remain separated by human review.
+ * - Commit never calls Gemini; only the reviewed staged snapshot can be written.
+ * - No automatic trigger exists while Suggestion remains PILOT.
+ * - Historical public entry points remain in GitHub source/history, not Runtime.
+ *
+ * Internal versioned helper names are intentionally retained until real Apps Script
+ * parity validation is complete. Runtime users should invoke only the Current facade.
  */
-
-// ============================================================
-// CONSOLIDATED SOURCE: Suggestion Engine v0.1.0
-// ============================================================
-
-/**
- * OC-OS INBOX Suggestion Engine v0.1.0
- * 2026-09-27
- *
- * 目的:
- *   INBOX に対してルール + Current EVENTS照合で「提案」を付与する。
- *
- * 重要原則:
- *   - Decision は変更しない。
- *   - Event は変更しない。
- *   - Status は変更しない。
- *   - SOURCES / EVENTS は作成しない。
- *   - Suggested_* / Suggestion_* だけを更新する。
- *   - Pilot 中は自動トリガーを入れない。
- *
- * 必要 Script Property:
- *   NOTION_TOKEN
- */
-
 const OCOS_SUGGESTION = Object.freeze({
   VERSION: '0.1.0',
   NOTION_VERSION: '2026-03-11',
@@ -55,35 +34,14 @@ const OCOS_SUGGESTION = Object.freeze({
 // Public entry points
 // ============================================================
 
-function testInboxSuggestionConnectionV010() {
-  suggestionValidateConfig_();
-  const result = suggestionNotionRequest_(
-    `/v1/data_sources/${OCOS_SUGGESTION.INBOX_DATA_SOURCE_ID}/query`,
-    'post',
-    { page_size: 1 }
-  );
-  console.log(`Suggestion Engine connection OK. results=${(result.results || []).length}`);
-}
+const OCOS_SUGGESTION_CURRENT = Object.freeze({
+  VERSION: 'current-pilot-2026-10-04',
+  ENGINE: 'rules + v0.2.5-equivalent guarded staged AI',
+  STATUS: 'PILOT',
+  AUTO_TRIGGER: false
+});
 
-function previewInboxSuggestionV010() {
-  suggestionPreviewRun_({ backfill: false });
-}
-
-function runInboxSuggestionV010() {
-  suggestionWriteRun_({ backfill: false });
-}
-
-function previewInboxSuggestionBackfillV010() {
-  suggestionPreviewRun_({ backfill: true });
-}
-
-function runInboxSuggestionBackfillV010() {
-  suggestionWriteRun_({ backfill: true });
-}
-
-// ============================================================
-// Preview / Write
-// ============================================================
+// CURRENT BASE ENGINE CORE
 
 function suggestionPreviewRun_(mode) {
   suggestionValidateConfig_();
@@ -675,189 +633,7 @@ function suggestionErrorMessage_(err) {
   return err && err.message ? String(err.message) : String(err);
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: Suggestion Rules v0.1.1
-// ============================================================
-
-/**
- * OC-OS INBOX Suggestion Rules v0.1.1
- * 2026-09-27
- *
- * v0.1.0 engine の helper / config を利用して、分類ルールだけを改善する Pilot patch。
- *
- * 改善点:
- *   1. ルール判定は原則 Inbox_Title のみを使う。Detected_Snippet はキーワード判定に使わない。
- *   2. Source_Type ごとに判定順を分離する。
- *   3. 公式YouTubeには NEWS 用の「グッズ」「加入」等の汎用語判定を適用しない。
- *   4. 明示的 EVENT 表現は RELATED 表現より優先する。
- *   5. Backfill は 日向坂46公式 × NEWS × 2026-08-01..2026-09-19 に限定する。
- *
- * 重要原則:
- *   - Decision / Event / Status は変更しない。
- *   - SOURCES / EVENTS は作成しない。
- *   - Suggested_* / Suggestion_* だけを更新する。
- *   - v0.1.0 本体ファイルが同じ Apps Script project に必要。
- *   - Pilot 中は Trigger を付けない。
- */
-
-function previewInboxSuggestionV011() {
-  suggestionPreviewRunV011_({ backfill: false });
-}
-
-function runInboxSuggestionV011() {
-  suggestionWriteRunV011_({ backfill: false });
-}
-
-function previewInboxSuggestionBackfillV011() {
-  suggestionPreviewRunV011_({ backfill: true });
-}
-
-function runInboxSuggestionBackfillV011() {
-  suggestionWriteRunV011_({ backfill: true });
-}
-
-function suggestionPreviewRunV011_(mode) {
-  suggestionValidateConfig_();
-  const events = suggestionLoadEvents_();
-  const pages = suggestionLoadInboxCandidatesV011_(mode);
-
-  console.log('========================================');
-  console.log('OC-OS INBOX SUGGESTION RULES v0.1.1 PREVIEW');
-  console.log('WRITE = NONE');
-  console.log(`MODE = ${mode.backfill ? 'BACKFILL_OFFICIAL_NEWS' : 'CURRENT'}`);
-  if (mode.backfill) {
-    console.log(`WINDOW = ${OCOS_SUGGESTION.BACKFILL_FROM} .. ${OCOS_SUGGESTION.BACKFILL_TO}`);
-    console.log('FILTER = Source_Class:日向坂46公式 / Source_Type:NEWS');
-  }
-  console.log(`EVENTS = ${events.length}`);
-  console.log(`CANDIDATES = ${pages.length}`);
-  console.log('========================================');
-
-  pages.forEach((page, index) => {
-    const item = suggestionParseInboxPage_(page);
-    const proposal = suggestionBuildProposalV011_(item, events);
-    console.log(`${index + 1}. ${proposal.suggestedDecision} | ${item.title}`);
-    console.log(`   confidence=${proposal.confidence} / event=${proposal.eventTitle || '-'}`);
-    console.log(`   reason=${proposal.reason}`);
-  });
-
-  console.log('========================================');
-  console.log('PREVIEW COMPLETE');
-  console.log('Decision / Event / Status = UNCHANGED');
-  console.log('========================================');
-}
-
-function suggestionWriteRunV011_(mode) {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(5000)) {
-    console.warn('Another OC-OS job is running; Suggestion Engine skipped.');
-    return;
-  }
-
-  const startedAt = Date.now();
-  try {
-    suggestionValidateConfig_();
-    const events = suggestionLoadEvents_();
-    const pages = suggestionLoadInboxCandidatesV011_(mode);
-
-    let written = 0;
-    let skipped = 0;
-    let failed = 0;
-
-    console.log('========================================');
-    console.log('OC-OS INBOX SUGGESTION RULES v0.1.1');
-    console.log(`MODE = ${mode.backfill ? 'BACKFILL_OFFICIAL_NEWS' : 'CURRENT'}`);
-    console.log(`CANDIDATES = ${pages.length}`);
-    console.log('========================================');
-
-    for (const page of pages) {
-      if (Date.now() - startedAt >= OCOS_SUGGESTION.RUN_SOFT_LIMIT_MS) {
-        console.warn('Soft time limit reached. Remaining items wait for next run.');
-        break;
-      }
-
-      const item = suggestionParseInboxPage_(page);
-      if (item.decision && item.decision !== '未判断') {
-        skipped++;
-        continue;
-      }
-      if (item.suggestedDecision && item.suggestedDecision !== '未提案') {
-        skipped++;
-        continue;
-      }
-
-      try {
-        const proposal = suggestionBuildProposalV011_(item, events);
-        suggestionPatchProposal_(item.pageId, proposal);
-        written++;
-        console.log(`[OK] ${proposal.suggestedDecision} | ${item.title}`);
-      } catch (err) {
-        failed++;
-        console.error(`[FAILED] ${item.title}: ${suggestionErrorMessage_(err)}`);
-      }
-
-      Utilities.sleep(OCOS_SUGGESTION.WRITE_INTERVAL_MS);
-    }
-
-    console.log('========================================');
-    console.log(`DONE written=${written}, skipped=${skipped}, failed=${failed}`);
-    console.log('Decision / Event / Status = UNCHANGED');
-    console.log('========================================');
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-function suggestionLoadInboxCandidatesV011_(mode) {
-  const pageSize = mode.backfill
-    ? OCOS_SUGGESTION.BACKFILL_MAX_PER_RUN
-    : OCOS_SUGGESTION.MAX_PER_RUN;
-
-  const andFilters = [
-    {
-      or: [
-        { property: 'Status', select: { equals: '未処理' } },
-        { property: 'Status', select: { equals: '確認中' } }
-      ]
-    },
-    { property: 'Decision', select: { equals: '未判断' } }
-  ];
-
-  if (mode.backfill) {
-    andFilters.push({
-      property: 'Published_At',
-      date: { on_or_after: OCOS_SUGGESTION.BACKFILL_FROM }
-    });
-    andFilters.push({
-      property: 'Published_At',
-      date: { on_or_before: OCOS_SUGGESTION.BACKFILL_TO }
-    });
-    andFilters.push({
-      property: 'Source_Class',
-      select: { equals: '日向坂46公式' }
-    });
-    andFilters.push({
-      property: 'Source_Type',
-      select: { equals: 'NEWS' }
-    });
-  }
-
-  const result = suggestionNotionRequest_(
-    `/v1/data_sources/${OCOS_SUGGESTION.INBOX_DATA_SOURCE_ID}/query`,
-    'post',
-    {
-      page_size: Math.min(pageSize, 100),
-      filter: { and: andFilters },
-      sorts: [{ property: 'Published_At', direction: 'ascending' }]
-    }
-  );
-
-  return (result.results || []).filter(page => {
-    const item = suggestionParseInboxPage_(page);
-    return !item.suggestedDecision || item.suggestedDecision === '未提案';
-  });
-}
+// CURRENT RULE CLASSIFICATION CORE
 
 function suggestionBuildProposalV011_(item, events) {
   const title = item.title || '';
@@ -1082,33 +858,7 @@ function suggestionBuildProposalV011_(item, events) {
   );
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: Parent Backfill v0.1.2
-// ============================================================
-
-/**
- * OC-OS INBOX Parent EVENT Backfill Preview v0.1.2
- * 2026-09-27
- *
- * 目的:
- *   2026-08-01..2026-09-19 の 日向坂46公式 × NEWS を対象に、
- *   「通常のEVENT候補」ではなく、Current OC-OS EVENTS の受け皿となる
- *   親EVENTの初期Backfill候補だけを抽出する。
- *
- * v0.1.0 / v0.1.1 と役割を分離する。
- *   - CURRENT Suggestion: 日々のINBOX判断支援（単発TV出演等もEVENT候補になり得る）
- *   - PARENT Backfill: 初期構築時の親EVENT土台づくり（単発出演は原則除外）
- *
- * 重要原則:
- *   - PREVIEW ONLY。NotionへのWRITEはしない。
- *   - Decision / Event / Status / Suggested_* は一切変更しない。
- *   - 同一URLはPreview内で1件に畳む。
- *   - 曖昧なものは AI_REVIEW として残し、無理に判定しない。
- *
- * 依存:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- */
+// CURRENT PARENT BACKFILL CORE
 
 const OCOS_PARENT_BACKFILL_012 = Object.freeze({
   VERSION: '0.1.2',
@@ -1116,55 +866,6 @@ const OCOS_PARENT_BACKFILL_012 = Object.freeze({
   TO: '2026-09-19',
   PAGE_SIZE: 100
 });
-
-function previewInboxParentEventBackfillV012() {
-  suggestionValidateConfig_();
-
-  const events = suggestionLoadEvents_();
-  const rawPages = suggestionLoadOfficialNewsBackfillAllV012_();
-  const pages = suggestionDedupeInboxPagesV012_(rawPages);
-
-  const rows = pages.map(page => {
-    const item = suggestionParseInboxPage_(page);
-    return {
-      item,
-      result: suggestionClassifyParentBackfillV012_(item, events)
-    };
-  });
-
-  const counts = {};
-  rows.forEach(x => {
-    counts[x.result.kind] = (counts[x.result.kind] || 0) + 1;
-  });
-
-  console.log('========================================');
-  console.log(`OC-OS PARENT EVENT BACKFILL v${OCOS_PARENT_BACKFILL_012.VERSION} PREVIEW`);
-  console.log('WRITE = NONE');
-  console.log(`WINDOW = ${OCOS_PARENT_BACKFILL_012.FROM} .. ${OCOS_PARENT_BACKFILL_012.TO}`);
-  console.log('FILTER = Source_Class:日向坂46公式 / Source_Type:NEWS');
-  console.log(`EVENTS = ${events.length}`);
-  console.log(`RAW_INBOX = ${rawPages.length}`);
-  console.log(`UNIQUE_URLS = ${pages.length}`);
-  console.log(`DUPLICATES_COLLAPSED = ${rawPages.length - pages.length}`);
-  console.log(`COUNTS = ${JSON.stringify(counts)}`);
-  console.log('========================================');
-
-  let n = 0;
-  rows.forEach(x => {
-    if (x.result.kind === 'SOURCE_ONLY') return;
-    n++;
-    console.log(`${n}. [${x.result.kind}] ${x.item.title}`);
-    console.log(`   event=${x.result.eventTitle || '-'}`);
-    console.log(`   reason=${x.result.reason}`);
-  });
-
-  console.log('========================================');
-  console.log(`REVIEW_ROWS = ${n}`);
-  console.log('SOURCE_ONLY rows are counted but omitted from detail output.');
-  console.log('PREVIEW COMPLETE / WRITE = NONE');
-  console.log('========================================');
-}
-
 function suggestionLoadOfficialNewsBackfillAllV012_() {
   const out = [];
   let cursor = null;
@@ -1358,50 +1059,13 @@ function suggestionParentResultV012_(kind, reason, event) {
   };
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: Suggestion Revision Guard v0.1.1
-// ============================================================
-
-/**
- * OC-OS INBOX Suggestion Engine Revision Guard v0.1.1
- * 2026-09-29
- *
- * Purpose:
- *   Observation_Type = SOURCE_REVISION のINBOXを通常Suggestion処理から除外する。
- *
- * Safety design:
- *   1) Query-level guard: candidate load時点で SOURCE_REVISION を除外
- *   2) Runtime guard: parse後にも SOURCE_REVISION を再確認してskip
- *   3) blank / NORMAL のみ通常処理対象として明示
- *   4) Decision / Event / Status は変更しない
- *
- * Dependencies in same Apps Script project:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- */
+// CURRENT REVISION-GUARDED RULE RUNNER
 
 const OCOS_SUGGESTION_REVISION_GUARD_011 = Object.freeze({
   VERSION: '0.1.1-revision-guard',
   REVISION_VALUE: 'SOURCE_REVISION',
   NORMAL_VALUE: 'NORMAL'
 });
-
-function previewInboxSuggestionV011() {
-  suggestionPreviewRunV011_({ backfill: false });
-}
-
-function runInboxSuggestionV011() {
-  suggestionWriteRunV011_({ backfill: false });
-}
-
-function previewInboxSuggestionBackfillV011() {
-  suggestionPreviewRunV011_({ backfill: true });
-}
-
-function runInboxSuggestionBackfillV011() {
-  suggestionWriteRunV011_({ backfill: true });
-}
-
 function suggestionPreviewRunV011_(mode) {
   suggestionValidateConfig_();
   const events = suggestionLoadEvents_();
@@ -1614,35 +1278,7 @@ function isSourceRevisionSuggestionV011_(item) {
     OCOS_SUGGESTION_REVISION_GUARD_011.REVISION_VALUE;
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: AI Suggestion v0.2.0
-// ============================================================
-
-/**
- * OC-OS INBOX AI Suggestion v0.2.0
- * 2026-09-27
- *
- * 目的:
- *   GAS/ルールで絞り込んだ曖昧なINBOXだけを Gemini に渡し、
- *   Suggested_* を作るための「提案」を生成する。
- *
- * 原則:
- *   - 判断はあさくらじゅん。AIは提案のみ。
- *   - Decision / Event / Status は絶対に変更しない。
- *   - SOURCES / EVENTS は作成しない。
- *   - AI出力は JSON Schema + GAS側の再検証を通す。
- *   - 既存EVENT候補は Current EVENTS に実在する page id だけ許可する。
- *   - Pilot 中は Trigger を付けない。
- *
- * 依存:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *   oc_os_inbox_suggestion_rules_v0.1.1.gs
- *   oc_os_inbox_parent_backfill_preview_v0.1.2.gs
- *
- * 必要 Script Property:
- *   GEMINI_API_KEY
- */
+// CURRENT AI BASE CORE
 
 const OCOS_AI_SUGGESTION_020 = Object.freeze({
   VERSION: '0.2.0',
@@ -1658,63 +1294,6 @@ const OCOS_AI_SUGGESTION_020 = Object.freeze({
 // ============================================================
 // Public entry points
 // ============================================================
-
-function testInboxAiSuggestionConnectionV020() {
-  const key = aiSuggestionGeminiKeyV020_();
-  const body = {
-    contents: [{ parts: [{ text: 'Return JSON with ok=true.' }] }],
-    generationConfig: {
-      temperature: 0,
-      responseMimeType: 'application/json',
-      responseJsonSchema: {
-        type: 'object',
-        properties: { ok: { type: 'boolean' } },
-        required: ['ok'],
-        additionalProperties: false
-      }
-    }
-  };
-  const result = aiSuggestionGeminiRequestV020_(key, body);
-  console.log(`AI Suggestion Gemini connection OK. model=${OCOS_AI_SUGGESTION_020.MODEL}`);
-  console.log(JSON.stringify(result));
-}
-
-/**
- * 8/1..9/19 の official NEWS で v0.1.2 が AI_REVIEW に残したものを全件Preview。
- * WRITE = NONE
- */
-function previewInboxAiSuggestionBackfillV020() {
-  aiSuggestionRunV020_({ mode: 'BACKFILL_AI_REVIEW', write: false });
-}
-
-/**
- * 日常運用で v0.1.1 が「低 confidence / AI補助候補」としたものだけPreview。
- * WRITE = NONE
- */
-function previewInboxAiSuggestionCurrentV020() {
-  aiSuggestionRunV020_({ mode: 'CURRENT_AI_FALLBACK', write: false });
-}
-
-/**
- * Backfill AI_REVIEW に Suggested_* だけを書き込む。
- * Pilot検証後にのみ使用すること。
- */
-function runInboxAiSuggestionBackfillV020() {
-  aiSuggestionRunV020_({ mode: 'BACKFILL_AI_REVIEW', write: true });
-}
-
-/**
- * 日常運用の曖昧候補に Suggested_* だけを書き込む。
- * Pilot検証後にのみ使用すること。
- */
-function runInboxAiSuggestionCurrentV020() {
-  aiSuggestionRunV020_({ mode: 'CURRENT_AI_FALLBACK', write: true });
-}
-
-// ============================================================
-// Main
-// ============================================================
-
 function aiSuggestionRunV020_(opts) {
   suggestionValidateConfig_();
   const geminiKey = aiSuggestionGeminiKeyV020_();
@@ -2039,32 +1618,7 @@ function aiSuggestionValidateProposalV020_(raw, item, events) {
   );
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: AI Suggestion v0.2.1
-// ============================================================
-
-/**
- * OC-OS INBOX AI Suggestion v0.2.1
- * 2026-09-28
- *
- * v0.2.0 Pilot で判明した2点を修正する。
- *   1. 8件バッチのJSONが出力上限等で途中切れし、1バッチ全体が失敗する問題。
- *   2. 既存の親EVENTへ寄せすぎ、独立すべき子EVENTやSOURCE-onlyを潰す問題。
- *
- * 原則:
- *   - Decision / Event / Status は変更しない。
- *   - SOURCES / EVENTS は作成しない。
- *   - Suggested_* の提案のみ。
- *   - AIが返した既存EVENT IDは v0.2.0 の validator で Current EVENTS 実在確認する。
- *   - Pilot中はTriggerを付けない。
- *
- * 依存:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *   oc_os_inbox_suggestion_rules_v0.1.1.gs
- *   oc_os_inbox_parent_backfill_preview_v0.1.2.gs
- *   oc_os_inbox_ai_suggestion_v0.2.0.gs
- */
+// CURRENT AI RETRY CORE
 
 const OCOS_AI_SUGGESTION_021 = Object.freeze({
   VERSION: '0.2.1',
@@ -2077,23 +1631,6 @@ const OCOS_AI_SUGGESTION_021 = Object.freeze({
   RUN_SOFT_LIMIT_MS: 5 * 60 * 1000,
   MAX_OUTPUT_TOKENS: 8192
 });
-
-function previewInboxAiSuggestionBackfillV021() {
-  aiSuggestionRunV021_({ mode: 'BACKFILL_AI_REVIEW', write: false });
-}
-
-function previewInboxAiSuggestionCurrentV021() {
-  aiSuggestionRunV021_({ mode: 'CURRENT_AI_FALLBACK', write: false });
-}
-
-function runInboxAiSuggestionBackfillV021() {
-  aiSuggestionRunV021_({ mode: 'BACKFILL_AI_REVIEW', write: true });
-}
-
-function runInboxAiSuggestionCurrentV021() {
-  aiSuggestionRunV021_({ mode: 'CURRENT_AI_FALLBACK', write: true });
-}
-
 function aiSuggestionRunV021_(opts) {
   suggestionValidateConfig_();
   const geminiKey = aiSuggestionGeminiKeyV020_();
@@ -2363,56 +1900,13 @@ function aiSuggestionAskGeminiV021_(apiKey, mode, items, events) {
   }
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: AI Guardrails v0.2.3
-// ============================================================
-
-/**
- * OC-OS INBOX AI Suggestion Guardrails v0.2.3
- * 2026-09-28
- *
- * v0.2.2 hotfix / refinement:
- *   1. undefined suggestionNormalizeText_ dependency を廃止し、ローカル正規化関数へ置換。
- *   2. 卒業事務案内のメンバー抽出をタイトル依存から、Current EVENTS の「○○ 卒業発表」逆照合へ変更。
- *   3. ミーグリ応募受付は、本体EVENT未作成時に「同一EVENTへ束ねるべき既存概念候補」として扱う。
- *
- * 原則:
- *   - Decision / Event / Status は変更しない。
- *   - SOURCES / EVENTS は作成しない。
- *   - Suggested_* の提案のみ。
- *   - Pilot中はTriggerを付けない。
- *
- * 依存:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *   oc_os_inbox_suggestion_rules_v0.1.1.gs
- *   oc_os_inbox_parent_backfill_preview_v0.1.2.gs
- *   oc_os_inbox_ai_suggestion_v0.2.0.gs
- *   oc_os_inbox_ai_suggestion_v0.2.1.gs
- */
+// CURRENT AI GUARDRAIL CORE
 
 const OCOS_AI_SUGGESTION_023 = Object.freeze({
   VERSION: '0.2.3',
   WRITE_INTERVAL_MS: 320,
   RUN_SOFT_LIMIT_MS: 5 * 60 * 1000
 });
-
-function previewInboxAiSuggestionBackfillV023() {
-  aiSuggestionRunV023_({ mode: 'BACKFILL_AI_REVIEW', write: false });
-}
-
-function previewInboxAiSuggestionCurrentV023() {
-  aiSuggestionRunV023_({ mode: 'CURRENT_AI_FALLBACK', write: false });
-}
-
-function runInboxAiSuggestionBackfillV023() {
-  aiSuggestionRunV023_({ mode: 'BACKFILL_AI_REVIEW', write: true });
-}
-
-function runInboxAiSuggestionCurrentV023() {
-  aiSuggestionRunV023_({ mode: 'CURRENT_AI_FALLBACK', write: true });
-}
-
 function aiSuggestionRunV023_(opts) {
   suggestionValidateConfig_();
   const geminiKey = aiSuggestionGeminiKeyV020_();
@@ -2683,47 +2177,7 @@ function aiSuggestionGuardrailResultV023_(proposal, name) {
   };
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: AI Staged Commit v0.2.4
-// ============================================================
-
-/**
- * OC-OS INBOX AI Suggestion Staged Commit v0.2.4
- * 2026-09-28
- *
- * Purpose:
- *   Preview で人間が確認した AI Suggestion と、実際に Notion へ書き込む Suggestion を完全に同一にする。
- *   Commit 時には Gemini を再呼び出ししない。
- *
- * Architecture:
- *   previewAndStage...V024()
- *     -> Gemini + v0.2.3 guardrails
- *     -> console preview
- *     -> exact proposals are staged in Script Properties only
- *     -> Notion WRITE = NONE
- *
- *   commit...V024()
- *     -> load exact staged snapshot
- *     -> re-check human Decision / existing Suggestion / Current EVENT existence
- *     -> write Suggested_* only
- *     -> Gemini is NOT called
- *
- * Principles:
- *   - Decision / Event / Status are never changed.
- *   - SOURCES / EVENTS are never created here.
- *   - Preview and Commit use the exact same staged proposals.
- *   - Human review remains between proposal generation and Notion write.
- *   - No trigger during Pilot.
- *
- * Dependencies:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *   oc_os_inbox_suggestion_rules_v0.1.1.gs
- *   oc_os_inbox_parent_backfill_preview_v0.1.2.gs
- *   oc_os_inbox_ai_suggestion_v0.2.0.gs
- *   oc_os_inbox_ai_suggestion_v0.2.1.gs
- *   oc_os_inbox_ai_suggestion_guardrails_v0.2.3.gs
- */
+// CURRENT AI STAGE SUPPORT CORE
 
 const OCOS_AI_SUGGESTION_024 = Object.freeze({
   VERSION: '0.2.4',
@@ -2742,47 +2196,6 @@ const OCOS_AI_SUGGESTION_024 = Object.freeze({
  * Generates the Backfill AI_REVIEW proposals, prints them, and stages the
  * exact proposal snapshot in Script Properties. Notion is not modified.
  */
-function previewAndStageInboxAiSuggestionBackfillV024() {
-  aiSuggestionPreviewAndStageV024_('BACKFILL_AI_REVIEW');
-}
-
-/**
- * Writes the exact latest staged Backfill snapshot to Suggested_* only.
- * Gemini is NOT called here.
- */
-function commitInboxAiSuggestionBackfillStageV024() {
-  aiSuggestionCommitStageV024_('BACKFILL_AI_REVIEW');
-}
-
-/**
- * Shows metadata for the currently staged snapshot.
- */
-function inspectInboxAiSuggestionStageV024() {
-  const stage = aiSuggestionLoadStageV024_();
-  console.log('========================================');
-  console.log('OC-OS INBOX AI SUGGESTION STAGE v0.2.4');
-  console.log(`stage_id=${stage.meta.stageId}`);
-  console.log(`mode=${stage.meta.mode}`);
-  console.log(`classifier_version=${stage.meta.classifierVersion}`);
-  console.log(`created_at=${stage.meta.createdAt}`);
-  console.log(`count=${stage.meta.count}`);
-  console.log(`sha256=${stage.meta.sha256}`);
-  console.log(`committed_at=${stage.meta.committedAt || '-'}`);
-  console.log('========================================');
-}
-
-/**
- * Clears only the v0.2.4 staged snapshot from Script Properties.
- */
-function clearInboxAiSuggestionStageV024() {
-  aiSuggestionClearStageV024_();
-  console.log('AI Suggestion v0.2.4 stage cleared.');
-}
-
-// ============================================================
-// Preview + stage
-// ============================================================
-
 function aiSuggestionPreviewAndStageV024_(mode) {
   suggestionValidateConfig_();
   const geminiKey = aiSuggestionGeminiKeyV020_();
@@ -3079,38 +2492,7 @@ function aiSuggestionSha256V024_(text) {
   }).join('');
 }
 
-
-// ============================================================
-// CONSOLIDATED SOURCE: AI Revision Guard v0.2.5
-// ============================================================
-
-/**
- * OC-OS INBOX AI Suggestion Revision Guard v0.2.5
- * 2026-09-29
- *
- * Purpose:
- *   SOURCE_REVISION を AI Suggestion の Preview / Stage / Commit 経路から
- *   構造的に隔離する。
- *
- * Canonical rules:
- *   1) candidate load: Observation_Type blank / NORMAL only
- *   2) stage snapshot records observationTypeAtStage
- *   3) commit reloads the live INBOX page immediately before write
- *   4) live SOURCE_REVISION or unexpected Observation_Type => READ ONLY SKIP
- *   5) Decision / Event / Status are never changed here
- *   6) SOURCES / EVENTS are never created here
- *   7) Gemini is never called during commit
- *
- * Dependencies in the same Apps Script project:
- *   oc_os_inbox_suggestion_engine_v0.1.0.gs
- *   oc_os_inbox_suggestion_rules_v0.1.1.gs
- *   oc_os_inbox_parent_backfill_preview_v0.1.2.gs
- *   oc_os_inbox_suggestion_revision_guard_v0.1.1.gs
- *   oc_os_inbox_ai_suggestion_v0.2.0.gs
- *   oc_os_inbox_ai_suggestion_v0.2.1.gs
- *   oc_os_inbox_ai_suggestion_guardrails_v0.2.3.gs
- *   oc_os_inbox_ai_suggestion_staged_commit_v0.2.4.gs
- */
+// CURRENT AI REVISION-GUARDED STAGE CORE
 
 const OCOS_AI_SUGGESTION_025 = Object.freeze({
   VERSION: '0.2.5',
@@ -3132,77 +2514,6 @@ const OCOS_AI_SUGGESTION_025 = Object.freeze({
  * v0.2.5 candidate loader が CURRENT / BACKFILL とも
  * blank / NORMAL のみを通すことを確認する。
  */
-function previewInboxAiSuggestionProductionGateV025() {
-  suggestionValidateConfig_();
-  const events = suggestionLoadEvents_();
-
-  const currentAudit = aiSuggestionAuditCurrentCandidatesV025_(events);
-  const backfillAudit = aiSuggestionAuditBackfillCandidatesV025_(events);
-
-  console.log('========================================');
-  console.log('OC-OS INBOX AI SUGGESTION v0.2.5 PRODUCTION GATE');
-  console.log('WRITE = NONE');
-  console.log('GEMINI_CALL = NONE');
-  console.log('========================================');
-  console.log('CURRENT');
-  console.log(`CURRENT_LEGACY_AI_CANDIDATES = ${currentAudit.legacyCandidates}`);
-  console.log(`CURRENT_GUARDED_CANDIDATES = ${currentAudit.guardedCandidates}`);
-  console.log(`CURRENT_SOURCE_REVISION_EXCLUDED = ${currentAudit.revisionExcluded}`);
-  console.log(`CURRENT_UNEXPECTED_OBSERVATION_EXCLUDED = ${currentAudit.unexpectedExcluded}`);
-  console.log('----------------------------------------');
-  console.log('BACKFILL');
-  console.log(`BACKFILL_LEGACY_AI_CANDIDATES = ${backfillAudit.legacyCandidates}`);
-  console.log(`BACKFILL_GUARDED_CANDIDATES = ${backfillAudit.guardedCandidates}`);
-  console.log(`BACKFILL_SOURCE_REVISION_EXCLUDED = ${backfillAudit.revisionExcluded}`);
-  console.log(`BACKFILL_UNEXPECTED_OBSERVATION_EXCLUDED = ${backfillAudit.unexpectedExcluded}`);
-  console.log('----------------------------------------');
-  console.log('STAGE_POLICY = blank / NORMAL only');
-  console.log('COMMIT_POLICY = live blank / NORMAL only');
-  console.log('SOURCE_REVISION / unexpected = READ ONLY SKIP');
-  console.log('Decision / Event / Status = UNCHANGED');
-  console.log('RESULT = SAFE PREVIEW');
-  console.log('========================================');
-}
-
-function previewAndStageInboxAiSuggestionCurrentV025() {
-  aiSuggestionPreviewAndStageV025_('CURRENT_AI_FALLBACK');
-}
-
-function previewAndStageInboxAiSuggestionBackfillV025() {
-  aiSuggestionPreviewAndStageV025_('BACKFILL_AI_REVIEW');
-}
-
-function commitInboxAiSuggestionCurrentStageV025() {
-  aiSuggestionCommitStageV025_('CURRENT_AI_FALLBACK');
-}
-
-function commitInboxAiSuggestionBackfillStageV025() {
-  aiSuggestionCommitStageV025_('BACKFILL_AI_REVIEW');
-}
-
-function inspectInboxAiSuggestionStageV025() {
-  const stage = aiSuggestionLoadStageV025_();
-  console.log('========================================');
-  console.log('OC-OS INBOX AI SUGGESTION STAGE v0.2.5');
-  console.log(`stage_id=${stage.meta.stageId}`);
-  console.log(`mode=${stage.meta.mode}`);
-  console.log(`classifier_version=${stage.meta.classifierVersion}`);
-  console.log(`created_at=${stage.meta.createdAt}`);
-  console.log(`count=${stage.meta.count}`);
-  console.log(`sha256=${stage.meta.sha256}`);
-  console.log(`committed_at=${stage.meta.committedAt || '-'}`);
-  console.log('========================================');
-}
-
-function clearInboxAiSuggestionStageV025() {
-  aiSuggestionClearStageV025_();
-  console.log('AI Suggestion v0.2.5 stage cleared.');
-}
-
-// ============================================================
-// Candidate guards
-// ============================================================
-
 function aiSuggestionLoadGuardedCandidatesV025_(mode, events) {
   if (mode === 'BACKFILL_AI_REVIEW') {
     return aiSuggestionLoadGuardedBackfillCandidatesV025_(events);
@@ -3634,42 +2945,129 @@ function aiSuggestionClearStageV025_() {
   });
 }
 
-
 // ============================================================
 // CURRENT PILOT PUBLIC FACADE
 // ============================================================
 
-const OCOS_SUGGESTION_CURRENT = Object.freeze({
-  VERSION: 'current-pilot-2026-10-04',
-  ENGINE: 'v0.2.5-equivalent',
-  STATUS: 'PILOT',
-  AUTO_TRIGGER: false
-});
+function previewSuggestionRuleCurrent() {
+  return suggestionPreviewRunV011_({ backfill: false });
+}
+
+function runSuggestionRuleCurrent() {
+  return suggestionWriteRunV011_({ backfill: false });
+}
+
+function previewSuggestionRuleBackfill() {
+  return suggestionPreviewRunV011_({ backfill: true });
+}
+
+function previewSuggestionParentBackfill() {
+  suggestionValidateConfig_();
+
+  const events = suggestionLoadEvents_();
+  const rawPages = suggestionLoadOfficialNewsBackfillAllV012_();
+  const pages = suggestionDedupeInboxPagesV012_(rawPages);
+
+  const rows = pages.map(page => {
+    const item = suggestionParseInboxPageV011_(page);
+    return {
+      item,
+      result: suggestionClassifyParentBackfillV012_(item, events)
+    };
+  });
+
+  const counts = {};
+  rows.forEach(x => {
+    counts[x.result.kind] = (counts[x.result.kind] || 0) + 1;
+  });
+
+  console.log('========================================');
+  console.log('OC-OS SUGGESTION CURRENT / PARENT BACKFILL PREVIEW');
+  console.log('WRITE = NONE');
+  console.log(`WINDOW = ${OCOS_PARENT_BACKFILL_012.FROM} .. ${OCOS_PARENT_BACKFILL_012.TO}`);
+  console.log(`RAW_INBOX = ${rawPages.length}`);
+  console.log(`UNIQUE_URLS = ${pages.length}`);
+  console.log(`COUNTS = ${JSON.stringify(counts)}`);
+  console.log('========================================');
+
+  let n = 0;
+  rows.forEach(x => {
+    if (x.result.kind === 'SOURCE_ONLY') return;
+    n++;
+    console.log(`${n}. [${x.result.kind}] ${x.item.title}`);
+    console.log(`   event=${x.result.eventTitle || '-'}`);
+    console.log(`   reason=${x.result.reason}`);
+  });
+
+  console.log('========================================');
+  console.log(`REVIEW_ROWS = ${n}`);
+  console.log('PREVIEW COMPLETE / WRITE = NONE');
+  console.log('========================================');
+}
 
 function previewSuggestionCurrentProductionGate() {
-  return previewInboxAiSuggestionProductionGateV025();
+  suggestionValidateConfig_();
+  const events = suggestionLoadEvents_();
+
+  const currentAudit = aiSuggestionAuditCurrentCandidatesV025_(events);
+  const backfillAudit = aiSuggestionAuditBackfillCandidatesV025_(events);
+
+  console.log('========================================');
+  console.log('OC-OS SUGGESTION CURRENT / AI PRODUCTION GATE');
+  console.log('WRITE = NONE');
+  console.log('GEMINI_CALL = NONE');
+  console.log('========================================');
+  console.log('CURRENT');
+  console.log(`CURRENT_LEGACY_AI_CANDIDATES = ${currentAudit.legacyCandidates}`);
+  console.log(`CURRENT_GUARDED_CANDIDATES = ${currentAudit.guardedCandidates}`);
+  console.log(`CURRENT_SOURCE_REVISION_EXCLUDED = ${currentAudit.revisionExcluded}`);
+  console.log(`CURRENT_UNEXPECTED_OBSERVATION_EXCLUDED = ${currentAudit.unexpectedExcluded}`);
+  console.log('----------------------------------------');
+  console.log('BACKFILL');
+  console.log(`BACKFILL_LEGACY_AI_CANDIDATES = ${backfillAudit.legacyCandidates}`);
+  console.log(`BACKFILL_GUARDED_CANDIDATES = ${backfillAudit.guardedCandidates}`);
+  console.log(`BACKFILL_SOURCE_REVISION_EXCLUDED = ${backfillAudit.revisionExcluded}`);
+  console.log(`BACKFILL_UNEXPECTED_OBSERVATION_EXCLUDED = ${backfillAudit.unexpectedExcluded}`);
+  console.log('----------------------------------------');
+  console.log('STAGE_POLICY = blank / NORMAL only');
+  console.log('COMMIT_POLICY = live blank / NORMAL only');
+  console.log('SOURCE_REVISION / unexpected = READ ONLY SKIP');
+  console.log('Decision / Event / Status = UNCHANGED');
+  console.log('RESULT = SAFE PREVIEW');
+  console.log('========================================');
 }
 
 function previewAndStageSuggestionCurrent() {
-  return previewAndStageInboxAiSuggestionCurrentV025();
+  return aiSuggestionPreviewAndStageV025_('CURRENT_AI_FALLBACK');
 }
 
 function previewAndStageSuggestionBackfill() {
-  return previewAndStageInboxAiSuggestionBackfillV025();
+  return aiSuggestionPreviewAndStageV025_('BACKFILL_AI_REVIEW');
 }
 
 function commitSuggestionCurrentStage() {
-  return commitInboxAiSuggestionCurrentStageV025();
+  return aiSuggestionCommitStageV025_('CURRENT_AI_FALLBACK');
 }
 
 function commitSuggestionBackfillStage() {
-  return commitInboxAiSuggestionBackfillStageV025();
+  return aiSuggestionCommitStageV025_('BACKFILL_AI_REVIEW');
 }
 
 function inspectSuggestionCurrentStage() {
-  return inspectInboxAiSuggestionStageV025();
+  const stage = aiSuggestionLoadStageV025_();
+  console.log('========================================');
+  console.log('OC-OS SUGGESTION CURRENT / STAGE');
+  console.log(`stage_id=${stage.meta.stageId}`);
+  console.log(`mode=${stage.meta.mode}`);
+  console.log(`classifier_version=${stage.meta.classifierVersion}`);
+  console.log(`created_at=${stage.meta.createdAt}`);
+  console.log(`count=${stage.meta.count}`);
+  console.log(`sha256=${stage.meta.sha256}`);
+  console.log(`committed_at=${stage.meta.committedAt || '-'}`);
+  console.log('========================================');
 }
 
 function clearSuggestionCurrentStage() {
-  return clearInboxAiSuggestionStageV025();
+  aiSuggestionClearStageV025_();
+  console.log('Suggestion Current staged snapshot cleared.');
 }
