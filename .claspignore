@@ -1,0 +1,8 @@
+# Production Runtime allowlist.
+# Patterns are evaluated relative to .clasp.json rootDir.
+# Keep the remote Apps Script project limited to executable/runtime files.
+**/**
+!appsscript.json
+!**/*.gs
+!**/*.js
+!**/*.html
