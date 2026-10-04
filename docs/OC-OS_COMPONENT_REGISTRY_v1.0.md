@@ -4,32 +4,47 @@
 
 ## 1. 目的
 
-OC-OSの構築では、現行Production、まだPilot中の機能、診断・構築補助、過去の試作・移行用コードが同じGitHub履歴に存在する。
+OC-OSの構築では、現行Production、Pilot中の機能、診断・構築補助、過去の試作・移行用コードが同じGitHub履歴に存在する。
 
-この文書は「あさくらじゅんが普段使うもの」と「構築・保守のためだけに残すもの」を分離し、誤って旧コードをApps Scriptへ再導入することを防ぐための入口である。
+この文書の目的は、**あさくらじゅんが見るものを少なくすることではない**。
+
+構築中に必要なものは十分に残し、今後の運用・保守・再検証に必要なものは管理して保持する。一方で、構築時に作成し検証を終え、今後使う必要がないものを惰性でmain branchやProduction Runtimeへ残し続けないことを目的とする。
 
 上位原則はProject Canonical Principles、週次運用の正本は `docs/OC-OS_WEEKLY_STANDARD_OPERATION_v1.0.md` とする。
 
-## 2. Statusの意味
+## 2. 2種類のStatusを分ける
 
-| Status | 意味 | 日常運用 |
-|---|---|---|
-| CURRENT / PRODUCTION | 毎週の標準運用で使う現行系 | 残す・使う |
-| CURRENT / PILOT | 完成形に必要だが本運用確認が残る現行系 | 残す・必要時に検証 |
-| SUPPORT / DIAGNOSTIC | 構築・監査・障害時に必要 | GitHubに残す。日常画面には出さない |
-| LEGACY / HISTORY | 設計履歴・比較・回帰確認用。現行Runtimeでは使わない | GASへ新規導入しない・Triggerを付けない |
-| ONE-OFF / MIGRATION | Backfill、Cleanup、競合解消等の一度きりの処理 | GitHub履歴に残すが通常Runtimeへ置かない |
+### Runtime Status
 
-**コードがRuntimeに存在すること、GASへ導入済みであること、実データPilotに成功したこと、継続安定運用できていることは別の状態として扱う。**
+| Status | 意味 |
+|---|---|
+| CURRENT / PRODUCTION | 毎週の標準運用で使う現行系 |
+| CURRENT / PILOT | 完成形に必要だが実データ検証・本運用確認が残る現行系 |
+| SUPPORT / DIAGNOSTIC | 構築・監査・障害時に再利用する補助系 |
+| LEGACY / HISTORY | 現行Runtimeでは使わない過去仕様 |
+| ONE-OFF / MIGRATION | Backfill、Cleanup、競合解消等の一度きり処理 |
 
-## 3. CURRENT / PRODUCTION — 毎週残す中核
+### Asset Lifecycle Status
+
+| 判定 | 意味 |
+|---|---|
+| 継続利用 | 今後の通常運用・保守に必要。残す |
+| 構築完了まで保持 | 現在の構築・検証・移行確認に必要。終了条件を満たすまで残す |
+| 履歴保存 | 現行処理には不要だが、再現・設計判断・監査証拠として残す価値がある |
+| 削除候補 | 役割終了済み。依存・結果確認後にmain / Runtime / 作業領域から除去できる |
+
+**コードがGitHubに存在すること、GAS Runtimeに存在すること、実データPilotに成功したこと、継続安定運用できていることは別の状態として扱う。**
+
+Git履歴自体が過去版を保持するため、「履歴を残す」ことと「古いファイルをmain branchへ置き続ける」ことも同義ではない。
+
+## 3. CURRENT / PRODUCTION — 継続利用
 
 2026-10-04 Runtime ValidationでCore Production Runtime Confirmedとなった系統。
 
 ### INBOX
 
 - `gas/ohisama_inbox_crawler_v1.2.8_revision_chain_production_runner.gs`
-- `gas/ohisama_inbox_crawler_v1.2.6` — v1.2.8 Runnerが利用するBase
+- `gas/ohisama_inbox_crawler_v1.2.6` — v1.2.8 RunnerのBase dependency
 - `gas/ohisama_inbox_processor_ready_only_v0.1.2.gs`
 - `gas/ohisama_inbox_processor_v0.1.gs` — Processor Base
 - `gas/ohisama_inbox_processor_trigger_v0.1.2.gs`
@@ -48,30 +63,32 @@ OC-OSの構築では、現行Production、まだPilot中の機能、診断・構
 
 - `gas/oc_os_messages_form_sync_v0.1.1.gs`
 
-Form→MESSAGESは実装・稼働記録がある。Gmail routeは下記Pilotへ分ける。
+Form→MESSAGESは実装・稼働記録がある。Gmail routeはPilotへ分ける。
 
 ### Local transcription
 
 正式Contractは `docs/OC-OS_TRANSCRIPT_ARTIFACT_CONTRACT_v1.0.md`。
 
-- CURRENT ASR entry: `transcription/transcribe_episode_v0.4.1.py`
+- Current entry: `transcription/transcribe_episode_v0.4.1.py`
 - Base dependency: `transcription/transcribe_episode_v0.4.0.py`
 - Grounded cleanup: `transcription/hha_clean_transcript.py`
 - Terms: `transcription/hha_transcription_terms.json`, `transcription/oc_transcription_terms.json`
 - Environment definition: `transcription/requirements.txt`
 
-`.venv`本体は再生成可能なローカル実行環境であり、EPISODE成果物ではない。DriveのEPISODE/TRANSCRIPTには置かない。
+旧v0.3.0 `transcription/transcribe_episode.py` は現行依存がないことを確認し、2026-10-04にmain branchから削除済み。Git履歴から参照・復元できる。
 
-## 4. CURRENT / PILOT — 完成形に必要なのでまだ残す
+`.venv`本体は再生成可能なローカル実行環境であり、EPISODE成果物ではない。
 
-以下は現行設計であり、Legacyではない。ただし2026-10-04時点では別Pilotまたは日常運用確認が残る。
+## 4. CURRENT / PILOT — 構築完了まで保持
+
+以下は完成形に必要な現行設計であり、Legacyではない。実地確認が終わるまで保持する。
 
 ### MESSAGES Gmail route
 
 - `gas/oc_os_messages_gmail_preview_v0.1.2.gs`
 - `gas/oc_os_messages_gmail_sync_v0.1.0.gs`
 
-本番Runtimeでモジュールの存在は確認済み。ただし実メールを用いた取込成功の確認とは別なので、実地確認が終わるまではPilot扱いとする。
+Runtimeでモジュール存在は確認済み。ただし実メール取込成功とは別なので、実地確認完了までPilot。
 
 ### STATEMENTS
 
@@ -90,22 +107,24 @@ Form→MESSAGESは実装・稼働記録がある。Gmail routeは下記Pilotへ�
 - `gas/oc_os_publication_context_builder_v0.1.0.gs`
 - `gas/oc_os_publication_draft_importer_v0.1.0.gs`
 
-### Calendar
+### Calendar integration
 
 - `docs/OC-OS_CALENDAR_INTEGRATION_v1.0.md`
 - `gas/oc_os_episode_calendar_sync_v0.1.0.gs`
 
-Google Calendar自体の収録・本放送・再放送予定は実用中。ここで残るPilotは、EPISODESとの同期とEvent ID記録を実データで確認する工程。
+Google Calendar自体の収録・本放送・再放送予定は実用中。残るPilotはEPISODESとの同期とEvent ID記録。
 
-### Weekly UI / next-week handoff
+### Weekly handoff
 
 - `docs/OC-OS_WEEKLY_CONTROL_CONTRACT_v1.0.md`
 - `docs/OC-OS_WEEKLY_CYCLE_HANDOFF_CONTRACT_v0.1.md`
 - `gas/oc_os_weekly_review_queue_resolver_v0.1.0.gs`
 
-Weekly Controlの考え方は残す。2026-10-04用Pilot画面を永久UIに固定せず、次週切替の実運用確認後にCurrent Week UIとして整理する。
+次週切替の実運用確認まで保持する。
 
-## 5. SUPPORT / DIAGNOSTIC — 残すが、あさくらの日常操作から隠す
+## 5. SUPPORT / DIAGNOSTIC — 継続利用
+
+以下は毎週実行しなくても、変更後監査・障害切り分け・復旧・引継ぎに再利用するため残す。
 
 - `gas/oc_os_gas_runtime_audit_v0.1.0.gs`
 - `gas/oc_os_episode_lifecycle_auditor_v0.1.0.gs`
@@ -115,31 +134,27 @@ Weekly Controlの考え方は残す。2026-10-04用Pilot画面を永久UIに固�
 - `docs/OC-OS_EPISODE_LIFECYCLE_AUDIT_v1.0.md`
 - `docs/OC-OS_EPISODE_COMPLETION_GATE_v1.0.md`
 - `docs/OC-OS_WEEKLY_READINESS_v1.0.md`
-- 日付付きRuntime Validation / Audit記録
 
-これらは障害切り分け、変更後の監査、引継ぎには重要だが、毎週の制作画面で本人が操作する対象ではない。
+日付付きRuntime Validation / Audit記録は、重要な昇格・変更判断の証拠として履歴保存する。
 
-## 6. LEGACY / HISTORY — GitHubに残してよいがRuntimeへ戻さない
+## 6. LEGACY / HISTORY
 
-現行Registryは `docs/OC-OS_ACTIVE_LEGACY_MODULES_v1.0.md` を参照。
-
-明示Legacy:
+現行Runtimeへ戻さないことが確定している代表例:
 
 - `gas/oc_os_calendar_bridge_v0.1.0.gs`
 - `docs/OC-OS_CALENDAR_CONTRACT_v1.0.md`
 - `gas/oc_os_publication_plan_seeder_v0.1.0.gs`
 - `gas/HHA_Legacy_OCOS_Snapshot_v1_1.gs`
-- 旧OCOS V5系 `00_Config`, `10_Crawlers`, `20_Logic`, `30_Utils` など（現行依存がないことを確認した上でRuntimeから隔離）
-- Crawlerの旧版 v1.1.x / v1.2.0〜v1.2.5、v1.2.7検証系
+- Crawler旧版 v1.1.x / v1.2.0〜v1.2.5、v1.2.7検証系
 - Processor旧Trigger・テスト系
-- `transcription/transcribe_episode.py` — v0.3.0。正式ContractのCurrent entryではない
-- 古いTranscription Pilot説明・検証手順（履歴としてのみ保持）
 
-Legacyは削除必須ではない。GitHubは履歴保管場所として残してよいが、Currentと同じ意味で `gas/` 直下に見えること自体は将来の誤導入リスクになるため、後続整理で `legacy/` への移動を検討する。
+旧OCOS V5系 `00_Config`, `10_Crawlers`, `20_Logic`, `30_Utils`, `40_MemberArchiver`, `60_WikiLoader`, `61_LocalHistoryLoader`, `62_OfficialHistoryLoader`, `70_SetlistFetcher`, `75_MusicStatsFetcher` はLegacy候補。ただしHHA側を含む現行依存がないことを最終監査するまでは「構築完了まで保持」とし、監査後に履歴保存または削除候補へ振り分ける。
 
-## 7. ONE-OFF / MIGRATION — 再実行を通常運用にしない
+Legacyの全ファイルをmain branchへ永久保存する必要はない。設計比較に必要な最終版・Contract・重要な検証証拠だけを履歴保存対象として選ぶ。
 
-以下のような構築時だけの処理は、結果の証拠としてGitHubに残すが、通常Runtimeには配置しない。
+## 7. ONE-OFF / MIGRATION — 削除候補。ただし結果確認が先
+
+代表例:
 
 - INBOX duplicate cleanup
 - deterministic backfill
@@ -149,19 +164,25 @@ Legacyは削除必須ではない。GitHubは履歴保管場所として残し�
 - AI suggestion staged commit / revision guardの過去段階
 - 各種preview-only / dry-run
 
-再利用が必要になった場合は、その時点のCanonical Contractと現行Schemaに適合するか再監査してから使う。
+これらは「コードが作られた」ことだけでは削除しない。
 
-## 8. Notionの整理方針
+削除前に以下を確認する。
 
-### 日常的に見せる
+1. 対象データへのWriteが実行済みか。
+2. 実行結果がCanonical状態として確認済みか。
+3. 再実行の必要がないか。
+4. 現行コードから依存されていないか。
+5. 後世に残す必要があるのはコード本体か、実行結果・判断記録だけか。
 
-- Current Week / Weekly Control
-- EPISODE
-- STUDIO ITEMS
-- INBOX Review Queue
-- 必要時のみ MESSAGES / STATEMENTS / PUBLICATIONS
+条件を満たせばmain branchから削除できる。過去コードはGit履歴から復元可能。
 
-### DBとして残すが普段は直接見なくてよい
+M02812 / M02813についてはPreview→Stage→Commitコードの存在までは確認済みだが、2026-10-04時点の今回監査では実データWrite成功証拠まで未確認のため、まだ削除しない。
+
+## 8. Notion
+
+### 継続利用
+
+現行OC-OS主要DB:
 
 - INBOX
 - SOURCES
@@ -172,80 +193,73 @@ Legacyは削除必須ではない。GitHubは履歴保管場所として残し�
 - STATEMENTS
 - PUBLICATIONS
 
-### Legacy / 構築資料へ移す候補
+### 構築完了まで保持
 
-- 旧 `Master Episode DB`
-- 旧 `Master Schedule DB`
-- 旧 `Member DB`
-- 旧 `Master Music DB`
-- 旧 `Master History DB`
-- 旧 `Concert/Setlist DB`
-- 旧 `Location DB`
-- `OCOS V5 Cockpit`
-- 旧 `Listener Mail DB`
-- 旧 `今週の制作`（現行Weekly Controlと役割重複）
-- 日付付きGAS Deployment Inventory等の構築チェックページ
+旧OCOS系DBは2026-10-04に `旧OCOS Source DBs｜監査完了まで保持` へ集約した。
 
-Legacy DBはCanonical移行元ではない。参照価値があるため、削除より先に一箇所へ隔離する。
+- 旧 Listener Mail DB
+- 旧 Master Episode DB
+- 旧 Master Schedule DB
+- 旧 Member DB
+- 旧 Master Music DB
+- 旧 Master History DB
+- 旧 Concert/Setlist DB
+- OCOS V5 Cockpit
 
-現在の親ページはCore Production Runtime Confirmed後の実態に合わせて `OC-OS｜制作基盤` を使用する。
+これらはRelationで相互接続された旧システム群であり、個別に削除しない。現行HHA/OC-OSへ未移行の固有情報がないことを確認後に、履歴保存または削除へ判定する。
 
-## 9. Google Driveの整理方針
+`Location DB` は地図ブロックをAPIで完全確認できていないため、現時点では移動・削除せず保留。
 
-### 残す
+### 削除候補
+
+- 2026-09-06作成のタイトルなし空ページ — 内容なし。参照確認後に削除可。
+
+## 9. Google Drive
+
+### 継続利用
+
+- `OC-OS/EPISODES/`
+- `おひさまコネクト_CRAWLER_LEDGER`
+- `HHA_Hinatazaka46_Historical_Archive` — HHA資産として必要
+
+### 構築完了まで保持 / 用途確認中
+
+- `HHA_Member_Watcher` — Raw_Snapshotsあり。現行定期監査との接続確認待ち
+- `Hinatazaka_Personal_Archive` — BLOG / BLOBS / INDEXあり。現行処理との接続・由来確認待ち
+
+HHA関連資産は必要性とOC-OS直下に置くべきかを分けて判断する。物理移動を行う場合はFolder ID依存を監査する。
+
+### 削除候補
+
+- 空の `OC-OS/TEMPLATES` — 今後Template方式を採用しないと確定すれば削除
+- EPISODE配下の `.venv`, `Lib`, `Scripts`, `Include`, `pyvenv.cfg` — ローカル実行環境の再構築確認後に除去
+- 同一回の古いSTUDIO PACK中間生成版 — 実際に使用した最終版・必要証拠を確定後に整理
+- 再生成可能な一時ファイル
+
+## 10. 整理原則
 
 ```text
-OC-OS/
-  EPISODES/
-    YYYY-MM-DD/
-      STUDIO/
-      AUDIO/
-        MASTER/
-        TRANSCRIPTION_PROXY/
-        SPEECH_STEM/
-      TRANSCRIPT/
-        正式Google Doc 1件
-        MACHINE/
+必要だから残す
+    ≠
+古いから残す
+
+履歴を残す
+    ≠
+main branch / Production Runtimeへ置き続ける
+
+構築中に使う
+    ≠
+完成後も永久に残す
 ```
 
-### STUDIO Pack
+削除を急がないが、単なる隔離を最終目的にもしない。
 
-Studio Packは正本ではない。収録前は最新版を使い、収録後は「実際に持ち込んだ最終スナップショット」を1系統残せればよい。生成途中の複数Timestamp × HTML/PDF/Google Docを日常表示に残し続ける必要はない。
+**各資産について、今後必要になる具体的理由があるかを確認し、役割終了が確認できたものは整理する。**
 
-### Driveから外す
+## 11. 次の監査順
 
-- `.venv`、`Lib`、`Scripts`、`Include`、`pyvenv.cfg` 等のPython仮想環境
-- 再生成可能な一時ファイル
-- 同一用途の旧生成Pack（必要ならGENERATED_HISTORYへ隔離）
-
-### OC-OSとは別領域として扱う
-
-- HHA
-- Personal Archive
-- HHA Member Watcher
-
-これらは必要だが、OC-OS週次制作の必須操作対象ではない。物理移動はFolder ID依存を監査してから行う。
-
-## 10. あさくらじゅんが普段覚えるもの
-
-日常運用では次の4点だけを入口として理解すればよい。
-
-1. **Notion Current Week** — 今週見る画面
-2. **EPISODE** — 放送回の記録
-3. **Drive EPISODE folder** — 音源・Transcript・Studio Packの実体
-4. **Calendar** — いつ収録・放送・締切があるか
-
-GitHub、GAS、Runtime Audit、Migration scriptsは「裏側」。通常はChatGPT等の構築・監査側が見る。
-
-## 11. 次の整理順
-
-1. NotionのCurrent UIとLegacy UIを分離する。
-2. Driveの`.venv`とStudio Pack世代を整理する。
-3. GitHubのLegacy / One-offを物理フォルダ分離する前に依存参照を監査する。
-4. MESSAGES Gmail routeを実メールでPilotする。
-5. STATEMENTSを実回でPilotする。
-6. PUBLICATIONS / Public Talk Audioを必要な回だけPilotする。
-7. Calendar Syncを実EPISODEで確認する。
-8. Weekly Controlの次週切替を確認し、`Current Week`入口を固定する。
-
-削除よりも先に「Currentから見えなくする」「再導入されない状態にする」ことを優先する。
+1. GitHub ONE-OFF群の実行結果証拠を確認し、削除可能群を確定する。
+2. Drive `.venv` とSTUDIO PACK中間版の依存を確認する。
+3. HHA_Member_Watcher / Hinatazaka_Personal_Archiveの現行用途を確定する。
+4. 旧OCOS Source DB群に現行HHA/OC-OS未移行の固有情報がないか監査する。
+5. 条件を満たした削除候補だけを実際に削除する。
