@@ -47,7 +47,7 @@ $currentAudit = @'
 // ============================================================
 
 const OCOS_RUNTIME_AUDIT_CURRENT = Object.freeze({
-  VERSION: 'current-2026-10-05',
+  VERSION: 'current-2026-10-05.1',
   EXPECTED_PROPERTIES: [
     'NOTION_API_TOKEN', 'NOTION_TOKEN', 'NOTION_SECRET', 'YOUTUBE_API_KEY',
     'OC_TARGET_EPISODE_KEY', 'OC_TARGET_EPISODE_LOCK_MODE',
@@ -66,7 +66,10 @@ const OCOS_RUNTIME_AUDIT_CURRENT = Object.freeze({
     'runScheduleCrawlerCurrent',
     'runDailyCrawlerCurrent',
     'runInboxProcessorCurrent',
-    'onMessageFormSubmitV01'
+    'onMessageFormSubmitV01',
+    'runHhaMemberRosterWatchCurrent',
+    'runHhaMemberProfileWatchCurrent',
+    'runHhaMemberCanonicalAuditCurrent'
   ]
 });
 
@@ -108,7 +111,14 @@ function reportGasRuntimeInventoryCurrent() {
       typeof previewHhaMemberRosterMaintenanceCurrent === 'function' &&
       typeof previewHhaMemberProfileMaintenanceCurrent === 'function' &&
       typeof previewHhaMemberRawSnapshotPlanCurrent === 'function' &&
-      typeof saveHhaMemberRawSnapshotsCurrentPilot === 'function'),    runtimeAuditCurrentModule_('Lifecycle Auditor', typeof auditEpisodeLifecycleV01 === 'function'),
+      typeof saveHhaMemberRawSnapshotsCurrentPilot === 'function' &&
+      typeof runHhaMemberRosterWatchCurrent === 'function' &&
+      typeof runHhaMemberProfileWatchCurrent === 'function' &&
+      typeof runHhaMemberCanonicalAuditCurrent === 'function' &&
+      typeof installHhaMemberWatchTriggersCurrent === 'function' &&
+      typeof auditHhaMemberWatchTriggersCurrent === 'function' &&
+      typeof removeHhaMemberWatchTriggersCurrent === 'function'),
+    runtimeAuditCurrentModule_('Lifecycle Auditor', typeof auditEpisodeLifecycleV01 === 'function'),
     runtimeAuditCurrentModule_('Completion Gate', typeof previewEpisodeCompletionGateV01 === 'function'),
     runtimeAuditCurrentModule_('Weekly Readiness', typeof reportWeeklyReadinessV01 === 'function')
   ];
@@ -177,7 +187,7 @@ function reportGasRuntimeInventoryCurrent() {
       legacyTriggers.length === 0 &&
       duplicateTriggers.length === 0 &&
       notionTokenPresent,
-    note: 'Secret values are never printed. Optional/manual triggers are reported but not required by this audit.'
+    note: 'Secret values are never printed. HHA Member Watch triggers are required by this audit after Production trigger installation. Other optional/manual triggers remain informational.'
   };
 
   console.log('========================================');
