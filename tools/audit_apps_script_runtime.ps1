@@ -16,7 +16,8 @@ $expectedRuntimeFiles = @(
   'OCOS_Messages_Current.gs',
   'OCOS_Calendar_Current.gs',
   'OCOS_ArchivePublishing_Current.gs',
-  'OCOS_Diagnostics_Current.gs'
+  'OCOS_Diagnostics_Current.gs',
+  'HHA_Member_Maintenance_Current.gs'
 )
 
 $requiredFunctions = @(
@@ -32,6 +33,9 @@ $requiredFunctions = @(
   'previewCalendarCurrent','syncCalendarCurrent',
   'previewStatementArchiveCurrent','previewPublicationContextCurrent','previewPublicationDraftsCurrent',
   'auditEpisodeLifecycleV01','previewEpisodeCompletionGateV01','reportWeeklyReadinessV01',
+  'previewHhaMemberMaintenanceCurrent','previewHhaMemberCanonicalIntegrityCurrent',
+  'previewHhaMemberRosterMaintenanceCurrent','previewHhaMemberProfileMaintenanceCurrent',
+  'previewHhaMemberRawSnapshotPlanCurrent','saveHhaMemberRawSnapshotsCurrentPilot',
   'reportGasRuntimeInventoryCurrent'
 )
 
@@ -180,6 +184,8 @@ Warn 'Static audit cannot verify actual Script Property values; reportGasRuntime
 if ($fileTexts['OCOS_Suggestion_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Suggestion remains no-auto-trigger Pilot.' } else { Warn 'Suggestion AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_Calendar_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Calendar remains no-auto-trigger Pilot.' } else { Warn 'Calendar AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_ArchivePublishing_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Archive/Publishing remains no-auto-trigger Pilot.' } else { Warn 'Archive/Publishing AUTO_TRIGGER:false marker not found.' }
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'AUTO_TRIGGER:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'NOTION_WRITE:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'CANONICAL_AUTO_UPDATE:\s*false') { Pass 'HHA Member Maintenance remains no-auto-trigger / no-Canonical-write Pilot.' } else { Fail 'HHA Member Maintenance safety markers missing or changed.' }
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'PROFILE_MAX_PER_RUN:\s*1') { Pass 'HHA Raw Snapshot Runtime remains one-profile Pilot.' } else { Fail 'HHA Raw Snapshot Pilot scope is no longer limited to one profile.' }
 
 Write-Host '============================================================'
 Write-Host ('FAILURES = ' + $failures.Count)

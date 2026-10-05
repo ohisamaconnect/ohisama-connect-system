@@ -16,7 +16,7 @@
 
 2026-10-05の初回clasp移行で、旧約60ファイル構成からCurrent Runtimeへ統合した。
 
-現行Production Runtimeは次の9ファミリ。
+ProductionへpushするCurrent Runtime定義は次の10ファミリ。HHA Member MaintenanceはCURRENT / PILOTとして扱う。
 
 - `OCOS_Crawler_Current.gs`
 - `OCOS_Processor_Current.gs`
@@ -27,6 +27,7 @@
 - `OCOS_Calendar_Current.gs`
 - `OCOS_ArchivePublishing_Current.gs`
 - `OCOS_Diagnostics_Current.gs`
+- `HHA_Member_Maintenance_Current.gs` — HHA MEMBERS定期監査。CURRENT / PILOT。Canonical自動更新なし、Trigger未導入。
 
 `OCOS_Deployment_Bridge.gs` は初回移行時のみ使用し、Crawler / ProcessorのCurrent Trigger移行完了と `reportGasRuntimeInventoryCurrent()` の `migrationComplete=true` 確認後に削除した。Git履歴には移行証跡として残る。
 

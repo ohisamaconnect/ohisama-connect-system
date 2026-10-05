@@ -387,7 +387,7 @@ Rosterは加入・卒業等の構成変化を早く検知するため日次。
 
 ## 11. Runtime昇格手順
 
-現在のApps Script Production Runtimeは、2026-10-05時点で9 Current familyへ整理済みである。
+Apps Script Runtimeは2026-10-05にOC-OS 9 Current familyへ整理済みであり、HHA Member Maintenanceを10番目のCURRENT / PILOT familyとして追加する。
 
 この状態を崩さないため、HHA Member Maintenanceは次の順で進める。
 
@@ -451,6 +451,51 @@ errorCount       = 0
 したがってv0.1.3はCurrentへ採用せず、v0.1.2のcase-insensitive Romanized比較をCanonical Ruleとして維持する。
 
 v0.1.2はGit commit `5c8b575` でmain branchへ固定済み。
+
+### 2026-10-05 Raw Snapshot保存Pilot結果
+
+既存Google Drive資産
+
+```text
+HHA_Member_Watcher/
+└─ Raw_Snapshots/
+   └─ 2026/
+      └─ 2026-10/
+```
+
+へ、実公式Sourceを用いたDrive-write Pilotを実施した。
+
+```text
+Roster target      = 1
+Profile target     = 1 (MEM-013 金村美玖)
+
+createdCount       = 2
+skippedCount       = 0
+
+duplicateProbeCount        = 2
+duplicateProbeSkippedCount = 2
+
+errorCount         = 0
+```
+
+作成されたSnapshot:
+
+```text
+roster_20261005_125443_8dd36559937e.html
+MEM-013_20261005_125443_4503f735fbae.html
+```
+
+同一HTMLを同一run内で再保存しようとしたDuplicate Probeでは、Roster / Profileとも `SKIPPED_DUPLICATE` となり、SHA-256ベースの重複保存防止を確認した。
+
+このPilotで発生したWRITEはRaw SnapshotのGoogle Drive保存のみ。
+
+```text
+NOTION WRITE = NONE
+CANONICAL AUTO UPDATE = NONE
+AUTO TRIGGER = false
+```
+
+Raw Snapshot保存機能はCURRENT / PILOT Runtimeへ統合するが、Runtime昇格直後はProfile保存対象を1名に制限し、Triggerも導入しない。
 Runtimeへ置かれたこととProduction運用成功は別状態として扱う。
 
 ---

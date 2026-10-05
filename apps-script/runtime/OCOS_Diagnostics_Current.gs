@@ -1133,7 +1133,7 @@ function readinessV01DateStart_(prop) {
 // ============================================================
 
 const OCOS_RUNTIME_AUDIT_CURRENT = Object.freeze({
-  VERSION: 'current-2026-10-04',
+  VERSION: 'current-2026-10-05',
   EXPECTED_PROPERTIES: [
     'NOTION_API_TOKEN', 'NOTION_TOKEN', 'NOTION_SECRET', 'YOUTUBE_API_KEY',
     'OC_TARGET_EPISODE_KEY', 'OC_TARGET_EPISODE_LOCK_MODE',
@@ -1188,7 +1188,13 @@ function reportGasRuntimeInventoryCurrent() {
       typeof previewStatementArchiveCurrent === 'function' &&
       typeof previewPublicationContextCurrent === 'function' &&
       typeof previewPublicationDraftsCurrent === 'function'),
-    runtimeAuditCurrentModule_('Lifecycle Auditor', typeof auditEpisodeLifecycleV01 === 'function'),
+    runtimeAuditCurrentModule_('HHA Member Maintenance Current / Pilot',
+      typeof previewHhaMemberMaintenanceCurrent === 'function' &&
+      typeof previewHhaMemberCanonicalIntegrityCurrent === 'function' &&
+      typeof previewHhaMemberRosterMaintenanceCurrent === 'function' &&
+      typeof previewHhaMemberProfileMaintenanceCurrent === 'function' &&
+      typeof previewHhaMemberRawSnapshotPlanCurrent === 'function' &&
+      typeof saveHhaMemberRawSnapshotsCurrentPilot === 'function'),    runtimeAuditCurrentModule_('Lifecycle Auditor', typeof auditEpisodeLifecycleV01 === 'function'),
     runtimeAuditCurrentModule_('Completion Gate', typeof previewEpisodeCompletionGateV01 === 'function'),
     runtimeAuditCurrentModule_('Weekly Readiness', typeof reportWeeklyReadinessV01 === 'function')
   ];

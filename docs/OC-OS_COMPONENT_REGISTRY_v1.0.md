@@ -1,6 +1,6 @@
 # OC-OS Component Registry v1.0
 
-基準日: 2026-10-04
+基準日: 2026-10-05
 
 ## 1. 目的
 
@@ -83,6 +83,22 @@ Form→MESSAGESは実装・稼働記録がある。Gmail routeはPilotへ分け�
 
 以下は完成形に必要な現行設計であり、Legacyではない。実地確認が終わるまで保持する。
 
+### HHA Member Maintenance
+
+HHA MEMBERSを公式Roster / Profileと定期照合する現行系。
+
+- `docs/HHA_MEMBER_MAINTENANCE_CONTRACT_v0.1.md`
+- `gas/hha_member_maintenance_v0.1.2.gs`
+- `gas/hha_member_raw_snapshot_pilot_v0.1.0.gs`
+- `apps-script/runtime/HHA_Member_Maintenance_Current.gs`
+
+2026-10-05にCanonical Integrity / Roster / ProfileのStandalone Pilotを完了。
+
+Raw Snapshot保存Pilotでは既存 `HHA_Member_Watcher/Raw_Snapshots` へRoster 1件・Profile 1件を保存し、SHA-256による重複保存防止も確認済み。
+
+Runtime Statusは **CURRENT / PILOT**。
+Canonical自動更新・Notion WRITE・自動Triggerは未導入。
+継続安定運用確認後にCURRENT / PRODUCTION判定する。
 ### MESSAGES Gmail route
 
 - `gas/oc_os_messages_gmail_preview_v0.1.2.gs`
@@ -224,7 +240,7 @@ M02812 / M02813についてはPreview→Stage→Commitコードの存在まで�
 
 ### 構築完了まで保持 / 用途確認中
 
-- `HHA_Member_Watcher` — Raw_Snapshotsあり。現行定期監査との接続確認待ち
+- `HHA_Member_Watcher` — Raw_SnapshotsをHHA Member Maintenance CURRENT / PILOTで再利用。2026-10-05 Raw Snapshot保存Pilot成功。継続安定運用確認まで保持
 - `Hinatazaka_Personal_Archive` — BLOG / BLOBS / INDEXあり。現行処理との接続・由来確認待ち
 
 HHA関連資産は必要性とOC-OS直下に置くべきかを分けて判断する。物理移動を行う場合はFolder ID依存を監査する。
