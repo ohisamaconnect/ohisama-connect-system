@@ -122,7 +122,7 @@ if ($failures.Count -eq 0) {
     Fail 'Canonical HHA MEMBERS data source ID differs from Contract.'
   }
 
-  if ($text -match 'display\\s\*:\\s\*none') {
+  if ($text.Contains('display\s*:\s*none')) {
     Pass 'Roster parser contains hidden-member CSS exclusion logic.'
   } else {
     Warn 'Hidden-member CSS exclusion marker was not recognized statically; inspect parser manually.'
