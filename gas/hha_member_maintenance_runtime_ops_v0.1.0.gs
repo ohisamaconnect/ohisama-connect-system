@@ -12,7 +12,7 @@
  * Safety:
  * - NOTION WRITE = NONE
  * - CANONICAL AUTO UPDATE = NONE
- * - TRIGGER INSTALL = NONE
+ * - Trigger installation is explicit/manual only.
  * - Script Properties contain observation state only.
  */
 
@@ -291,6 +291,224 @@ function testHhaMemberDiffStabilityCurrent() {
   return out;
 }
 
+
+
+/**
+ * Install HHA Member Watch triggers.
+ *
+ * Explicit/manual installation only.
+ *
+ * Schedule (Asia/Tokyo):
+ * - Roster Watch: daily around 03:00
+ * - Profile Watch: Sunday around 04:00
+ * - Canonical Audit: Sunday around 05:00
+ *
+ * This function never changes Canonical HHA or Notion.
+ */
+function installHhaMemberWatchTriggersCurrent() {
+  const handlers = [
+    'runHhaMemberRosterWatchCurrent',
+    'runHhaMemberProfileWatchCurrent',
+    'runHhaMemberCanonicalAuditCurrent'
+  ];
+
+  const lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(10000)) {
+    throw new Error(
+      'Could not acquire HHA Member Watch trigger installation lock.'
+    );
+  }
+
+  try {
+    ScriptApp.getProjectTriggers().forEach(function(trigger) {
+      if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+        ScriptApp.deleteTrigger(trigger);
+      }
+    });
+
+    ScriptApp
+      .newTrigger('runHhaMemberRosterWatchCurrent')
+      .timeBased()
+      .atHour(3)
+      .everyDays(1)
+      .inTimezone('Asia/Tokyo')
+      .create();
+
+    ScriptApp
+      .newTrigger('runHhaMemberProfileWatchCurrent')
+      .timeBased()
+      .onWeekDay(ScriptApp.WeekDay.SUNDAY)
+      .atHour(4)
+      .inTimezone('Asia/Tokyo')
+      .create();
+
+    ScriptApp
+      .newTrigger('runHhaMemberCanonicalAuditCurrent')
+      .timeBased()
+      .onWeekDay(ScriptApp.WeekDay.SUNDAY)
+      .atHour(5)
+      .inTimezone('Asia/Tokyo')
+      .create();
+
+  } finally {
+    lock.releaseLock();
+  }
+
+  const audit = auditHhaMemberWatchTriggersCurrent();
+
+  if (!audit.ok) {
+    throw new Error(
+      'HHA Member Watch trigger audit failed after installation.'
+    );
+  }
+
+  return audit;
+}
+
+
+/**
+ * Read-only HHA Member Watch trigger audit.
+ *
+ * Apps Script does not expose full clock scheduling details from an
+ * installed Trigger object, so this audit verifies:
+ * - exactly one trigger per expected handler
+ * - CLOCK source
+ * - no duplicate HHA Member Watch triggers
+ *
+ * Expected schedule is reported from the Current configuration.
+ */
+function auditHhaMemberWatchTriggersCurrent() {
+  const expected = [
+    {
+      handler: 'runHhaMemberRosterWatchCurrent',
+      schedule: 'DAILY / 03:00 hour / Asia-Tokyo'
+    },
+    {
+      handler: 'runHhaMemberProfileWatchCurrent',
+      schedule: 'SUNDAY / 04:00 hour / Asia-Tokyo'
+    },
+    {
+      handler: 'runHhaMemberCanonicalAuditCurrent',
+      schedule: 'SUNDAY / 05:00 hour / Asia-Tokyo'
+    }
+  ];
+
+  const expectedHandlers = expected.map(function(row) {
+    return row.handler;
+  });
+
+  const allTriggers = ScriptApp.getProjectTriggers();
+
+  const rows = allTriggers
+    .filter(function(trigger) {
+      return expectedHandlers.indexOf(
+        trigger.getHandlerFunction()
+      ) >= 0;
+    })
+    .map(function(trigger) {
+      return {
+        handler: trigger.getHandlerFunction(),
+        eventType: String(trigger.getEventType()),
+        source: String(trigger.getTriggerSource()),
+        sourceId: trigger.getTriggerSourceId
+          ? String(trigger.getTriggerSourceId() || '')
+          : ''
+      };
+    });
+
+  const counts = {};
+
+  expectedHandlers.forEach(function(handler) {
+    counts[handler] = 0;
+  });
+
+  rows.forEach(function(row) {
+    counts[row.handler] =
+      Number(counts[row.handler] || 0) + 1;
+  });
+
+  const missing = expectedHandlers.filter(function(handler) {
+    return counts[handler] === 0;
+  });
+
+  const duplicates = expectedHandlers.filter(function(handler) {
+    return counts[handler] > 1;
+  });
+
+  const nonClock = rows.filter(function(row) {
+    return row.eventType !== 'CLOCK' ||
+      row.source !== 'CLOCK';
+  });
+
+  const out = {
+    version: HHA_MEMBER_WATCH_CURRENT.VERSION,
+    write: 'NONE',
+
+    expectedSchedule: expected,
+
+    triggerCount: rows.length,
+    triggers: rows,
+    counts: counts,
+
+    missing: missing,
+    duplicates: duplicates,
+    nonClock: nonClock,
+
+    ok:
+      missing.length === 0 &&
+      duplicates.length === 0 &&
+      nonClock.length === 0 &&
+      rows.length === expected.length
+  };
+
+  hhaMemberWatchLogCurrent_(
+    'HHA MEMBER WATCH TRIGGER AUDIT',
+    out
+  );
+
+  return out;
+}
+
+
+/**
+ * Explicit rollback tool.
+ *
+ * Deletes only the three HHA Member Watch triggers.
+ * Observation state in Script Properties is preserved.
+ */
+function removeHhaMemberWatchTriggersCurrent() {
+  const handlers = [
+    'runHhaMemberRosterWatchCurrent',
+    'runHhaMemberProfileWatchCurrent',
+    'runHhaMemberCanonicalAuditCurrent'
+  ];
+
+  let deleted = 0;
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (handlers.indexOf(trigger.getHandlerFunction()) >= 0) {
+      ScriptApp.deleteTrigger(trigger);
+      deleted++;
+    }
+  });
+
+  const out = {
+    version: HHA_MEMBER_WATCH_CURRENT.VERSION,
+    write: 'TRIGGER_CONFIG_ONLY',
+    deleted: deleted,
+    observationStatePreserved: true,
+    notionWrite: 'NONE',
+    canonicalAutoUpdate: 'NONE'
+  };
+
+  hhaMemberWatchLogCurrent_(
+    'HHA MEMBER WATCH TRIGGERS REMOVED',
+    out
+  );
+
+  return out;
+}
 
 function hhaMemberWatchProcessSourceCurrent_(input) {
   const nowIso = new Date().toISOString();

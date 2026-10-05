@@ -39,6 +39,9 @@ $requiredFunctions = @(
   'runHhaMemberRosterWatchCurrent','runHhaMemberProfileWatchCurrent',
   'runHhaMemberCanonicalAuditCurrent','previewHhaMemberWatchStateCurrent',
   'testHhaMemberDiffStabilityCurrent',
+  'installHhaMemberWatchTriggersCurrent',
+  'auditHhaMemberWatchTriggersCurrent',
+  'removeHhaMemberWatchTriggersCurrent',
   'reportGasRuntimeInventoryCurrent'
 )
 
@@ -169,7 +172,9 @@ if ($missingDeps.Count -eq 0) { Pass 'Known cross-family dependencies are presen
 $triggerTools = @(
   'installCrawlerTriggersCurrent','auditCrawlerTriggersCurrent',
   'installInboxProcessorHourlyTriggerCurrent','auditInboxProcessorTriggersCurrent',
-  'installMessagesFormSubmitTriggerV01','reportGasRuntimeInventoryCurrent'
+  'installMessagesFormSubmitTriggerV01','reportGasRuntimeInventoryCurrent',
+  'installHhaMemberWatchTriggersCurrent','auditHhaMemberWatchTriggersCurrent',
+  'removeHhaMemberWatchTriggersCurrent'
 )
 $missingTriggerTools = @($triggerTools | Where-Object { -not $functionOwners.ContainsKey($_) })
 if ($missingTriggerTools.Count -eq 0) { Pass 'Current trigger maintenance/audit tools are present.' } else { Fail ('Trigger maintenance/audit tool missing: ' + ($missingTriggerTools -join ', ')) }
@@ -187,9 +192,27 @@ Warn 'Static audit cannot verify actual Script Property values; reportGasRuntime
 if ($fileTexts['OCOS_Suggestion_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Suggestion remains no-auto-trigger Pilot.' } else { Warn 'Suggestion AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_Calendar_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Calendar remains no-auto-trigger Pilot.' } else { Warn 'Calendar AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['OCOS_ArchivePublishing_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Archive/Publishing remains no-auto-trigger Pilot.' } else { Warn 'Archive/Publishing AUTO_TRIGGER:false marker not found.' }
-if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'AUTO_TRIGGER:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'NOTION_WRITE:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'CANONICAL_AUTO_UPDATE:\s*false') { Pass 'HHA Member Maintenance remains no-auto-trigger / no-Canonical-write Pilot.' } else { Fail 'HHA Member Maintenance safety markers missing or changed.' }
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'NOTION_WRITE:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'CANONICAL_AUTO_UPDATE:\s*false') { Pass 'HHA Member Maintenance remains no-Canonical-write / no-Notion-write Pilot.' } else { Fail 'HHA Member Maintenance Canonical/Notion safety markers missing or changed.' }
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'PROFILE_MAX_PER_RUN:\s*1') { Pass 'HHA Raw Snapshot Runtime remains one-profile Pilot.' } else { Fail 'HHA Raw Snapshot Pilot scope is no longer limited to one profile.' }
-if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -notmatch 'ScriptApp\.newTrigger') { Pass 'HHA Member Watch has no trigger installer yet.' } else { Fail 'HHA Member Watch unexpectedly contains trigger installation code.' }
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match "function\s+installHhaMemberWatchTriggersCurrent\s*\(" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "newTrigger\('runHhaMemberRosterWatchCurrent'\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "newTrigger\('runHhaMemberProfileWatchCurrent'\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "newTrigger\('runHhaMemberCanonicalAuditCurrent'\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "\.atHour\(3\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "\.atHour\(4\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "\.atHour\(5\)" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "ScriptApp\.WeekDay\.SUNDAY" -and
+    $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "Asia/Tokyo") {
+  Pass 'HHA Member Watch explicit/manual trigger tools and expected schedules are present.'
+} else {
+  Fail 'HHA Member Watch trigger tools or expected schedules are incomplete.'
+}
+
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -notmatch '(?m)^\s*installHhaMemberWatchTriggersCurrent\(\);\s*$') {
+  Pass 'HHA Member Watch trigger installer is not automatically invoked.'
+} else {
+  Fail 'HHA Member Watch trigger installer is invoked automatically.'
+}
 
 Write-Host '============================================================'
 Write-Host ('FAILURES = ' + $failures.Count)
