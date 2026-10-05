@@ -4,7 +4,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$sourcePath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.0.gs'
+$sourcePath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.1.gs'
+$supersededPath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.0.gs'
 $failures = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
 
@@ -13,22 +14,22 @@ function Fail([string]$m) { $script:failures.Add($m); Write-Host ('FAIL  ' + $m)
 function Warn([string]$m) { $script:warnings.Add($m); Write-Host ('WARN  ' + $m) }
 
 Write-Host '============================================================'
-Write-Host 'HHA MEMBER MAINTENANCE v0.1 STATIC AUDIT'
+Write-Host 'HHA MEMBER MAINTENANCE v0.1.1 STATIC AUDIT'
 Write-Host 'WRITE = NONE'
 Write-Host '============================================================'
 
-if (-not (Test-Path $sourcePath)) {
-  Fail ('Pilot source missing: ' + $sourcePath)
-} else {
-  Pass 'Pilot source exists.'
-}
+if (-not (Test-Path $sourcePath)) { Fail ('Pilot source missing: ' + $sourcePath) }
+else { Pass 'Pilot v0.1.1 source exists.' }
+
+if (Test-Path $supersededPath) { Fail 'Superseded v0.1.0 remains on main working tree.' }
+else { Pass 'Superseded v0.1.0 is absent from working tree.' }
 
 if ($failures.Count -eq 0) {
   $text = [System.IO.File]::ReadAllText($sourcePath)
 
-  # 1. JavaScript syntax check. GAS source is copied to .js because node --check
-  # should not depend on the .gs extension.
-  $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) 'hha_member_maintenance_v0.1.0.audit.js'
+  # 1. JavaScript syntax check. GAS source is copied to .js so node --check
+  # does not depend on the .gs extension.
+  $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) 'hha_member_maintenance_v0.1.1.audit.js'
   try {
     [System.IO.File]::WriteAllText($tempPath, $text, (New-Object System.Text.UTF8Encoding($false)))
     & node --check $tempPath 2>&1 | Out-Null
@@ -51,17 +52,14 @@ if ($failures.Count -eq 0) {
 
   # 3. Required preview entry points.
   $requiredFunctions = @(
-    'previewHhaMemberMaintenanceV010',
-    'previewHhaMemberCanonicalIntegrityV010',
-    'previewHhaMemberRosterMaintenanceV010',
-    'previewHhaMemberProfileMaintenanceV010'
+    'previewHhaMemberMaintenanceV011',
+    'previewHhaMemberCanonicalIntegrityV011',
+    'previewHhaMemberRosterMaintenanceV011',
+    'previewHhaMemberProfileMaintenanceV011'
   )
   foreach ($fn in $requiredFunctions) {
-    if ($text -match ('(?m)^\s*function\s+' + [regex]::Escape($fn) + '\s*\(')) {
-      Pass ('Required preview function present: ' + $fn)
-    } else {
-      Fail ('Required preview function missing: ' + $fn)
-    }
+    if ($text -match ('(?m)^\s*function\s+' + [regex]::Escape($fn) + '\s*\(')) { Pass ('Required preview function present: ' + $fn) }
+    else { Fail ('Required preview function missing: ' + $fn) }
   }
 
   # 4. Candidate vocabulary required by the Contract.
@@ -88,6 +86,12 @@ if ($failures.Count -eq 0) {
     else { Fail ('Candidate marker missing: ' + $candidate) }
   }
 
+  if ($text.Contains('NONCURRENT_CANONICAL_STILL_VISIBLE_ON_OFFICIAL_ROSTER')) {
+    Pass 'Known non-current roster residue is classified as informational observation.'
+  } else {
+    Fail 'Non-current roster residue guard is missing.'
+  }
+
   # 5. Old orphaned watcher handlers must not be revived.
   $forbiddenLegacyFunctions = @(
     'runHhaMemberRosterWatch',
@@ -95,11 +99,8 @@ if ($failures.Count -eq 0) {
     'runHhaMemberProfileWatch'
   )
   foreach ($fn in $forbiddenLegacyFunctions) {
-    if ($text -match ('(?m)^\s*function\s+' + [regex]::Escape($fn) + '\s*\(')) {
-      Fail ('Legacy orphan handler revived: ' + $fn)
-    } else {
-      Pass ('Legacy orphan handler absent: ' + $fn)
-    }
+    if ($text -match ('(?m)^\s*function\s+' + [regex]::Escape($fn) + '\s*\(')) { Fail ('Legacy orphan handler revived: ' + $fn) }
+    else { Pass ('Legacy orphan handler absent: ' + $fn) }
   }
 
   # 6. Pilot must not install Apps Script triggers or write Notion pages.
@@ -122,17 +123,14 @@ if ($failures.Count -eq 0) {
     Fail 'Canonical HHA MEMBERS data source ID differs from Contract.'
   }
 
-  if ($text.Contains('display\s*:\s*none')) {
-    Pass 'Roster parser contains hidden-member CSS exclusion logic.'
-  } else {
-    Warn 'Hidden-member CSS exclusion marker was not recognized statically; inspect parser manually.'
-  }
+  if ($text.Contains('display\s*:\s*none')) { Pass 'Roster parser contains hidden-member CSS exclusion logic.' }
+  else { Fail 'Hidden-member CSS exclusion logic marker is missing.' }
 
-  if ($text -match 'PROFILE_MAX_PER_RUN:\s*60') {
-    Pass 'Profile run safety cap is present.'
-  } else {
-    Warn 'Expected profile run safety cap was not recognized.'
-  }
+  if ($text.Contains('byId[item.officialMemberId]')) { Pass 'Roster parser contains Official_Member_ID de-duplication logic.' }
+  else { Fail 'Official_Member_ID de-duplication logic marker is missing.' }
+
+  if ($text -match 'PROFILE_MAX_PER_RUN:\s*60') { Pass 'Profile run safety cap is present.' }
+  else { Warn 'Expected profile run safety cap was not recognized.' }
 }
 
 Write-Host '============================================================'
