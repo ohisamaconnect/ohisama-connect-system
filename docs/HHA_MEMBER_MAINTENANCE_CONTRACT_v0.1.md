@@ -2,7 +2,7 @@
 
 基準日: 2026-10-05
 
-Status: **CURRENT / PILOT DESIGN**
+Status: **CURRENT / PILOT IMPLEMENTED — NOT DEPLOYED**
 
 ## 1. 目的
 
@@ -110,7 +110,7 @@ Last_Verified_At
 https://www.hinatazaka46.com/s/official/search/artist?ima=0000
 ```
 
-ここから現行公式在籍者の
+ここから現行公式ページに表示される
 
 ```text
 Official_Member_ID
@@ -120,6 +120,12 @@ Official_Profile_URL
 ```
 
 を観測する。
+
+ただし、**公式Rosterへの掲載はActivity_Statusの権威そのものではない。**
+
+卒業・活動終了後もしばらく公式RosterやProfileが残存する場合がある。そのため、Rosterに表示されている人物が既存HHA MEMBERSで `卒業` / `活動辞退` 等としてCanonical確定済みなら、それだけを理由に在籍中へ戻したり `NEW_OFFICIAL_MEMBER` と判定したりしない。
+
+また公式Roster HTMLでは、同一人物がALL・期別・誕生日・血液型等の複数セクションに繰り返し現れるため、観測人数は **Official_Member_ID単位で重複排除**して扱う。
 
 ### 4.2 Profile
 
@@ -183,9 +189,9 @@ Snapshotはappend-only evidenceとして扱い、Canonicalそのものとはし�
 
 ### A. Roster Watch
 
-公式在籍者一覧とHHA MEMBERSを照合する。
+公式RosterとHHA MEMBERS全Canonicalを照合し、その上で在籍中集合との差分を確認する。
 
-検知候補:
+Review Candidate:
 
 ```text
 NEW_OFFICIAL_MEMBER
@@ -197,7 +203,17 @@ ROSTER_FETCH_ERROR
 ROSTER_PARSE_ERROR
 ```
 
-`ACTIVE_MISSING_FROM_OFFICIAL_ROSTER` は卒業確定を意味しない。
+Informational Observation:
+
+```text
+NONCURRENT_CANONICAL_STILL_VISIBLE_ON_OFFICIAL_ROSTER
+```
+
+これは、HHAで既に非在籍Canonicalとなっている既知人物が公式Rosterに残存している状態を記録するためのObservationである。
+
+**これは新規加入Candidateでも、Activity_Status反転Candidateでもない。**
+
+`ACTIVE_MISSING_FROM_OFFICIAL_ROSTER` も卒業確定を意味しない。
 
 公式サイト更新途中、表示障害、HTML変更等があり得るため、Activity_StatusやMembership_End_Dateは自動更新しない。
 
@@ -257,7 +273,9 @@ Human Review
 
 を基本とする。
 
-ただし `NEW_OFFICIAL_MEMBER` のように公式Rosterへ明示的に新規掲載されたケースは、1回目からReview対象として提示してよい。
+ただし `NEW_OFFICIAL_MEMBER` のように公式Rosterへ明示的に新規掲載され、HHA全Canonicalにも一致しないケースは、1回目からReview対象として提示してよい。
+
+一方、既に卒業等で非在籍Canonicalとなっている人物がRosterへ残存しているだけなら、`NONCURRENT_CANONICAL_STILL_VISIBLE_ON_OFFICIAL_ROSTER` として情報記録に留める。
 
 いずれの場合も自動Canonical WRITEはしない。
 
@@ -305,13 +323,15 @@ Pilotでは最低限、次を確認する。
 
 1. HHA MEMBERSの全Canonical rowを正しく読める
 2. 公式Rosterを正しく抽出できる
-3. Official_Member_IDで安全に照合できる
-4. 現行在籍者のプロフィールを取得できる
-5. Birthday / Height / Hometown / Blood_Type等を正規化できる
-6. 差分なしを差分ありと誤判定しない
-7. HTML構造変更時に「値が空になった」ことをCanonical差分と誤認せずPARSE_ERRORにできる
-8. 既存Raw Snapshot構造を壊さない
-9. HHA MEMBERSへ一切自動WRITEしない
+3. Roster HTML内の同一人物重複をOfficial_Member_ID単位で除去できる
+4. 卒業等の非在籍CanonicalがRosterに残っていても新規加入と誤判定しない
+5. Official_Member_IDで安全に照合できる
+6. 現行在籍者のプロフィールを取得できる
+7. Birthday / Height / Hometown / Blood_Type等を正規化できる
+8. 差分なしを差分ありと誤判定しない
+9. HTML構造変更時に「値が空になった」ことをCanonical差分と誤認せずPARSE_ERRORにできる
+10. 既存Raw Snapshot構造を壊さない
+11. HHA MEMBERSへ一切自動WRITEしない
 
 ---
 
@@ -358,6 +378,15 @@ Rosterは加入・卒業等の構成変化を早く検知するため日次。
 14. Triggerを最後に導入
 15. 継続運用成功後にCURRENT / PRODUCTION判定
 ```
+
+2026-10-05時点の実装:
+
+```text
+gas/hha_member_maintenance_v0.1.1.gs
+tools/audit_hha_member_maintenance_v0.1.ps1
+```
+
+v0.1.0はRoster重複・非在籍Canonical残存の扱いを改善するためv0.1.1へ置き換え、main branchから削除済み。Git履歴には残る。
 
 Runtimeへ置かれたこととProduction運用成功は別状態として扱う。
 
