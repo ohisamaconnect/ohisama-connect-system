@@ -36,6 +36,9 @@ $requiredFunctions = @(
   'previewHhaMemberMaintenanceCurrent','previewHhaMemberCanonicalIntegrityCurrent',
   'previewHhaMemberRosterMaintenanceCurrent','previewHhaMemberProfileMaintenanceCurrent',
   'previewHhaMemberRawSnapshotPlanCurrent','saveHhaMemberRawSnapshotsCurrentPilot',
+  'runHhaMemberRosterWatchCurrent','runHhaMemberProfileWatchCurrent',
+  'runHhaMemberCanonicalAuditCurrent','previewHhaMemberWatchStateCurrent',
+  'testHhaMemberDiffStabilityCurrent',
   'reportGasRuntimeInventoryCurrent'
 )
 
@@ -186,6 +189,7 @@ if ($fileTexts['OCOS_Calendar_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pas
 if ($fileTexts['OCOS_ArchivePublishing_Current.gs'] -match 'AUTO_TRIGGER:\s*false') { Pass 'Archive/Publishing remains no-auto-trigger Pilot.' } else { Warn 'Archive/Publishing AUTO_TRIGGER:false marker not found.' }
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'AUTO_TRIGGER:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'NOTION_WRITE:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'CANONICAL_AUTO_UPDATE:\s*false') { Pass 'HHA Member Maintenance remains no-auto-trigger / no-Canonical-write Pilot.' } else { Fail 'HHA Member Maintenance safety markers missing or changed.' }
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'PROFILE_MAX_PER_RUN:\s*1') { Pass 'HHA Raw Snapshot Runtime remains one-profile Pilot.' } else { Fail 'HHA Raw Snapshot Pilot scope is no longer limited to one profile.' }
+if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -notmatch 'ScriptApp\.newTrigger') { Pass 'HHA Member Watch has no trigger installer yet.' } else { Fail 'HHA Member Watch unexpectedly contains trigger installation code.' }
 
 Write-Host '============================================================'
 Write-Host ('FAILURES = ' + $failures.Count)
