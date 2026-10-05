@@ -149,6 +149,36 @@ Official_Profile_URL
 Official_Member_ID
 ```
 
+### 4.3 Profile比較の正規化ルール
+
+`Name_Kana` は、公式Sourceがひらがな、HHA Canonicalがカタカナで保持されている場合があるため、比較時のみひらがな／カタカナ差を吸収する。
+Canonicalの保存表記そのものは、この正規化を理由に自動変更しない。
+
+`Romanized_Name` は **公式プロフィールの綴りに準拠**する。
+ただし大文字・小文字のみの差は意味差として扱わない。
+
+HHA Canonicalでは可読性のためTitle Caseで保持し、比較時はNFKC・空白正規化・case-insensitiveで照合する。
+
+したがって、
+
+```text
+Miku Kanemura
+MIKU KANEMURA
+```
+
+は同一として扱う。
+
+一方、
+
+```text
+Marii Morimoto
+MARIE MORIMOTO
+
+Niina Sakai
+NINA SAKAI
+```
+
+のような綴りそのものの差は `PROFILE_ROMANIZED_NAME_DIFF` としてReview Candidateにする。
 `Penlight_Color_1 / Penlight_Color_2` は現行プロフィールページの標準項目ではないため、v0.1 Profile Watchの比較対象にしない。
 
 Instagram / X等のSNSも、公式ページ上の表現や有無が一定しないため、初期Pilotでは差分判定対象から外す。
@@ -382,12 +412,45 @@ Rosterは加入・卒業等の構成変化を早く検知するため日次。
 2026-10-05時点の実装:
 
 ```text
-gas/hha_member_maintenance_v0.1.1.gs
+gas/hha_member_maintenance_v0.1.2.gs
 tools/audit_hha_member_maintenance_v0.1.ps1
 ```
 
 v0.1.0はRoster重複・非在籍Canonical残存の扱いを改善するためv0.1.1へ置き換え、main branchから削除済み。Git履歴には残る。
 
+### 2026-10-05 v0.1.2 Pilot検証結果
+
+実公式Sourceを用いたStandalone Pilotで以下を確認した。
+
+```text
+Canonical Integrity
+canonicalCount = 47
+currentCount   = 26
+issueCount     = 0
+
+Official Roster
+canonicalCurrentCount      = 26
+officialVisibleUniqueCount = 26
+candidateCount             = 0
+errorCount                 = 0
+
+Official Profile
+targetCount      = 26
+observationCount = 26
+candidateCount   = 0
+errorCount       = 0
+```
+
+`Name_Kana` はひらがな／カタカナ差を比較時のみ吸収することで、26件の偽陽性を解消した。
+
+`Romanized_Name` では、森本茉莉の `Marii / MARIE`、坂井新奈の `Niina / NINA` をReviewし、公式綴りに基づきCanonicalをそれぞれ `Marie Morimoto`、`Nina Sakai` とした。
+
+大文字・小文字まで完全一致させるv0.1.3実験では、既存24名にcapitalization-onlyの差分が発生した。
+これは公式サイトの全大文字表示とHHAのTitle Caseという表示形式差であり、意味差ではないと判断した。
+
+したがってv0.1.3はCurrentへ採用せず、v0.1.2のcase-insensitive Romanized比較をCanonical Ruleとして維持する。
+
+v0.1.2はGit commit `5c8b575` でmain branchへ固定済み。
 Runtimeへ置かれたこととProduction運用成功は別状態として扱う。
 
 ---
