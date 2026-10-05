@@ -21,12 +21,10 @@ const HHA_MEMBER_MAINTENANCE_V010 = Object.freeze({
   AUTO_TRIGGER: false,
   NOTION_WRITE: false,
   CANONICAL_AUTO_UPDATE: false,
-
   BASE_URL: 'https://www.hinatazaka46.com',
   ROSTER_URL: 'https://www.hinatazaka46.com/s/official/search/artist?ima=0000',
   HHA_MEMBERS_DATA_SOURCE_ID: 'df86e0ba-5478-4fc6-b30a-49cb1bd6c83d',
   NOTION_VERSION: '2026-03-11',
-
   HTTP_USER_AGENT: 'Mozilla/5.0 (compatible; OhisamaConnect-HHA-Member-Maintenance/0.1.0)',
   HTTP_MAX_RETRIES: 3,
   PROFILE_FETCH_SLEEP_MS: 150,
@@ -38,7 +36,6 @@ function previewHhaMemberMaintenanceV010() {
   const integrity = previewHhaMemberCanonicalIntegrityV010();
   const roster = previewHhaMemberRosterMaintenanceV010();
   const profiles = previewHhaMemberProfileMaintenanceV010();
-
   const report = {
     version: HHA_MEMBER_MAINTENANCE_V010.VERSION,
     status: HHA_MEMBER_MAINTENANCE_V010.STATUS,
@@ -51,9 +48,10 @@ function previewHhaMemberMaintenanceV010() {
     reviewRequired:
       integrity.issueCount > 0 ||
       roster.candidateCount > 0 ||
-      profiles.candidateCount > 0
+      profiles.candidateCount > 0 ||
+      roster.errorCount > 0 ||
+      profiles.errorCount > 0
   };
-
   hhaMemberMaintenanceLogV010_('HHA MEMBER MAINTENANCE PREVIEW', report);
   return report;
 }
@@ -68,10 +66,15 @@ function previewHhaMemberCanonicalIntegrityV010() {
   members.forEach(member => {
     if (!member.memberId) {
       issues.push(hhaMemberMaintenanceIssueV010_('MISSING_MEMBER_ID', member, 'Member_ID is empty.'));
-    } else if (memberIds[member.memberId]) {
-      issues.push(hhaMemberMaintenanceIssueV010_('DUPLICATE_MEMBER_ID', member, `Duplicate Member_ID: ${member.memberId}`));
     } else {
-      memberIds[member.memberId] = true;
+      if (!/^MEM-\d{3}$/.test(member.memberId)) {
+        issues.push(hhaMemberMaintenanceIssueV010_('INVALID_MEMBER_ID_FORMAT', member, `Member_ID must match MEM-000 format: ${member.memberId}`));
+      }
+      if (memberIds[member.memberId]) {
+        issues.push(hhaMemberMaintenanceIssueV010_('DUPLICATE_MEMBER_ID', member, `Duplicate Member_ID: ${member.memberId}`));
+      } else {
+        memberIds[member.memberId] = true;
+      }
     }
 
     if (member.memberOrder === null) {
@@ -85,9 +88,14 @@ function previewHhaMemberCanonicalIntegrityV010() {
     if (!member.memberName) {
       issues.push(hhaMemberMaintenanceIssueV010_('MISSING_MEMBER_NAME', member, 'Member_Name is empty.'));
     }
-
     if (!member.activityStatus) {
       issues.push(hhaMemberMaintenanceIssueV010_('MISSING_ACTIVITY_STATUS', member, 'Activity_Status is empty.'));
+    }
+    if (!member.verificationStatus) {
+      issues.push(hhaMemberMaintenanceIssueV010_('MISSING_VERIFICATION_STATUS', member, 'Verification_Status is empty.'));
+    }
+    if (!member.lastVerifiedAt) {
+      issues.push(hhaMemberMaintenanceIssueV010_('MISSING_LAST_VERIFIED_AT', member, 'Last_Verified_At is empty.'));
     }
 
     if (member.officialMemberId) {
@@ -101,7 +109,6 @@ function previewHhaMemberCanonicalIntegrityV010() {
     if (member.activityStatus === '在籍中' && !member.officialMemberId) {
       issues.push(hhaMemberMaintenanceIssueV010_('CURRENT_MEMBER_MISSING_OFFICIAL_ID', member, 'Current member has no Official_Member_ID.'));
     }
-
     if (member.activityStatus === '在籍中' && !member.officialProfileUrl) {
       issues.push(hhaMemberMaintenanceIssueV010_('CURRENT_MEMBER_MISSING_PROFILE_URL', member, 'Current member has no Official_Profile_URL.'));
     }
@@ -119,13 +126,62 @@ function previewHhaMemberCanonicalIntegrityV010() {
 function previewHhaMemberRosterMaintenanceV010() {
   const members = hhaMemberMaintenanceLoadCanonicalMembersV010_();
   const currentMembers = members.filter(m => m.activityStatus === '在籍中');
-  const html = hhaMemberMaintenanceFetchTextV010_(HHA_MEMBER_MAINTENANCE_V010.ROSTER_URL);
-  const roster = hhaMemberMaintenanceParseVisibleRosterV010_(html);
-
   const canonicalByOfficialId = {};
+  const canonicalByName = {};
   currentMembers.forEach(member => {
     if (member.officialMemberId) canonicalByOfficialId[String(member.officialMemberId)] = member;
+    const normalizedName = hhaMemberMaintenanceNormalizeNameV010_(member.memberName);
+    if (normalizedName) canonicalByName[normalizedName] = member;
   });
+
+  let html = '';
+  try {
+    html = hhaMemberMaintenanceFetchTextV010_(HHA_MEMBER_MAINTENANCE_V010.ROSTER_URL);
+  } catch (err) {
+    return {
+      write: 'NONE',
+      sourceUrl: HHA_MEMBER_MAINTENANCE_V010.ROSTER_URL,
+      canonicalCurrentCount: currentMembers.length,
+      officialVisibleCount: 0,
+      hiddenOfficialElementCount: 0,
+      hiddenOfficialMemberIds: [],
+      candidateCount: 0,
+      candidates: [],
+      errorCount: 1,
+      errors: [{
+        type: 'ROSTER_FETCH_ERROR',
+        severity: 'REVIEW',
+        error: String(err && err.message ? err.message : err)
+      }],
+      observedVisibleMembers: []
+    };
+  }
+
+  let roster;
+  try {
+    roster = hhaMemberMaintenanceParseVisibleRosterV010_(html);
+    if (!roster.visibleMembers.length || roster.visibleMembers.some(v => !v.officialMemberId || !v.memberName)) {
+      throw new Error('Official roster parser returned zero visible members or incomplete required fields.');
+    }
+  } catch (err) {
+    return {
+      write: 'NONE',
+      sourceUrl: HHA_MEMBER_MAINTENANCE_V010.ROSTER_URL,
+      canonicalCurrentCount: currentMembers.length,
+      officialVisibleCount: 0,
+      hiddenOfficialElementCount: 0,
+      hiddenOfficialMemberIds: [],
+      candidateCount: 0,
+      candidates: [],
+      errorCount: 1,
+      errors: [{
+        type: 'ROSTER_PARSE_ERROR',
+        severity: 'REVIEW',
+        error: String(err && err.message ? err.message : err)
+      }],
+      observedVisibleMembers: []
+    };
+  }
 
   const officialById = {};
   roster.visibleMembers.forEach(member => {
@@ -133,39 +189,52 @@ function previewHhaMemberRosterMaintenanceV010() {
   });
 
   const candidates = [];
-
   roster.visibleMembers.forEach(official => {
     const canonical = canonicalByOfficialId[String(official.officialMemberId)];
     if (!canonical) {
-      candidates.push({
-        type: 'OFFICIAL_ROSTER_UNMATCHED',
-        severity: 'REVIEW',
-        official: official,
-        message: 'Visible official roster member is not matched to a Canonical current member.'
-      });
+      const sameNameCanonical = canonicalByName[hhaMemberMaintenanceNormalizeNameV010_(official.memberName)];
+      if (sameNameCanonical) {
+        candidates.push({
+          type: 'OFFICIAL_MEMBER_ID_MISMATCH',
+          severity: 'HIGH_REVIEW',
+          memberId: sameNameCanonical.memberId,
+          memberName: sameNameCanonical.memberName,
+          canonicalValue: sameNameCanonical.officialMemberId,
+          observedValue: official.officialMemberId,
+          sourceUrl: official.profileUrl
+        });
+      } else {
+        candidates.push({
+          type: 'NEW_OFFICIAL_MEMBER',
+          severity: 'HIGH_REVIEW',
+          official: official,
+          message: 'Visible official roster member is not matched to a Canonical current member.'
+        });
+      }
       return;
     }
 
     if (hhaMemberMaintenanceNormalizeNameV010_(official.memberName) !== hhaMemberMaintenanceNormalizeNameV010_(canonical.memberName)) {
       candidates.push({
-        type: 'MEMBER_NAME_DIFFERENCE',
+        type: 'OFFICIAL_NAME_MISMATCH',
         severity: 'REVIEW',
         memberId: canonical.memberId,
         officialMemberId: official.officialMemberId,
         canonicalValue: canonical.memberName,
-        observedValue: official.memberName
+        observedValue: official.memberName,
+        sourceUrl: official.profileUrl
       });
     }
 
-    const expectedUrl = `${HHA_MEMBER_MAINTENANCE_V010.BASE_URL}/s/official/artist/${official.officialMemberId}?ima=0000`;
-    if (canonical.officialProfileUrl && hhaMemberMaintenanceCanonicalizeUrlV010_(canonical.officialProfileUrl) !== hhaMemberMaintenanceCanonicalizeUrlV010_(expectedUrl)) {
+    if (canonical.officialProfileUrl && hhaMemberMaintenanceCanonicalizeUrlV010_(canonical.officialProfileUrl) !== hhaMemberMaintenanceCanonicalizeUrlV010_(official.profileUrl)) {
       candidates.push({
-        type: 'PROFILE_URL_DIFFERENCE',
+        type: 'OFFICIAL_PROFILE_URL_MISMATCH',
         severity: 'REVIEW',
         memberId: canonical.memberId,
         officialMemberId: official.officialMemberId,
         canonicalValue: canonical.officialProfileUrl,
-        observedValue: expectedUrl
+        observedValue: official.profileUrl,
+        sourceUrl: official.profileUrl
       });
     }
   });
@@ -174,7 +243,7 @@ function previewHhaMemberRosterMaintenanceV010() {
     if (!canonical.officialMemberId) return;
     if (!officialById[String(canonical.officialMemberId)]) {
       candidates.push({
-        type: 'CANONICAL_CURRENT_NOT_VISIBLE_ON_OFFICIAL_ROSTER',
+        type: 'ACTIVE_MISSING_FROM_OFFICIAL_ROSTER',
         severity: 'HIGH_REVIEW',
         memberId: canonical.memberId,
         memberName: canonical.memberName,
@@ -193,6 +262,8 @@ function previewHhaMemberRosterMaintenanceV010() {
     hiddenOfficialMemberIds: roster.hiddenMemberIds,
     candidateCount: candidates.length,
     candidates: candidates,
+    errorCount: 0,
+    errors: [],
     observedVisibleMembers: roster.visibleMembers
   };
 }
@@ -216,37 +287,70 @@ function previewHhaMemberProfileMaintenanceV010() {
   const errors = [];
 
   members.forEach((canonical, index) => {
+    if (index > 0 && HHA_MEMBER_MAINTENANCE_V010.PROFILE_FETCH_SLEEP_MS > 0) {
+      Utilities.sleep(HHA_MEMBER_MAINTENANCE_V010.PROFILE_FETCH_SLEEP_MS);
+    }
+
+    let html = '';
     try {
-      if (index > 0 && HHA_MEMBER_MAINTENANCE_V010.PROFILE_FETCH_SLEEP_MS > 0) {
-        Utilities.sleep(HHA_MEMBER_MAINTENANCE_V010.PROFILE_FETCH_SLEEP_MS);
-      }
-
-      const html = hhaMemberMaintenanceFetchTextV010_(canonical.officialProfileUrl);
-      const observed = hhaMemberMaintenanceParseProfileV010_(html, canonical.officialProfileUrl, canonical.officialMemberId);
-
-      observations.push({
-        memberId: canonical.memberId,
-        memberName: canonical.memberName,
-        officialMemberId: canonical.officialMemberId,
-        observed: observed
-      });
-
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Member_Name', canonical.memberName, observed.memberName, hhaMemberMaintenanceNormalizeNameV010_);
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Name_Kana', canonical.nameKana, observed.nameKana, hhaMemberMaintenanceNormalizeTextV010_);
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Romanized_Name', canonical.romanizedName, observed.romanizedName, hhaMemberMaintenanceNormalizeRomanizedV010_);
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Birthday', canonical.birthday, observed.birthday, hhaMemberMaintenanceNormalizeTextV010_);
-      hhaMemberMaintenanceCompareProfileNumberV010_(candidates, canonical, 'Height_cm', canonical.heightCm, observed.heightCm);
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Hometown', canonical.hometown, observed.hometown, hhaMemberMaintenanceNormalizeTextV010_);
-      hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, 'Blood_Type', canonical.bloodType, observed.bloodType, hhaMemberMaintenanceNormalizeTextV010_);
+      html = hhaMemberMaintenanceFetchTextV010_(canonical.officialProfileUrl);
     } catch (err) {
       errors.push({
+        type: 'PROFILE_FETCH_ERROR',
+        severity: 'REVIEW',
         memberId: canonical.memberId,
         memberName: canonical.memberName,
         officialMemberId: canonical.officialMemberId,
         profileUrl: canonical.officialProfileUrl,
         error: String(err && err.message ? err.message : err)
       });
+      return;
     }
+
+    let observed;
+    try {
+      observed = hhaMemberMaintenanceParseProfileV010_(html, canonical.officialProfileUrl, canonical.officialMemberId);
+      const missingFields = hhaMemberMaintenanceMissingProfileFieldsV010_(observed);
+      if (missingFields.length) {
+        errors.push({
+          type: 'PROFILE_PARSE_ERROR',
+          severity: 'REVIEW',
+          memberId: canonical.memberId,
+          memberName: canonical.memberName,
+          officialMemberId: canonical.officialMemberId,
+          profileUrl: canonical.officialProfileUrl,
+          missingFields: missingFields,
+          message: 'Required official profile fields could not be parsed. No Canonical difference is inferred.'
+        });
+        return;
+      }
+    } catch (err) {
+      errors.push({
+        type: 'PROFILE_PARSE_ERROR',
+        severity: 'REVIEW',
+        memberId: canonical.memberId,
+        memberName: canonical.memberName,
+        officialMemberId: canonical.officialMemberId,
+        profileUrl: canonical.officialProfileUrl,
+        error: String(err && err.message ? err.message : err)
+      });
+      return;
+    }
+
+    observations.push({
+      memberId: canonical.memberId,
+      memberName: canonical.memberName,
+      officialMemberId: canonical.officialMemberId,
+      observed: observed
+    });
+
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_NAME_DIFF', canonical, observed, 'Member_Name', canonical.memberName, observed.memberName, hhaMemberMaintenanceNormalizeNameV010_);
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_KANA_DIFF', canonical, observed, 'Name_Kana', canonical.nameKana, observed.nameKana, hhaMemberMaintenanceNormalizeTextV010_);
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_ROMANIZED_NAME_DIFF', canonical, observed, 'Romanized_Name', canonical.romanizedName, observed.romanizedName, hhaMemberMaintenanceNormalizeRomanizedV010_);
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_BIRTHDAY_DIFF', canonical, observed, 'Birthday', canonical.birthday, observed.birthday, hhaMemberMaintenanceNormalizeTextV010_);
+    hhaMemberMaintenanceCompareProfileNumberV010_(candidates, 'PROFILE_HEIGHT_DIFF', canonical, observed, 'Height_cm', canonical.heightCm, observed.heightCm);
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_HOMETOWN_DIFF', canonical, observed, 'Hometown', canonical.hometown, observed.hometown, hhaMemberMaintenanceNormalizeTextV010_);
+    hhaMemberMaintenanceCompareProfileFieldV010_(candidates, 'PROFILE_BLOOD_TYPE_DIFF', canonical, observed, 'Blood_Type', canonical.bloodType, observed.bloodType, hhaMemberMaintenanceNormalizeTextV010_);
   });
 
   return {
@@ -266,7 +370,6 @@ function hhaMemberMaintenanceParseVisibleRosterV010_(html) {
   const hiddenIds = hhaMemberMaintenanceExtractHiddenRosterIdsV010_(html);
   const hiddenSet = {};
   hiddenIds.forEach(id => { hiddenSet[String(id)] = true; });
-
   const $ = Cheerio.load(html);
   const visibleMembers = [];
 
@@ -274,17 +377,13 @@ function hhaMemberMaintenanceParseVisibleRosterV010_(html) {
     const $el = $(el);
     const rawId = hhaMemberMaintenanceCleanTextV010_($el.attr('data-member') || '');
     if (!rawId) return;
-
     const inlineStyle = String($el.attr('style') || '');
-    const hiddenInline = /display\s*:\s*none/i.test(inlineStyle);
-    const hiddenByCss = !!hiddenSet[String(rawId)];
-    if (hiddenInline || hiddenByCss) return;
+    if (/display\s*:\s*none/i.test(inlineStyle) || hiddenSet[String(rawId)]) return;
 
     const href = $el.find('a[href*="/s/official/artist/"]').first().attr('href') || '';
     const memberName = hhaMemberMaintenanceCleanTextV010_($el.find('.c-member__name').first().text());
     const nameKana = hhaMemberMaintenanceCleanTextV010_($el.find('.c-member__kana').first().text());
     const birthdayRaw = hhaMemberMaintenanceCleanTextV010_($el.find('.c-member__birth').first().text());
-
     visibleMembers.push({
       officialMemberId: String(rawId),
       memberName: memberName,
@@ -313,7 +412,6 @@ function hhaMemberMaintenanceParseProfileV010_(html, sourceUrl, expectedOfficial
   const romanizedName = hhaMemberMaintenanceCleanTextV010_($name.find('.name_en').first().text());
   const $nameClone = $name.clone();
   $nameClone.find('.name_en').remove();
-
   const memberName = hhaMemberMaintenanceCleanTextV010_($nameClone.text());
   const nameKana = hhaMemberMaintenanceCleanTextV010_($('.p-member__info .c-member__kana').first().text());
   const table = {};
@@ -339,26 +437,23 @@ function hhaMemberMaintenanceParseProfileV010_(html, sourceUrl, expectedOfficial
   };
 }
 
-function hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, observed, propertyName, canonicalValue, observedValue, normalizer) {
-  if (observedValue === null || observedValue === undefined || observedValue === '') {
-    candidates.push({
-      type: 'OFFICIAL_PROFILE_FIELD_UNREADABLE',
-      severity: 'REVIEW',
-      memberId: canonical.memberId,
-      memberName: canonical.memberName,
-      officialMemberId: canonical.officialMemberId,
-      property: propertyName,
-      canonicalValue: canonicalValue,
-      observedValue: observedValue,
-      sourceUrl: observed.sourceUrl
-    });
-    return;
-  }
+function hhaMemberMaintenanceMissingProfileFieldsV010_(observed) {
+  const missing = [];
+  if (!observed.memberName) missing.push('Member_Name');
+  if (!observed.nameKana) missing.push('Name_Kana');
+  if (!observed.romanizedName) missing.push('Romanized_Name');
+  if (!observed.birthday) missing.push('Birthday');
+  if (observed.heightCm === null || observed.heightCm === undefined || Number.isNaN(observed.heightCm)) missing.push('Height_cm');
+  if (!observed.hometown) missing.push('Hometown');
+  if (!observed.bloodType) missing.push('Blood_Type');
+  return missing;
+}
 
+function hhaMemberMaintenanceCompareProfileFieldV010_(candidates, candidateType, canonical, observed, propertyName, canonicalValue, observedValue, normalizer) {
   const normalize = normalizer || hhaMemberMaintenanceNormalizeTextV010_;
   if (normalize(canonicalValue) !== normalize(observedValue)) {
     candidates.push({
-      type: 'OFFICIAL_PROFILE_DIFFERENCE',
+      type: candidateType,
       severity: 'REVIEW',
       memberId: canonical.memberId,
       memberName: canonical.memberName,
@@ -371,26 +466,11 @@ function hhaMemberMaintenanceCompareProfileFieldV010_(candidates, canonical, obs
   }
 }
 
-function hhaMemberMaintenanceCompareProfileNumberV010_(candidates, canonical, propertyName, canonicalValue, observedValue) {
-  if (observedValue === null || observedValue === undefined || Number.isNaN(observedValue)) {
-    candidates.push({
-      type: 'OFFICIAL_PROFILE_FIELD_UNREADABLE',
-      severity: 'REVIEW',
-      memberId: canonical.memberId,
-      memberName: canonical.memberName,
-      officialMemberId: canonical.officialMemberId,
-      property: propertyName,
-      canonicalValue: canonicalValue,
-      observedValue: observedValue,
-      sourceUrl: canonical.officialProfileUrl
-    });
-    return;
-  }
-
+function hhaMemberMaintenanceCompareProfileNumberV010_(candidates, candidateType, canonical, observed, propertyName, canonicalValue, observedValue) {
   const canonicalNumber = canonicalValue === null || canonicalValue === undefined || canonicalValue === '' ? null : Number(canonicalValue);
   if (canonicalNumber === null || Number.isNaN(canonicalNumber) || Math.abs(canonicalNumber - Number(observedValue)) > 0.0001) {
     candidates.push({
-      type: 'OFFICIAL_PROFILE_DIFFERENCE',
+      type: candidateType,
       severity: 'REVIEW',
       memberId: canonical.memberId,
       memberName: canonical.memberName,
@@ -398,7 +478,7 @@ function hhaMemberMaintenanceCompareProfileNumberV010_(candidates, canonical, pr
       property: propertyName,
       canonicalValue: canonicalValue,
       observedValue: observedValue,
-      sourceUrl: canonical.officialProfileUrl
+      sourceUrl: observed.sourceUrl
     });
   }
 }
@@ -406,16 +486,13 @@ function hhaMemberMaintenanceCompareProfileNumberV010_(candidates, canonical, pr
 function hhaMemberMaintenanceLoadCanonicalMembersV010_() {
   const rows = [];
   let cursor = null;
-
   do {
     const payload = { page_size: 100 };
     if (cursor) payload.start_cursor = cursor;
-
     const result = hhaMemberMaintenanceNotionRequestV010_(`/v1/data_sources/${HHA_MEMBER_MAINTENANCE_V010.HHA_MEMBERS_DATA_SOURCE_ID}/query`, 'post', payload);
     (result.results || []).forEach(page => rows.push(hhaMemberMaintenanceCanonicalMemberFromPageV010_(page)));
     cursor = result.has_more ? result.next_cursor : null;
   } while (cursor);
-
   rows.sort((a, b) => {
     const ao = a.memberOrder === null ? 999999 : a.memberOrder;
     const bo = b.memberOrder === null ? 999999 : b.memberOrder;
@@ -456,26 +533,21 @@ function hhaMemberMaintenanceNotionTitleV010_(property) {
   if (!property || !Array.isArray(property.title)) return '';
   return property.title.map(v => v.plain_text || '').join('').trim();
 }
-
 function hhaMemberMaintenanceNotionTextV010_(property) {
   if (!property || !Array.isArray(property.rich_text)) return '';
   return property.rich_text.map(v => v.plain_text || '').join('').trim();
 }
-
 function hhaMemberMaintenanceNotionSelectV010_(property) {
   return property && property.select && property.select.name ? String(property.select.name).trim() : '';
 }
-
 function hhaMemberMaintenanceNotionNumberV010_(property) {
   if (!property || property.number === null || property.number === undefined) return null;
   return Number(property.number);
 }
-
 function hhaMemberMaintenanceNotionDateV010_(property) {
   if (!property || !property.date || !property.date.start) return '';
   return String(property.date.start).slice(0, 10);
 }
-
 function hhaMemberMaintenanceNotionUrlV010_(property) {
   return property && property.url ? String(property.url).trim() : '';
 }
@@ -529,7 +601,6 @@ function hhaMemberMaintenanceEnsureCheerioV010_() {
     throw new Error('Cheerio library is unavailable in this Apps Script project.');
   }
 }
-
 function hhaMemberMaintenanceCleanTextV010_(value) {
   return String(value === null || value === undefined ? '' : value)
     .replace(/\u00A0/g, ' ')
@@ -537,39 +608,32 @@ function hhaMemberMaintenanceCleanTextV010_(value) {
     .replace(/\s+/g, ' ')
     .trim();
 }
-
 function hhaMemberMaintenanceNormalizeTextV010_(value) {
   return hhaMemberMaintenanceCleanTextV010_(value).normalize('NFKC').replace(/\s+/g, '');
 }
-
 function hhaMemberMaintenanceNormalizeNameV010_(value) {
   return hhaMemberMaintenanceNormalizeTextV010_(value);
 }
-
 function hhaMemberMaintenanceNormalizeRomanizedV010_(value) {
   return hhaMemberMaintenanceCleanTextV010_(value).normalize('NFKC').replace(/\s+/g, ' ').trim().toUpperCase();
 }
-
 function hhaMemberMaintenanceParseJapaneseDateV010_(value) {
   const text = hhaMemberMaintenanceCleanTextV010_(value);
   const match = text.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
   if (!match) return '';
   return [String(match[1]).padStart(4, '0'), String(match[2]).padStart(2, '0'), String(match[3]).padStart(2, '0')].join('-');
 }
-
 function hhaMemberMaintenanceParseHeightV010_(value) {
   const text = hhaMemberMaintenanceCleanTextV010_(value);
   const match = text.match(/(\d+(?:\.\d+)?)\s*cm/i);
   return match ? Number(match[1]) : null;
 }
-
 function hhaMemberMaintenanceAbsoluteUrlV010_(href) {
   const value = hhaMemberMaintenanceCleanTextV010_(href);
   if (!value) return '';
   if (/^https?:\/\//i.test(value)) return value;
   return HHA_MEMBER_MAINTENANCE_V010.BASE_URL + (value.charAt(0) === '/' ? value : '/' + value);
 }
-
 function hhaMemberMaintenanceCanonicalizeUrlV010_(value) {
   return hhaMemberMaintenanceCleanTextV010_(value)
     .replace(/^http:\/\//i, 'https://')
@@ -577,7 +641,6 @@ function hhaMemberMaintenanceCanonicalizeUrlV010_(value) {
     .replace(/[?&]$/, '')
     .replace(/\/$/, '');
 }
-
 function hhaMemberMaintenanceIssueV010_(type, member, message) {
   return {
     type: type,
@@ -588,7 +651,6 @@ function hhaMemberMaintenanceIssueV010_(type, member, message) {
     message: message
   };
 }
-
 function hhaMemberMaintenanceLogV010_(title, payload) {
   console.log('============================================================');
   console.log(title);
