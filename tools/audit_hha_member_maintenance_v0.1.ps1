@@ -4,8 +4,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$sourcePath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.1.gs'
-$supersededPath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.0.gs'
+$sourcePath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.2.gs'
+$supersededPath = Join-Path $RepoRoot 'gas\hha_member_maintenance_v0.1.1.gs'
 $failures = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
 
@@ -14,22 +14,22 @@ function Fail([string]$m) { $script:failures.Add($m); Write-Host ('FAIL  ' + $m)
 function Warn([string]$m) { $script:warnings.Add($m); Write-Host ('WARN  ' + $m) }
 
 Write-Host '============================================================'
-Write-Host 'HHA MEMBER MAINTENANCE v0.1.1 STATIC AUDIT'
+Write-Host 'HHA MEMBER MAINTENANCE v0.1.2 STATIC AUDIT'
 Write-Host 'WRITE = NONE'
 Write-Host '============================================================'
 
 if (-not (Test-Path $sourcePath)) { Fail ('Pilot source missing: ' + $sourcePath) }
-else { Pass 'Pilot v0.1.1 source exists.' }
+else { Pass 'Pilot v0.1.2 source exists.' }
 
-if (Test-Path $supersededPath) { Fail 'Superseded v0.1.0 remains on main working tree.' }
-else { Pass 'Superseded v0.1.0 is absent from working tree.' }
+if (Test-Path $supersededPath) { Fail 'Superseded v0.1.1 remains on main working tree.' }
+else { Pass 'Superseded v0.1.1 is absent from working tree.' }
 
 if ($failures.Count -eq 0) {
   $text = [System.IO.File]::ReadAllText($sourcePath)
 
   # 1. JavaScript syntax check. GAS source is copied to .js so node --check
   # does not depend on the .gs extension.
-  $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) 'hha_member_maintenance_v0.1.1.audit.js'
+  $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) 'hha_member_maintenance_v0.1.2.audit.js'
   try {
     [System.IO.File]::WriteAllText($tempPath, $text, (New-Object System.Text.UTF8Encoding($false)))
     & node --check $tempPath 2>&1 | Out-Null
@@ -52,10 +52,10 @@ if ($failures.Count -eq 0) {
 
   # 3. Required preview entry points.
   $requiredFunctions = @(
-    'previewHhaMemberMaintenanceV011',
-    'previewHhaMemberCanonicalIntegrityV011',
-    'previewHhaMemberRosterMaintenanceV011',
-    'previewHhaMemberProfileMaintenanceV011'
+    'previewHhaMemberMaintenanceV012',
+    'previewHhaMemberCanonicalIntegrityV012',
+    'previewHhaMemberRosterMaintenanceV012',
+    'previewHhaMemberProfileMaintenanceV012'
   )
   foreach ($fn in $requiredFunctions) {
     if ($text -match ('(?m)^\s*function\s+' + [regex]::Escape($fn) + '\s*\(')) { Pass ('Required preview function present: ' + $fn) }
@@ -131,6 +131,18 @@ if ($failures.Count -eq 0) {
 
   if ($text -match 'PROFILE_MAX_PER_RUN:\s*60') { Pass 'Profile run safety cap is present.' }
   else { Warn 'Expected profile run safety cap was not recognized.' }
+
+  if ($text -match '(?m)^\s*function\s+hhaMmNormalizeKanaV012_\s*\(') {
+    Pass 'Kana-aware normalizer is present.'
+  } else {
+    Fail 'Kana-aware normalizer is missing.'
+  }
+
+  if ($text.Contains('canonical.nameKana, observed.nameKana, hhaMmNormalizeKanaV012_);')) {
+    Pass 'Name_Kana comparison uses Kana-aware normalizer.'
+  } else {
+    Fail 'Name_Kana comparison does not use Kana-aware normalizer.'
+  }
 }
 
 Write-Host '============================================================'
