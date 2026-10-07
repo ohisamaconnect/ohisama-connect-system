@@ -1,0 +1,263 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_e3feda70443b0bb4a1a94c2a",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "67706",
+    "source_title": "あの頃に見た夢",
+    "publication": "日向坂46公式ブログ",
+    "author": "大田美月",
+    "speakers": [
+      "大田美月"
+    ],
+    "published_at": "2026-01-27T19:49:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/67706",
+    "archive_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683",
+    "text_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "67706",
+      "author": "大田美月",
+      "published_at": "2026-01-27T19:49:00+09:00",
+      "local_dir": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/67706",
+      "text_hash": "54e2f5b5dff18a788e70df303219d1b4ec0040a305f8d5f8a324347167291f82",
+      "canonical_key": "b7c246833f4d363fa3808df1"
+    },
+    "text_hash": "54e2f5b5dff18a788e70df303219d1b4ec0040a305f8d5f8a324347167291f82",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "PROCESSED"
+  },
+  "source_resolution": {
+    "expected_speaker": "大田 美月",
+    "metadata_author": "大田美月",
+    "folder_member": "大田美月",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": true,
+    "confirmed_speaker": "大田美月",
+    "gate_status": "PASS",
+    "block_reason": null,
+    "decision_reason": "metadata Author, Article_ID, Original_URL and returnable article.txt reference are consistent; Speaker confirmed without search-ranking or body-name inference."
+  },
+  "meaning_units": [
+    {
+      "meaning_unit_id": "mu_e5f76017abfb959faab9899a",
+      "speaker": "大田美月",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "67706",
+        "text_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "ずっと踊ってみたい楽曲だったので今回参加させていただけてとても嬉しかったですっ♬ 個人的に、2Aの「グラウンドに大の字になって」で大の字を作るのが憧れだったので、今回できてまた1つ夢が叶いました!!"
+      },
+      "central_proposition": "ずっと踊ってみたかった「月と星が踊るMidnight」に初参加し、憧れていた振付を実際にできたことで「また1つ夢が叶った」と感じている。",
+      "unit_type": "EXPERIENCE_REFLECTION",
+      "referenced_period": {
+        "start": "2026-01",
+        "end": "2026-01",
+        "label": "LAWSON 50th Anniversary presents Special LIVE"
+      },
+      "candidate_categories": [
+        "PATH",
+        "FEELING",
+        "EXPRESSION",
+        "REFLECTION"
+      ],
+      "candidate_primary_topic": "憧れていた楽曲への参加で具体的な夢が実現した経験",
+      "candidate_secondary_topics": [
+        "月と星が踊るMidnight",
+        "パフォーマンス"
+      ],
+      "candidate_relations": [
+        "SNG-090"
+      ],
+      "candidate_primary_anchor": {
+        "status": "CANONICAL",
+        "object_system": "HHA",
+        "object_type": "SONG",
+        "object_id": "SNG-090",
+        "label": "月と星が踊るMidnight",
+        "evidence": [
+          "HHA SONGS Song_ID 90 / 月と星が踊るMidnight",
+          "article 67706"
+        ]
+      },
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "本人が以前からの具体的な憧れと、その実現を明示的に結びつけている。"
+    },
+    {
+      "meaning_unit_id": "mu_b28b45fa517aad815325d4a3",
+      "speaker": "大田美月",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "67706",
+        "text_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "同期がテレビに映るのってこんなに嬉しいんだって改めて思ったよっ!!"
+      },
+      "central_proposition": "同期が「クリフハンガー」をテレビで初披露する姿を見て、同期がテレビに映ることがこんなに嬉しいのだと改めて感じている。",
+      "unit_type": "RELATIONSHIP_FEELING",
+      "referenced_period": {
+        "start": "2026-01",
+        "end": "2026-01",
+        "label": "CDTVでの『クリフハンガー』テレビ初披露"
+      },
+      "candidate_categories": [
+        "FEELING",
+        "RELATIONSHIP",
+        "GROUP",
+        "REFLECTION"
+      ],
+      "candidate_primary_topic": "同期の活躍を喜ぶ感情",
+      "candidate_secondary_topics": [
+        "五期生"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "MEDIUM",
+      "voice_eligible": true,
+      "decision_reason": "単なる番組告知ではなく、同期の活躍に対する本人の具体的な感情認識が記されている。"
+    }
+  ],
+  "voice_candidates": [
+    {
+      "candidate_key": "vc_31ad1a517c34c98e60b569b7",
+      "meaning_unit_references": [
+        "mu_e5f76017abfb959faab9899a"
+      ],
+      "speaker": "大田美月",
+      "title": "大田美月｜「月と星が踊るMidnight」で憧れの振付を実現",
+      "summary": "大田美月は、ずっと踊ってみたかった「月と星が踊るMidnight」に初めて参加し、憧れていた振付を実際にできたことで「また1つ夢が叶った」と記した。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "67706",
+        "text_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "ずっと踊ってみたい楽曲だったので今回参加させていただけてとても嬉しかったですっ♬ 個人的に、2Aの「グラウンドに大の字になって」で大の字を作るのが憧れだったので、今回できてまた1つ夢が叶いました!!"
+      },
+      "published_at": "2026-01-27T19:49:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": "2026-01",
+        "end": "2026-01",
+        "label": "LAWSON 50th Anniversary presents Special LIVE"
+      },
+      "temporal_perspective": "PAST_DESIRE_TO_REALIZED_EXPERIENCE",
+      "topic_categories": [
+        "PATH",
+        "FEELING",
+        "EXPRESSION",
+        "REFLECTION"
+      ],
+      "primary_topic": "憧れていた楽曲への参加で具体的な夢が実現した経験",
+      "secondary_topics": [
+        "パフォーマンス"
+      ],
+      "primary_anchor": {
+        "status": "CANONICAL",
+        "object_system": "HHA",
+        "object_type": "SONG",
+        "object_id": "SNG-090",
+        "label": "月と星が踊るMidnight",
+        "evidence": [
+          "HHA SONGS Song_ID 90 / 月と星が踊るMidnight",
+          "article 67706"
+        ]
+      },
+      "related_members": [],
+      "related_songs": [
+        "SNG-090"
+      ],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "具体的な対象・以前からの憧れ・実現した経験が明示され、Primary AnchorもHHA SONGへ返せる。"
+    },
+    {
+      "candidate_key": "vc_05477e9be7c7fe348111f934",
+      "meaning_unit_references": [
+        "mu_b28b45fa517aad815325d4a3"
+      ],
+      "speaker": "大田美月",
+      "title": "大田美月｜同期がテレビに映る喜びを改めて知った",
+      "summary": "大田美月は、同期が「クリフハンガー」をテレビで初披露する姿を見て、同期がテレビに映ることがこれほど嬉しいのだと改めて感じたと記した。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "67706",
+        "text_reference": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "同期がテレビに映るのってこんなに嬉しいんだって改めて思ったよっ!!"
+      },
+      "published_at": "2026-01-27T19:49:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": "2026-01",
+        "end": "2026-01",
+        "label": "『クリフハンガー』テレビ初披露"
+      },
+      "temporal_perspective": "CURRENT_REFLECTION",
+      "topic_categories": [
+        "FEELING",
+        "RELATIONSHIP",
+        "GROUP",
+        "REFLECTION"
+      ],
+      "primary_topic": "同期の活躍を喜ぶ感情",
+      "secondary_topics": [
+        "五期生"
+      ],
+      "primary_anchor": null,
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "MEDIUM",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "告知とは分離できる本人の感情認識であり、同期との関係理解に再利用価値がある。"
+    }
+  ],
+  "thread_candidates": [
+    {
+      "thread_key": "thr_a_61365632a387b1da4fd4fd0e",
+      "thread_type": "ANCHOR",
+      "natural_key": "ANCHOR:大田美月:SNG-090",
+      "speaker": "大田美月",
+      "anchor": {
+        "status": "CANONICAL",
+        "object_system": "HHA",
+        "object_type": "SONG",
+        "object_id": "SNG-090",
+        "label": "月と星が踊るMidnight",
+        "evidence": [
+          "HHA SONGS Song_ID 90 / 月と星が踊るMidnight",
+          "article 67706"
+        ]
+      },
+      "normalized_primary_topic": null,
+      "voice_candidate_keys": [
+        "vc_31ad1a517c34c98e60b569b7"
+      ],
+      "formal_thread_ready": false,
+      "decision_reason": "楽曲がVOICEの中心命題でありCanonical HHA SONGへ解決済み。初回なので正式表示Thread化は不要。"
+    }
+  ],
+  "comparison_candidates": [],
+  "warnings": []
+}
