@@ -73,5 +73,7 @@
     "next_voice_id": "VOC-000008"
   },
   "bulk_authorized": false,
-  "next_gate": "Production Semantic Extractor Adapter Preview: define a provider-neutral extraction interface that consumes freshly resolved source text and emits Schema v1.1 JSON; validate only on a small dry-run set with no Notion writes and no bulk archive processing."
+  "next_gate": "Production Semantic Extractor Adapter Preview: define a provider-neutral extraction interface that consumes freshly resolved source text and emits Schema v1.1 JSON; validate only on a small dry-run set with no Notion writes and no bulk archive processing.",
+  "base_revision": "PC-20261008-96",
+  "project_control_target_revision": "PC-20261008-97"
 }
