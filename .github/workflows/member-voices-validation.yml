@@ -22,3 +22,5 @@ jobs:
           python-version: "3.12"
       - name: Validate implementation and Preview
         run: python member_voices/tests/validate_member_voices_impl.py
+      - name: Validate incremental runner
+        run: python member_voices/tests/validate_incremental_runner.py
