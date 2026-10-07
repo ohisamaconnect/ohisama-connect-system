@@ -54,6 +54,11 @@ def normalize_text(value: Optional[str]) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+def normalize_person_name(value: Optional[str]) -> str:
+    """Normalize a person label for identity comparison without changing display text."""
+    return re.sub(r"\\s+", "", normalize_text(value))
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(
         value,
@@ -261,10 +266,10 @@ def resolve_post(
     # The folder name is a cross-check, not a substitute for Author.
     # Relay/legacy structures may have a non-member folder label; such cases fail closed
     # when an expected speaker cannot be confirmed from trusted metadata.
-    if folder_member and expected and normalize_text(folder_member) != expected:
+    if folder_member and expected and normalize_person_name(folder_member) != normalize_person_name(expected):
         # Do not block solely on folder layout when trusted metadata author matches expected.
         # Preserve the discrepancy for auditing.
-        folder_conflict = normalize_text(author) != expected
+        folder_conflict = normalize_person_name(author) != normalize_person_name(expected)
     else:
         folder_conflict = False
 
@@ -284,7 +289,7 @@ def resolve_post(
         )
         return artifact(build_source(metadata, native_locator, text_path), resolution)
 
-    if expected and normalize_text(author) != expected:
+    if expected and normalize_person_name(author) != normalize_person_name(expected):
         resolution = block(
             reason="SPEAKER_MISMATCH",
             expected_speaker=expected,
