@@ -1,0 +1,24 @@
+name: MEMBER VOICES validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "member_voices/**"
+      - ".github/workflows/member-voices-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate implementation and Preview
+        run: python member_voices/tests/validate_member_voices_impl.py
