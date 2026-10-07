@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_d690c965f30468fd4e761af4",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "35133",
+    "source_title": "誰にも染められない自分だけのキャンバス",
+    "publication": "日向坂46公式ブログ",
+    "author": "小坂菜緒",
+    "speakers": [
+      "小坂菜緒"
+    ],
+    "published_at": "2020-08-11T23:36:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133",
+    "archive_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f",
+    "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "35133",
+      "author": "小坂菜緒",
+      "published_at": "2020-08-11T23:36:00+09:00",
+      "local_dir": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133",
+      "text_hash": "5da9dc2895168cbedc69312b0f4b5db147425247212acf6d947efae24b4222d1",
+      "canonical_key": "bacc653fdadd8470ca76c24b"
+    },
+    "text_hash": "5da9dc2895168cbedc69312b0f4b5db147425247212acf6d947efae24b4222d1",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "PROCESSED"
+  },
+  "source_resolution": {
+    "expected_speaker": "小坂 菜緒",
+    "metadata_author": "小坂菜緒",
+    "folder_member": "小坂菜緒",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": true,
+    "confirmed_speaker": "小坂菜緒",
+    "gate_status": "PASS",
+    "block_reason": null,
+    "decision_reason": "metadata Author, Article_ID, Original_URL and returnable article.txt reference are consistent; Speaker confirmed without search-ranking or body-name inference."
+  },
+  "meaning_units": [
+    {
+      "meaning_unit_id": "mu_7954a85aa8f3646de6ccc129",
+      "speaker": "小坂菜緒",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "35133",
+        "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "先頭に立つのは何よりも怖かったです。"
+      },
+      "central_proposition": "デビューから4作連続でセンターを務めた期間、先頭に立つ怖さや期待への不安を抱え、自分自身にプレッシャーをかけていた。",
+      "unit_type": "RETROSPECTIVE_ROLE_REFLECTION",
+      "referenced_period": {
+        "start": "2019-03",
+        "end": "2020-02",
+        "label": "1st『キュン』〜4th『ソンナコトナイヨ』のセンター期間"
+      },
+      "candidate_categories": [
+        "PATH",
+        "SELF",
+        "FEELING",
+        "REFLECTION"
+      ],
+      "candidate_primary_topic": "4作連続センター期の重圧と自己評価",
+      "candidate_secondary_topics": [
+        "先頭に立つ怖さ",
+        "自己プレッシャー"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "センターという役割を本人が具体的な感情・自己評価とともに長期視点で振り返っている。"
+    },
+    {
+      "meaning_unit_id": "mu_b400175453dec6cbff964f41",
+      "speaker": "小坂菜緒",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "35133",
+        "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "自分では外せなかった、大きな鎖が一気に外れたような気がしました。"
+      },
+      "central_proposition": "センターを離れた現在は、悔しさや悲しみだけでなく安心感や解放感もあり、ファンやメンバーの言葉で気持ちが軽くなったと捉えている。",
+      "unit_type": "CURRENT_ROLE_REFLECTION",
+      "referenced_period": {
+        "start": "2020-08",
+        "end": "2020-08",
+        "label": "『アザトカワイイ』フォーメーション発表時"
+      },
+      "candidate_categories": [
+        "SELF",
+        "FEELING",
+        "RELATIONSHIP",
+        "REFLECTION"
+      ],
+      "candidate_primary_topic": "センターを離れた時点での自己認識",
+      "candidate_secondary_topics": [
+        "安心感",
+        "解放感",
+        "支えへの認識"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "役割変更に対する本人の具体的な現在認識であり、過去のセンター期との比較価値が高い。"
+    },
+    {
+      "meaning_unit_id": "mu_c38b83ab1d9b9dc0545f1855",
+      "speaker": "小坂菜緒",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "35133",
+        "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "ここが小坂の第1章の終幕だとするならば　新たなる物語、第2章の幕開けだ"
+      },
+      "central_proposition": "センター期を第1章の終幕と捉え、また挑戦の機会が来たら以前より逞しい姿を見せたいと第2章への期待を記している。",
+      "unit_type": "FUTURE_ORIENTATION",
+      "referenced_period": null,
+      "candidate_categories": [
+        "PATH",
+        "SELF",
+        "FUTURE",
+        "REFLECTION"
+      ],
+      "candidate_primary_topic": "役割変更後の次章と再挑戦",
+      "candidate_secondary_topics": [
+        "成長",
+        "再挑戦"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "現在の役割変更を将来の再挑戦へ明示的につなげた本人の長期的な自己位置づけである。"
+    }
+  ],
+  "voice_candidates": [
+    {
+      "candidate_key": "vc_63d9ceb49e6950cbde1d5107",
+      "meaning_unit_references": [
+        "mu_7954a85aa8f3646de6ccc129"
+      ],
+      "speaker": "小坂菜緒",
+      "title": "小坂菜緒｜4作連続センターで抱えていた怖さと重圧",
+      "summary": "小坂菜緒は、デビューから4作連続でセンターを務めた時期について、先頭に立つことへの怖さや期待への不安を抱え、自分自身にプレッシャーをかけていたと振り返った。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "35133",
+        "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "先頭に立つのは何よりも怖かったです。"
+      },
+      "published_at": "2020-08-11T23:36:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": "2019-03",
+        "end": "2020-02",
+        "label": "1st〜4thシングルのセンター期間"
+      },
+      "temporal_perspective": "RETROSPECTIVE",
+      "topic_categories": [
+        "PATH",
+        "SELF",
+        "FEELING",
+        "REFLECTION"
+      ],
+      "primary_topic": "センターという役割に対する自己認識",
+      "secondary_topics": [
+        "重圧",
+        "先頭に立つ怖さ"
+      ],
+      "primary_anchor": null,
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "センター期の自己認識が一つの明確な過去視点として独立している。"
+    },
+    {
+      "candidate_key": "vc_9720c2b05f9eb95e3e75248d",
+      "meaning_unit_references": [
+        "mu_b400175453dec6cbff964f41",
+        "mu_c38b83ab1d9b9dc0545f1855"
+      ],
+      "speaker": "小坂菜緒",
+      "title": "小坂菜緒｜センターを離れて感じた解放と次の挑戦",
+      "summary": "小坂菜緒は、センターを離れた時点で安心感や解放感も感じていると記し、その変化を「第1章の終幕」「第2章の幕開け」と位置づけ、将来また挑戦する機会が来たら以前より逞しい姿を見せたいと述べた。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "35133",
+        "text_reference": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "自分では外せなかった、大きな鎖が一気に外れたような気がしました。"
+      },
+      "published_at": "2020-08-11T23:36:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": "2020-08",
+        "end": null,
+        "label": "センターを離れた現在から将来への見通し"
+      },
+      "temporal_perspective": "CURRENT_TO_FUTURE",
+      "topic_categories": [
+        "PATH",
+        "SELF",
+        "FEELING",
+        "REFLECTION",
+        "FUTURE"
+      ],
+      "primary_topic": "センターという役割に対する自己認識",
+      "secondary_topics": [
+        "解放感",
+        "次章",
+        "再挑戦"
+      ],
+      "primary_anchor": null,
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "現在の解放感と次章への期待は同一の役割変更を中心とした一つの経験フローとして統合する。"
+    }
+  ],
+  "thread_candidates": [
+    {
+      "thread_key": "thr_t_7a0bd0cc8a9b2fb0717cd6d1",
+      "thread_type": "THEME",
+      "natural_key": "THEME:小坂菜緒:センターという役割に対する自己認識",
+      "speaker": "小坂菜緒",
+      "anchor": null,
+      "normalized_primary_topic": "センターという役割に対する自己認識",
+      "voice_candidate_keys": [
+        "vc_63d9ceb49e6950cbde1d5107",
+        "vc_9720c2b05f9eb95e3e75248d"
+      ],
+      "formal_thread_ready": true,
+      "decision_reason": "抽象的な『成長』ではなく、センターという具体的役割に対する自己認識が2 VOICE間で共通している。"
+    }
+  ],
+  "comparison_candidates": [
+    {
+      "comparison_candidate_key": "cmp_e879371e145f2318962f4260",
+      "thread_key": "thr_t_7a0bd0cc8a9b2fb0717cd6d1",
+      "prior_candidate_key": "vc_63d9ceb49e6950cbde1d5107",
+      "current_candidate_key": "vc_9720c2b05f9eb95e3e75248d",
+      "relation_to_prior": "EXPLICIT_CHANGE",
+      "difference_summary": "センター期には先頭に立つ怖さと自己プレッシャーを語っていたのに対し、役割変更後は大きな鎖が外れた感覚や『むしろプラス』『第2章』という位置づけを明示し、次の挑戦への期待へ移っている。",
+      "explicit_change_claimed": true,
+      "comparison_confidence": "HIGH",
+      "evidence": [
+        "先頭に立つのは何よりも怖かったです。",
+        "自分では外せなかった、大きな鎖が一気に外れたような気がしました。",
+        "だから、私は、皆さんがご想像されているよりも、マイナスではありません。むしろプラスです",
+        "新たなる物語、第2章の幕開けだ"
+      ]
+    }
+  ],
+  "warnings": []
+}
