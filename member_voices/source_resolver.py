@@ -56,7 +56,7 @@ def normalize_text(value: Optional[str]) -> str:
 
 def normalize_person_name(value: Optional[str]) -> str:
     """Normalize a person label for identity comparison without changing display text."""
-    return re.sub(r"\\s+", "", normalize_text(value))
+    return re.sub(r"\s+", "", normalize_text(value))
 
 
 def canonical_json(value: Any) -> str:
