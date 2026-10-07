@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_65931b2b7ac4f0d4c219ab62",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "71234",
+    "source_title": "きどあいらくいえーい",
+    "publication": "日向坂46公式ブログ",
+    "author": "ポカ",
+    "speakers": [
+      "ポカ"
+    ],
+    "published_at": "2026-10-04T08:57:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/71234",
+    "archive_reference": "BLOG/ポカ/2026/2026-10-04_71234_1af8e605",
+    "text_reference": "BLOG/ポカ/2026/2026-10-04_71234_1af8e605/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "71234",
+      "author": "ポカ",
+      "published_at": "2026-10-04T08:57:00+09:00",
+      "local_dir": "BLOG/ポカ/2026/2026-10-04_71234_1af8e605",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/71234",
+      "text_hash": "0ed6c64fa4e878d46e334f568a754cad714ad1981856380eba1b13e2a724c1e1",
+      "canonical_key": "1af8e605fec68ffdf5ee3810"
+    },
+    "text_hash": "0ed6c64fa4e878d46e334f568a754cad714ad1981856380eba1b13e2a724c1e1",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "BLOCKED"
+  },
+  "source_resolution": {
+    "expected_speaker": "小坂 菜緒",
+    "metadata_author": "ポカ",
+    "folder_member": "ポカ",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": false,
+    "confirmed_speaker": null,
+    "gate_status": "BLOCK",
+    "block_reason": "SPEAKER_MISMATCH",
+    "decision_reason": "Expected Speaker '小坂 菜緒' does not match metadata Author 'ポカ'. Extraction is blocked before Meaning Unit generation."
+  },
+  "meaning_units": [],
+  "voice_candidates": [],
+  "thread_candidates": [],
+  "comparison_candidates": [],
+  "warnings": [
+    "Negative Safety Gate case: member-name search context must not override metadata Author."
+  ]
+}
