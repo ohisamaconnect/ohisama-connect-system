@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_0706a34632a7d05a2b4d562f",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "26676",
+    "source_title": "自分とは無縁だと勝手に思っていた",
+    "publication": "日向坂46公式ブログ",
+    "author": "松田好花",
+    "speakers": [
+      "松田好花"
+    ],
+    "published_at": "2018-11-08T06:53:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/26676",
+    "archive_reference": "BLOG/松田好花/2018/2018-11-08_26676_0ce09743",
+    "text_reference": "BLOG/松田好花/2018/2018-11-08_26676_0ce09743/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "26676",
+      "author": "松田好花",
+      "published_at": "2018-11-08T06:53:00+09:00",
+      "local_dir": "BLOG/松田好花/2018/2018-11-08_26676_0ce09743",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/26676",
+      "text_hash": "169cf19ce0d8302a7b3253d5d17646ed5cf539f2c57b9e19735c187469c1e222",
+      "canonical_key": "0ce097438fcc220300690cd4"
+    },
+    "text_hash": "169cf19ce0d8302a7b3253d5d17646ed5cf539f2c57b9e19735c187469c1e222",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "PROCESSED"
+  },
+  "source_resolution": {
+    "expected_speaker": "松田 好花",
+    "metadata_author": "松田好花",
+    "folder_member": "松田好花",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": true,
+    "confirmed_speaker": "松田好花",
+    "gate_status": "PASS",
+    "block_reason": null,
+    "decision_reason": "metadata Author, Article_ID, Original_URL and returnable article.txt reference are consistent; Speaker confirmed without search-ranking or body-name inference."
+  },
+  "meaning_units": [
+    {
+      "meaning_unit_id": "mu_0e2ec1e315e79032f5c276dc",
+      "speaker": "松田好花",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "26676",
+        "text_reference": "BLOG/松田好花/2018/2018-11-08_26676_0ce09743/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "これを書いてから2回フリーズしたのでもう明日は絶対データをパソコンに移すと心に決めました。"
+      },
+      "central_proposition": "スマホの容量問題で作成中のメールデータが消え、翌日に写真データをPCへ移すと決めた。",
+      "unit_type": "DAILY_LIFE",
+      "referenced_period": null,
+      "candidate_categories": [
+        "SELF"
+      ],
+      "candidate_primary_topic": "端末データ整理",
+      "candidate_secondary_topics": [],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "LOW",
+      "voice_eligible": false,
+      "decision_reason": "一時的な端末トラブルへの行動決定であり、メンバーを長期的に理解する知識単位としての持続性が不足する。"
+    }
+  ],
+  "voice_candidates": [],
+  "thread_candidates": [],
+  "comparison_candidates": [],
+  "warnings": []
+}
