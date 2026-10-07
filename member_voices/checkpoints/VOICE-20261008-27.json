@@ -1,0 +1,77 @@
+{
+  "delta_id": "VOICE-20261008-27",
+  "date_jst": "2026-10-08",
+  "workstream": "MEMBER VOICES",
+  "status": "MIXED_INCREMENTAL_E2E_PASS",
+  "implementation": {
+    "incremental_runner": {
+      "path": "member_voices/incremental_runner.py",
+      "commit": "b9e9671b6159e500204ee76048b8b8f109e287c7"
+    },
+    "runner_validation": {
+      "path": "member_voices/tests/validate_incremental_runner.py",
+      "commit": "fc828cdb28565368635a7ab556fddaf318476fa5"
+    },
+    "workflow": {
+      "path": ".github/workflows/member-voices-validation.yml",
+      "commit": "20d2b0eb173af00fafbde6ccccb376e44e39e8c8",
+      "actions_run_observed": false
+    },
+    "extraction_boundary": {
+      "semantic_extractor_production_implemented": false,
+      "adapter": "approved-extraction-artifact-adapter-v0.1",
+      "adapter_scope": "PILOT_ONLY",
+      "note": "Fresh Source Resolver identity is matched against an already-reviewed Schema v1.1 extraction artifact. This does not claim an autonomous production semantic extractor."
+    }
+  },
+  "source_cases": [
+    {
+      "source_native_id": "26676",
+      "expected_speaker": "松田 好花",
+      "resolver": "PASS",
+      "branch": "ZERO_VOICE",
+      "meaning_units": 1,
+      "accepted_voices": 0,
+      "voice_id_allocated": false
+    },
+    {
+      "source_native_id": "71234",
+      "expected_speaker": "小坂 菜緒",
+      "metadata_author": "ポカ",
+      "resolver": "BLOCK",
+      "block_reason": "SPEAKER_MISMATCH",
+      "semantic_extraction_started": false,
+      "voice_id_allocated": false
+    },
+    {
+      "source_native_id": "65922",
+      "expected_speaker": "大田 美月",
+      "resolver": "PASS",
+      "branch": "ACCEPT",
+      "accepted_candidates_in_approved_artifact": 2,
+      "existing_candidate_skipped": {
+        "candidate_key": "vc_af2cf9567cbc761098ac1a04",
+        "voice_id": "VOC-000004"
+      },
+      "new_promotion": {
+        "candidate_key": "vc_c970e1ca4077a95171be2630",
+        "voice_id": "VOC-000007",
+        "notion_page_url": "https://app.notion.com/p/3f2031bc0d4581eeaca8ff80eb0491ef",
+        "readback_verified": true
+      }
+    }
+  ],
+  "sqlite": {
+    "canonical_drive_path": "/OC-OS/MEMBER_VOICES/member_voices_production.sqlite",
+    "canonical_drive_file_id": "1vwcDZ4UbJ6TuyzV5wllUnp0NAMvjRjot",
+    "canonical_drive_url": "https://drive.google.com/file/d/1vwcDZ4UbJ6TuyzV5wllUnp0NAMvjRjot/view?usp=drivesdk",
+    "sha256": "b3674236a63ce760c50b29610e01f627d11d847317914f5d95c7ab6cc08305de",
+    "integrity_check": "ok",
+    "committed": 7,
+    "reserved": 0,
+    "max_sequence_no": 7,
+    "next_voice_id": "VOC-000008"
+  },
+  "bulk_authorized": false,
+  "next_gate": "Production Semantic Extractor Adapter Preview: define a provider-neutral extraction interface that consumes freshly resolved source text and emits Schema v1.1 JSON; validate only on a small dry-run set with no Notion writes and no bulk archive processing."
+}
