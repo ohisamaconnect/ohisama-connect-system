@@ -1,0 +1,242 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_3b8e9eeb15954711a552d9c7",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "65922",
+    "source_title": "夢は見るものじゃない 叶えるものだよ #みーちゃんのぶろぐ",
+    "publication": "日向坂46公式ブログ",
+    "author": "大田美月",
+    "speakers": [
+      "大田美月"
+    ],
+    "published_at": "2025-10-01T09:51:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922",
+    "archive_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce",
+    "text_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "65922",
+      "author": "大田美月",
+      "published_at": "2025-10-01T09:51:00+09:00",
+      "local_dir": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922",
+      "text_hash": "03f00076235557186449c82024db4987ad07dff9468534f726a37f099c66d7a4",
+      "canonical_key": "dbf335ceacc9174e4a500a08"
+    },
+    "text_hash": "03f00076235557186449c82024db4987ad07dff9468534f726a37f099c66d7a4",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "PROCESSED"
+  },
+  "source_resolution": {
+    "expected_speaker": "大田 美月",
+    "metadata_author": "大田美月",
+    "folder_member": "大田美月",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": true,
+    "confirmed_speaker": "大田美月",
+    "gate_status": "PASS",
+    "block_reason": null,
+    "decision_reason": "metadata Author, Article_ID, Original_URL and returnable article.txt reference are consistent; Speaker confirmed without search-ranking or body-name inference."
+  },
+  "meaning_units": [
+    {
+      "meaning_unit_id": "mu_b1372465b049615acbe389b6",
+      "speaker": "大田美月",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "65922",
+        "text_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "これは他人と自分を比べるのではなくそれぞれの個性や才能を大切に磨いて自分らしく生きようという意味の言葉で、よく比較してしまっていた私にとってとても大切な言葉です"
+      },
+      "central_proposition": "他人と自分を比べるのではなく、それぞれの個性や才能を磨いて自分らしく生きるという「桜梅桃李」を大切な座右の銘としている。",
+      "unit_type": "SELF_VALUE",
+      "referenced_period": null,
+      "candidate_categories": [
+        "SELF",
+        "REFLECTION",
+        "BACKGROUND"
+      ],
+      "candidate_primary_topic": "他人との比較から離れて自分らしさを磨く価値観",
+      "candidate_secondary_topics": [
+        "桜梅桃李"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "本人が過去の比較傾向と結びつけて明示した継続的な価値観である。"
+    },
+    {
+      "meaning_unit_id": "mu_ebb006cb6be4d38a47446ed6",
+      "speaker": "大田美月",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "65922",
+        "text_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "ただダンス上手いねで終わりたくない気持ちが強くて、「ダンスを上手く踊れて当たり前、そこからもっともっとみなさんをダンスで魅了できる表現力を出せる人」になりたいです!"
+      },
+      "central_proposition": "新参者では「ダンスが上手い」で終わらず、表現力で観客を魅了し、五期生のダンスリーダーであり続けられるよう磨きたいと目標を示している。",
+      "unit_type": "EXPRESSION_GOAL",
+      "referenced_period": {
+        "start": "2025-11",
+        "end": "2025-11",
+        "label": "新参者"
+      },
+      "candidate_categories": [
+        "EXPRESSION",
+        "FUTURE",
+        "GROUP",
+        "SELF"
+      ],
+      "candidate_primary_topic": "パフォーマンスで表現力を高めて観客を魅了すること",
+      "candidate_secondary_topics": [
+        "ダンス",
+        "五期生のダンスリーダー"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": {
+        "status": "PROVISIONAL",
+        "object_system": null,
+        "object_type": "LIVE_OR_EVENT",
+        "object_id": null,
+        "label": "新参者（2025年・五期生公演）",
+        "evidence": [
+          "11月8日(土)から「東急歌舞伎タワー」にて10公演",
+          "新参者での私の個人的な一番の目標"
+        ]
+      },
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "具体的な公演を契機に、技術から表現力へ進みたいという本人の明示的な長期目標がある。"
+    }
+  ],
+  "voice_candidates": [
+    {
+      "candidate_key": "vc_c970e1ca4077a95171be2630",
+      "meaning_unit_references": [
+        "mu_b1372465b049615acbe389b6"
+      ],
+      "speaker": "大田美月",
+      "title": "大田美月｜他人と比べず自分らしさを磨く「桜梅桃李」",
+      "summary": "大田美月は、他人と自分を比べず、それぞれの個性や才能を磨いて自分らしく生きるという「桜梅桃李」を、よく比較していた自分にとって大切な座右の銘だと記した。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "65922",
+        "text_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "これは他人と自分を比べるのではなくそれぞれの個性や才能を大切に磨いて自分らしく生きようという意味の言葉で、よく比較してしまっていた私にとってとても大切な言葉です"
+      },
+      "published_at": "2025-10-01T09:51:00+09:00",
+      "spoken_at": null,
+      "referenced_period": null,
+      "temporal_perspective": "CURRENT_SELF_DEFINITION",
+      "topic_categories": [
+        "SELF",
+        "REFLECTION",
+        "BACKGROUND"
+      ],
+      "primary_topic": "他人との比較から離れて自分らしさを磨く価値観",
+      "secondary_topics": [
+        "桜梅桃李"
+      ],
+      "primary_anchor": null,
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "本人が自身の過去の傾向と結びつけて明示した継続的な自己理解である。"
+    },
+    {
+      "candidate_key": "vc_af2cf9567cbc761098ac1a04",
+      "meaning_unit_references": [
+        "mu_ebb006cb6be4d38a47446ed6"
+      ],
+      "speaker": "大田美月",
+      "title": "大田美月｜「ダンスが上手い」で終わらず表現力で魅了したい",
+      "summary": "大田美月は、新参者に向けて、ダンスが上手いだけで終わらず、表現力で観客を魅了できる人になり、五期生のダンスリーダーとして自分のパフォーマンスを磨きたいと目標を記した。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "65922",
+        "text_reference": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "ただダンス上手いねで終わりたくない気持ちが強くて、「ダンスを上手く踊れて当たり前、そこからもっともっとみなさんをダンスで魅了できる表現力を出せる人」になりたいです!"
+      },
+      "published_at": "2025-10-01T09:51:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": "2025-11",
+        "end": "2025-11",
+        "label": "新参者"
+      },
+      "temporal_perspective": "FUTURE_GOAL",
+      "topic_categories": [
+        "EXPRESSION",
+        "FUTURE",
+        "GROUP",
+        "SELF"
+      ],
+      "primary_topic": "パフォーマンスで表現力を高めて観客を魅了すること",
+      "secondary_topics": [
+        "ダンス",
+        "五期生のダンスリーダー"
+      ],
+      "primary_anchor": {
+        "status": "PROVISIONAL",
+        "object_system": null,
+        "object_type": "LIVE_OR_EVENT",
+        "object_id": null,
+        "label": "新参者（2025年・五期生公演）",
+        "evidence": [
+          "新参者での私の個人的な一番の目標",
+          "ダンスで魅了できる表現力を出せる人"
+        ]
+      },
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "具体的な公演文脈で本人が明示した表現上の目標であり、告知情報そのものではなく本人の意図を抽出している。"
+    }
+  ],
+  "thread_candidates": [
+    {
+      "thread_key": "thr_t_9f0cf809d0eb74e67d9b6daa",
+      "thread_type": "THEME",
+      "natural_key": "THEME:大田美月:パフォーマンスで表現力を高めて観客を魅了すること",
+      "speaker": "大田美月",
+      "anchor": null,
+      "normalized_primary_topic": "パフォーマンスで表現力を高めて観客を魅了すること",
+      "voice_candidate_keys": [
+        "vc_af2cf9567cbc761098ac1a04"
+      ],
+      "formal_thread_ready": false,
+      "decision_reason": "『努力』『成長』ではなく表現力で観客を魅了するという具体テーマ。初回候補なので表示上の正式Thread化はまだ不要。"
+    }
+  ],
+  "comparison_candidates": [],
+  "warnings": [
+    "Primary Anchor is kept PROVISIONAL because this Preview did not invent or assume a permanent HHA Live/Event ID."
+  ]
+}
