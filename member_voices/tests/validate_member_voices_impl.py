@@ -27,6 +27,7 @@ MV_ROOT = HERE.parent
 SQL_PATH = MV_ROOT / "sql" / "member_voices_schema_v1_1.sql"
 SCHEMA_PATH = MV_ROOT / "schemas" / "member_voices_extraction_v1_1.schema.json"
 RESOLVER_PATH = MV_ROOT / "source_resolver.py"
+ALLOCATOR_PATH = MV_ROOT / "voice_id_allocator.py"
 PREVIEW_DIR = MV_ROOT / "preview" / "2026-10-08"
 
 EXPECTED_PREVIEW_FILES = {
@@ -59,6 +60,16 @@ def load_resolver():
     return module
 
 
+def load_allocator():
+    spec = importlib.util.spec_from_file_location("member_voices_voice_id_allocator", ALLOCATOR_PATH)
+    if spec is None or spec.loader is None:
+        raise AssertionError("Could not create import spec for voice_id_allocator.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def validate_sqlite_schema() -> dict:
     sql = SQL_PATH.read_text(encoding="utf-8")
     conn = sqlite3.connect(":memory:")
@@ -79,6 +90,7 @@ def validate_sqlite_schema() -> dict:
             "voice_candidates",
             "voice_candidate_meaning_units",
             "voices",
+            "voice_id_allocations",
             "voice_meaning_units",
             "provisional_anchors",
             "thread_candidates",
@@ -95,6 +107,95 @@ def validate_sqlite_schema() -> dict:
         ).fetchone()
         assert row == ("1.1", "1.0"), f"schema_meta mismatch: {row}"
         return {"tables": len(required), "schema_meta": list(row)}
+    finally:
+        conn.close()
+
+
+def validate_voice_id_allocator(allocator) -> dict:
+    sql = SQL_PATH.read_text(encoding="utf-8")
+    conn = sqlite3.connect(":memory:")
+    try:
+        conn.executescript(sql)
+        conn.execute(
+            """
+            INSERT INTO processing_runs
+                (run_id, run_type, extractor_version, source_resolver_version, started_at, run_status)
+            VALUES ('allocator-test', 'IMPORT', 'test', 'test', CURRENT_TIMESTAMP, 'RUNNING')
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO source_references
+                (source_ref_key, source_system, source_type, authors_json, speakers_json,
+                 locator_type, native_locator_json)
+            VALUES
+                ('src_allocator_test', 'TEST', 'TEST', '[]', '[]', 'TEST', '{}')
+            """
+        )
+        for key in ("vc_alloc_1", "vc_alloc_2", "vc_alloc_3"):
+            conn.execute(
+                """
+                INSERT INTO voice_candidates
+                    (candidate_key, run_id, source_ref_key, speaker,
+                     candidate_decision, decision_reason)
+                VALUES (?, 'allocator-test', 'src_allocator_test', 'test',
+                        'ACCEPT', 'allocator test')
+                """,
+                (key,),
+            )
+        conn.commit()
+
+        first = allocator.reserve_voice_id(conn, "vc_alloc_1")
+        retry = allocator.reserve_voice_id(conn, "vc_alloc_1")
+        second = allocator.reserve_voice_id(conn, "vc_alloc_2")
+        assert first == "VOC-000001"
+        assert retry == first
+        assert second == "VOC-000002"
+
+        conn.execute(
+            """
+            INSERT INTO voices
+                (voice_key, voice_id, source_ref_key, originating_candidate_key,
+                 title, speaker, summary, source_locator_json, attribution)
+            VALUES
+                ('voice_alloc_1', ?, 'src_allocator_test', 'vc_alloc_1',
+                 'test', 'test', 'test', '{}', 'SELF_STATEMENT')
+            """,
+            (first,),
+        )
+        conn.commit()
+        committed = allocator.commit_voice_id(conn, "vc_alloc_1", "voice_alloc_1")
+        assert committed == first
+        row = conn.execute(
+            """
+            SELECT allocation_status, voice_key
+            FROM voice_id_allocations
+            WHERE candidate_key='vc_alloc_1'
+            """
+        ).fetchone()
+        assert row == ("COMMITTED", "voice_alloc_1")
+
+        abandoned = allocator.abandon_voice_id(conn, "vc_alloc_2")
+        assert abandoned == second
+        third = allocator.reserve_voice_id(conn, "vc_alloc_3")
+        assert third == "VOC-000003"
+
+        allocated = conn.execute(
+            "SELECT voice_id, candidate_key, allocation_status FROM voice_id_allocations ORDER BY sequence_no"
+        ).fetchall()
+        assert allocated == [
+            ("VOC-000001", "vc_alloc_1", "COMMITTED"),
+            ("VOC-000002", "vc_alloc_2", "ABANDONED"),
+            ("VOC-000003", "vc_alloc_3", "RESERVED"),
+        ]
+
+        return {
+            "format": "PASS",
+            "same_candidate_retry": "PASS",
+            "commit_after_readback_boundary": "PASS",
+            "abandoned_id_not_reused": "PASS",
+            "next_after_gap": third,
+        }
     finally:
         conn.close()
 
@@ -337,9 +438,11 @@ def validate_previews(resolver) -> dict:
 
 def main() -> int:
     resolver = load_resolver()
+    allocator = load_allocator()
 
     report = {
         "sqlite_schema": validate_sqlite_schema(),
+        "voice_id_allocator": validate_voice_id_allocator(allocator),
         "source_resolver": validate_source_resolver(resolver),
         "extraction_schema": validate_schema_document(),
         "preview": validate_previews(resolver),
