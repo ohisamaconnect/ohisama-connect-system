@@ -263,32 +263,8 @@ def resolve_post(
         )
         return artifact(build_source(metadata, native_locator, text_path), resolution)
 
-    # The folder name is a cross-check, not a substitute for Author.
-    # Relay/legacy structures may have a non-member folder label; such cases fail closed
-    # when an expected speaker cannot be confirmed from trusted metadata.
-    if folder_member and expected and normalize_person_name(folder_member) != normalize_person_name(expected):
-        # Do not block solely on folder layout when trusted metadata author matches expected.
-        # Preserve the discrepancy for auditing.
-        folder_conflict = normalize_person_name(author) != normalize_person_name(expected)
-    else:
-        folder_conflict = False
-
-    if folder_conflict:
-        resolution = block(
-            reason="LOCATOR_AUTHOR_CONFLICT",
-            expected_speaker=expected,
-            metadata_author=author,
-            folder_member=folder_member,
-            native_id_checked=True,
-            locator_checked=True,
-            author_checked=True,
-            decision_reason=(
-                "Folder member and metadata Author both fail to confirm the expected Speaker. "
-                "Do not infer Speaker from the article body."
-            ),
-        )
-        return artifact(build_source(metadata, native_locator, text_path), resolution)
-
+    # Metadata Author is the primary attribution check for this source type.
+    # If a requested/expected Speaker disagrees, stop before any semantic extraction.
     if expected and normalize_person_name(author) != normalize_person_name(expected):
         resolution = block(
             reason="SPEAKER_MISMATCH",
@@ -301,6 +277,24 @@ def resolve_post(
             decision_reason=(
                 f"Expected Speaker '{expected}' does not match metadata Author '{author}'. "
                 "Extraction is blocked before Meaning Unit generation."
+            ),
+        )
+        return artifact(build_source(metadata, native_locator, text_path), resolution)
+
+    # The BLOG/<member>/... folder is a cross-check, never a substitute for Author.
+    # A disagreement between trusted metadata and the archive locator fails closed.
+    if folder_member and normalize_person_name(folder_member) != normalize_person_name(author):
+        resolution = block(
+            reason="LOCATOR_AUTHOR_CONFLICT",
+            expected_speaker=expected,
+            metadata_author=author,
+            folder_member=folder_member,
+            native_id_checked=True,
+            locator_checked=True,
+            author_checked=True,
+            decision_reason=(
+                "Archive member folder and metadata Author disagree. "
+                "Do not infer Speaker from search results or article body text."
             ),
         )
         return artifact(build_source(metadata, native_locator, text_path), resolution)
