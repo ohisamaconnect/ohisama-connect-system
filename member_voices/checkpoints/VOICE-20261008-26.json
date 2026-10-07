@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "date": "2026-10-08 JST",
+  "production_sqlite": {
+    "drive_url": "https://drive.google.com/file/d/1vwcDZ4UbJ6TuyzV5wllUnp0NAMvjRjot/view?usp=drivesdk",
+    "sha256": "52c0af1aebe9371a5df69abf49faafc0af3528d26c1d1ab5b01fdfda4b0ac567",
+    "size_bytes": 208896,
+    "integrity_check": "ok",
+    "max_sequence_no": 6,
+    "committed": 6,
+    "reserved": 0
+  },
+  "reservation_snapshot": {
+    "drive_url": "https://drive.google.com/file/d/1HDv_vZBv9Hza5WVji43ysjFBx7ViNMHl/view?usp=drivesdk",
+    "purpose": "Durable pre-write snapshot with VOC-000006 RESERVED"
+  },
+  "incremental_e2e": {
+    "voice_id": "VOC-000006",
+    "candidate_key": "vc_05477e9be7c7fe348111f934",
+    "notion_url": "https://app.notion.com/p/3f2031bc0d4581d0baa2fa520c07c89e",
+    "title": "大田美月｜同期がテレビに映る喜びを改めて知った",
+    "source_native_id": "67706",
+    "status": "AUTO INDEXED",
+    "readback": "PASS"
+  },
+  "next_voice_id": "VOC-000007",
+  "bulk_authorized": false,
+  "notes": [
+    "Notion Query Data Source was unavailable because the workspace usage limit was reached; verification used Search + individual fetch.",
+    "Existing VOC-000001 through VOC-000005 were individually fetched before bootstrap replay.",
+    "promotion_writer.py implements reserve -> external write -> read-back verify -> COMMITTED."
+  ]
+}
