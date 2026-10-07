@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.1",
+  "contract_version": "1.0",
+  "extractor_version": "member-voices-extractor-preview-v1.1",
+  "run_id": "preview-20261008-01",
+  "source": {
+    "source_ref_key": "src_e30372c378c9726ec1e1e278",
+    "source_system": "PERSONAL_BLOG_ARCHIVE",
+    "source_type": "OFFICIAL_MEMBER_BLOG",
+    "source_native_id": "25481",
+    "source_title": "昔はこんな自分だったんだと思うと懐かしくなるなぁ、振り返ってみて感じることって想像以上に多い、今しか感じられないこと",
+    "publication": "日向坂46公式ブログ",
+    "author": "小坂菜緒",
+    "speakers": [
+      "小坂菜緒"
+    ],
+    "published_at": "2018-06-23T22:14:00+09:00",
+    "spoken_at": null,
+    "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481",
+    "archive_reference": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c",
+    "text_reference": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c/article.txt",
+    "locator_type": "PERSONAL_BLOG_ARCHIVE_NATIVE",
+    "native_locator": {
+      "article_id": "25481",
+      "author": "小坂菜緒",
+      "published_at": "2018-06-23T22:14:00+09:00",
+      "local_dir": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481",
+      "text_hash": "3d9e43f56950741f4e8e5fb6f570f591b444ea788111d6e607494366fe7d2a9f",
+      "canonical_key": "5869488c75c4efcc625a7a6b"
+    },
+    "text_hash": "3d9e43f56950741f4e8e5fb6f570f591b444ea788111d6e607494366fe7d2a9f",
+    "attribution_type": "METADATA_AUTHOR",
+    "processing_status": "PROCESSED"
+  },
+  "source_resolution": {
+    "expected_speaker": "小坂 菜緒",
+    "metadata_author": "小坂菜緒",
+    "folder_member": "小坂菜緒",
+    "native_id_checked": true,
+    "locator_checked": true,
+    "author_checked": true,
+    "speaker_confirmed": true,
+    "confirmed_speaker": "小坂菜緒",
+    "gate_status": "PASS",
+    "block_reason": null,
+    "decision_reason": "metadata Author, Article_ID, Original_URL and returnable article.txt reference are consistent; Speaker confirmed without search-ranking or body-name inference."
+  },
+  "meaning_units": [
+    {
+      "meaning_unit_id": "mu_7094759693a3a0ec8b24defb",
+      "speaker": "小坂菜緒",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "25481",
+        "text_reference": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "進路に迷ってた　自分の性格が嫌いだった　何よりもひらがなけやきになりたかった"
+      },
+      "central_proposition": "オーディション当時、進路や自分の性格に迷いながらも、何よりひらがなけやきになりたいと思って夢を追っていた。",
+      "unit_type": "RETROSPECTIVE_BACKGROUND",
+      "referenced_period": {
+        "start": null,
+        "end": null,
+        "label": "けやき坂46オーディション当時"
+      },
+      "candidate_categories": [
+        "PATH",
+        "SELF",
+        "REFLECTION",
+        "BACKGROUND"
+      ],
+      "candidate_primary_topic": "ひらがなけやきオーディションを受けた当時の動機",
+      "candidate_secondary_topics": [
+        "進路への迷い",
+        "自己認識"
+      ],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "加入前の動機と当時の自己認識を本人が具体的に振り返っており、長期的な人物理解に寄与する。"
+    },
+    {
+      "meaning_unit_id": "mu_b387d29167b6163f2dc08e4a",
+      "speaker": "小坂菜緒",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "25481",
+        "text_reference": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "このCMを見て　迷ってる人や気になってる人の後押しになれればいいなと思います。"
+      },
+      "central_proposition": "自身のオーディションCMが、迷っている人や気になっている人の後押しになり、一緒に頑張れたらと考えている。",
+      "unit_type": "INTENTION",
+      "referenced_period": null,
+      "candidate_categories": [
+        "PATH",
+        "FUTURE",
+        "GROUP"
+      ],
+      "candidate_primary_topic": "オーディションを迷う人への後押し",
+      "candidate_secondary_topics": [],
+      "candidate_relations": [],
+      "candidate_primary_anchor": null,
+      "knowledge_value": "HIGH",
+      "voice_eligible": true,
+      "decision_reason": "自身の経験を次の応募者への具体的な意図へつなげており、同じ経験フローとして保持する価値がある。"
+    }
+  ],
+  "voice_candidates": [
+    {
+      "candidate_key": "vc_e891802aeb10c6728e59edb0",
+      "meaning_unit_references": [
+        "mu_7094759693a3a0ec8b24defb",
+        "mu_b387d29167b6163f2dc08e4a"
+      ],
+      "speaker": "小坂菜緒",
+      "title": "小坂菜緒｜オーディション当時の自分と次に受ける人への思い",
+      "summary": "小坂菜緒は、自身のオーディション時を進路や性格への迷いの中で「ひらがなけやきになりたい」と夢を追った時期として振り返り、自分のCMが迷っている人の後押しになればと記した。",
+      "source_locator": {
+        "locator_type": "PERSONAL_BLOG_ARCHIVE_TEXT",
+        "article_id": "25481",
+        "text_reference": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c/article.txt",
+        "start_marker": null,
+        "end_marker": null,
+        "excerpt": "進路に迷ってた　自分の性格が嫌いだった　何よりもひらがなけやきになりたかった"
+      },
+      "published_at": "2018-06-23T22:14:00+09:00",
+      "spoken_at": null,
+      "referenced_period": {
+        "start": null,
+        "end": null,
+        "label": "けやき坂46オーディション当時から2018年6月の振り返りまで"
+      },
+      "temporal_perspective": "PAST_TO_PRESENT_REFLECTION",
+      "topic_categories": [
+        "PATH",
+        "SELF",
+        "REFLECTION",
+        "FUTURE",
+        "BACKGROUND"
+      ],
+      "primary_topic": "オーディション当時の動機と次の応募者への後押し",
+      "secondary_topics": [
+        "進路への迷い",
+        "ひらがなけやきへの志望"
+      ],
+      "primary_anchor": null,
+      "related_members": [],
+      "related_songs": [],
+      "related_lives": [],
+      "related_events": [],
+      "related_releases": [],
+      "knowledge_value": "HIGH",
+      "attribution": "SELF_STATEMENT",
+      "candidate_decision": "ACCEPT",
+      "decision_reason": "2つのMeaning Unitは同じオーディション経験を中心とした一つの経験フローであり、過分割せず1 VOICE候補に統合する。"
+    }
+  ],
+  "thread_candidates": [],
+  "comparison_candidates": [],
+  "warnings": []
+}
