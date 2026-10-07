@@ -212,6 +212,30 @@ ON voices(speaker);
 CREATE INDEX IF NOT EXISTS ix_voice_source
 ON voices(source_ref_key);
 
+CREATE TABLE IF NOT EXISTS voice_id_allocations (
+    sequence_no INTEGER PRIMARY KEY CHECK (sequence_no BETWEEN 1 AND 999999),
+    voice_id TEXT NOT NULL UNIQUE,
+    candidate_key TEXT NOT NULL UNIQUE REFERENCES voice_candidates(candidate_key) ON DELETE RESTRICT,
+    voice_key TEXT UNIQUE REFERENCES voices(voice_key) ON DELETE SET NULL,
+    allocation_status TEXT NOT NULL DEFAULT 'RESERVED' CHECK (
+        allocation_status IN ('RESERVED', 'COMMITTED', 'ABANDONED')
+    ),
+    reserved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    committed_at TEXT,
+    abandoned_at TEXT,
+    CHECK (voice_id = printf('VOC-%06d', sequence_no)),
+    CHECK (
+        (allocation_status = 'COMMITTED' AND committed_at IS NOT NULL AND abandoned_at IS NULL)
+        OR
+        (allocation_status = 'ABANDONED' AND abandoned_at IS NOT NULL AND committed_at IS NULL)
+        OR
+        (allocation_status = 'RESERVED' AND committed_at IS NULL AND abandoned_at IS NULL)
+    )
+);
+
+CREATE INDEX IF NOT EXISTS ix_voice_id_allocation_status
+ON voice_id_allocations(allocation_status);
+
 CREATE TABLE IF NOT EXISTS voice_meaning_units (
     voice_key TEXT NOT NULL REFERENCES voices(voice_key) ON DELETE CASCADE,
     meaning_unit_id TEXT NOT NULL REFERENCES meaning_units(meaning_unit_id) ON DELETE RESTRICT,
