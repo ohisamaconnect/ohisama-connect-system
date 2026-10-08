@@ -1,0 +1,121 @@
+{
+  "eval_contract_version": "0.1",
+  "basis": "Approved Official Member Blog 60-article Pilot: Calibration 10 / Main 30 / Temporal 20",
+  "execution_status": "NOT_RUN_IN_THIS_PREVIEW",
+  "safety_gates": {
+    "provider_or_artifact_schema_pass_rate": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "source_returnability_pass_rate": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "wrong_speaker_attribution_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "invented_canonical_hha_id_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "false_explicit_change_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "zero_voice_false_positive_accept_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "unsupported_critical_summary_claim_count_human_audit": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "vague_theme_auto_thread_count": {
+      "operator": "==",
+      "threshold": 0
+    }
+  },
+  "quality_gates": {
+    "accepted_voice_recall": {
+      "operator": ">=",
+      "threshold": 0.95
+    },
+    "accepted_voice_precision": {
+      "operator": ">=",
+      "threshold": 0.95
+    },
+    "exact_article_voice_count_rate": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "within_one_article_voice_count_rate": {
+      "operator": ">=",
+      "threshold": 0.98
+    },
+    "topic_category_macro_f1": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "temporal_perspective_agreement": {
+      "operator": ">=",
+      "threshold": 0.95
+    },
+    "primary_anchor_precision": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "primary_anchor_recall": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "theme_thread_specificity_precision": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "thread_membership_recall": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "comparison_relation_accuracy": {
+      "operator": ">=",
+      "threshold": 0.95
+    },
+    "review_rate": {
+      "operator": "<=",
+      "threshold": 0.15
+    }
+  },
+  "stability_gate": {
+    "subset": "Calibration 10",
+    "repeated_runs": 3,
+    "article_voice_count_all_runs_equal_rate": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "zero_voice_case_stability": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "primary_anchor_and_explicit_change_stability": {
+      "operator": ">=",
+      "threshold": 0.95
+    }
+  },
+  "challenger_policy": {
+    "sentinel_cases": 20,
+    "challenger": "gpt-5.4-mini-2026-03-17",
+    "primary": "gemini-3.8-flash",
+    "auto_adjudication": false,
+    "disagreement_fields": [
+      "zero_vs_nonzero_voice",
+      "voice_count_difference_gt_1",
+      "candidate_decision",
+      "primary_anchor",
+      "temporal_perspective",
+      "explicit_change"
+    ],
+    "action": "LOG_AND_HUMAN_REVIEW"
+  },
+  "production_pass_rule": "ALL safety gates pass AND ALL quality gates pass AND stability gate passes. Challenger disagreement does not override approved gold or human judgment."
+}
