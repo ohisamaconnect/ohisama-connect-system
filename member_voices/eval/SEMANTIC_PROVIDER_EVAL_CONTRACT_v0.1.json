@@ -53,10 +53,6 @@
       "operator": ">=",
       "threshold": 0.98
     },
-    "topic_category_macro_f1": {
-      "operator": ">=",
-      "threshold": 0.9
-    },
     "temporal_perspective_agreement": {
       "operator": ">=",
       "threshold": 0.95
@@ -84,6 +80,10 @@
     "review_rate": {
       "operator": "<=",
       "threshold": 0.15
+    },
+    "topic_category_f1": {
+      "operator": ">=",
+      "threshold": 0.9
     }
   },
   "stability_gate": {
