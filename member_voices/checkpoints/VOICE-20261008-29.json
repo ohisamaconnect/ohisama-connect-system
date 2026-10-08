@@ -1,0 +1,93 @@
+{
+  "checkpoint_version": "1.0",
+  "delta_id": "VOICE-20261008-29",
+  "workstream": "MEMBER VOICES",
+  "date": "2026-10-08",
+  "result": "SEMANTIC PROVIDER PROMPT EVAL CONTRACT PREVIEW IMPLEMENTED",
+  "base_revision_observed": "PC-20261008-104",
+  "incorporates_pending_delta": "VOICE-20261008-28",
+  "last_approved_point": "Production Semantic Provider + Prompt + Evaluation Contract Preview",
+  "contract_version": "Semantic Provider / Prompt / Eval Preview v0.1",
+  "source_basis": [
+    "MEMBER VOICES Schema v1.1 & Extraction / Thread Contract v1.0",
+    "Extraction JSON Contract v1.0",
+    "Semantic Extractor Interface Preview v0.1",
+    "official Google Gemini model / structured output / pricing documentation checked 2026-10-08",
+    "official OpenAI model / structured output / pricing documentation checked 2026-10-08",
+    "approved 60-article Pilot as evaluation gold basis"
+  ],
+  "provider_decision": {
+    "primary": {
+      "provider": "google-gemini",
+      "model_id": "gemini-3.8-flash",
+      "thinking_level": "medium",
+      "role": "PRODUCTION_CANDIDATE"
+    },
+    "challenger": {
+      "provider": "openai",
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "reasoning_effort": "medium",
+      "role": "EVALUATION_ONLY"
+    },
+    "automatic_cross_provider_fallback": false
+  },
+  "implementation": {
+    "provider_payload_schema": "member_voices/schemas/member_voices_provider_payload_v0_1.schema.json",
+    "prompt": "member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.1.md",
+    "materializer": "member_voices/semantic_provider_contract.py",
+    "provider_adapters": "member_voices/semantic_providers.py",
+    "runtime_config": "member_voices/config/semantic_provider_preview_v0_1.json",
+    "eval_contract": "member_voices/eval/SEMANTIC_PROVIDER_EVAL_CONTRACT_v0.1.json",
+    "evaluator": "member_voices/eval/provider_eval.py",
+    "design_doc": "member_voices/docs/MEMBER_VOICES_SEMANTIC_PROVIDER_PROMPT_EVAL_PREVIEW_v0.1.md",
+    "report": "member_voices/preview/2026-10-08/SEMANTIC_PROVIDER_PROMPT_EVAL_PREVIEW_REPORT.md"
+  },
+  "invariants": {
+    "provider_generates_machine_keys": false,
+    "provider_generates_source_identity": false,
+    "provider_generates_speaker_identity": false,
+    "provider_may_invent_hha_ids": false,
+    "exact_evidence_substring_required": true,
+    "thread_formalization_adapter_owned": true,
+    "local_full_schema_authoritative": true
+  },
+  "evaluation": {
+    "gold_articles": 60,
+    "calibration": 10,
+    "main": 30,
+    "temporal": 20,
+    "actual_provider_evaluation_run": false,
+    "stability_runs_completed": false,
+    "challenger_runs_completed": false,
+    "production_provider_pass_claimed": false
+  },
+  "production_sqlite": {
+    "drive_file_id": "1vwcDZ4UbJ6TuyzV5wllUnp0NAMvjRjot",
+    "integrity_check": "ok",
+    "committed": 7,
+    "reserved": 0,
+    "max_sequence_no": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008",
+    "sha256": "b3674236a63ce760c50b29610e01f627d11d847317914f5d95c7ab6cc08305de",
+    "mutated": false
+  },
+  "validation_evidence": {
+    "repository_files_created": true,
+    "workflow_updated": true,
+    "local_test_execution_observed": false,
+    "github_actions_run_observed": false,
+    "note": "Container external DNS prevented repository clone; do not claim runtime PASS."
+  },
+  "authorization": {
+    "notion_voice_write": false,
+    "permanent_id_allocation": false,
+    "bulk_archive_processing": false
+  },
+  "project_control": {
+    "latest_observed_revision": "PC-20261008-104",
+    "prior_pending_delta": "VOICE-20261008-28",
+    "update_status": "PENDING_WRITE_AFTER_CHECKPOINT"
+  },
+  "restart_point": "Production Provider Evaluation Pilot — Calibration 10 first; no Notion write / Voice_ID allocation"
+}
