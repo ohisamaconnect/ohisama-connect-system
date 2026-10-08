@@ -5,6 +5,9 @@ on:
   push:
     paths:
       - "member_voices/**"
+      - "apps-script/member_voices/MEMBER_VOICES_Provider_Eval_Current.gs"
+      - "apps-script/runtime/MEMBER_VOICES_Provider_Eval_Current.gs"
+      - "tools/audit_apps_script_runtime.ps1"
       - ".github/workflows/member-voices-validation.yml"
 
 permissions:
