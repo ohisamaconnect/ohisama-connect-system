@@ -85,9 +85,13 @@
     "bulk_archive_processing": false
   },
   "project_control": {
-    "latest_observed_revision": "PC-20261008-104",
-    "prior_pending_delta": "VOICE-20261008-28",
-    "update_status": "PENDING_WRITE_AFTER_CHECKPOINT"
+    "latest_observed_revision_before_write": "PC-20261008-104",
+    "applied_revision": "PC-20261008-105",
+    "delta_id": "VOICE-20261008-29",
+    "incorporates_pending_delta": "VOICE-20261008-28",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "voice_row_status": "PROVIDER / PROMPT / EVAL CONTRACT PREVIEW IMPLEMENTED / P3",
+    "restart_point": "Production Provider Evaluation Pilot — Calibration 10 first"
   },
   "restart_point": "Production Provider Evaluation Pilot — Calibration 10 first; no Notion write / Voice_ID allocation"
 }
