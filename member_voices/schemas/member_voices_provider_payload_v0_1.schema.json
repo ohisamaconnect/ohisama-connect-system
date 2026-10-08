@@ -211,7 +211,6 @@
         "anchor",
         "normalized_primary_topic",
         "voice_candidate_refs",
-        "formal_thread_ready",
         "decision_reason"
       ],
       "properties": {
@@ -231,7 +230,6 @@
             "pattern": "^V[1-9][0-9]*$"
           }
         },
-        "formal_thread_ready": { "type": "boolean" },
         "decision_reason": { "type": "string", "minLength": 1 }
       }
     },
