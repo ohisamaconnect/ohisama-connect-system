@@ -33,3 +33,6 @@ jobs:
         run: python member_voices/tests/validate_semantic_provider_contract.py
       - name: Validate semantic provider evaluator
         run: python member_voices/tests/validate_semantic_provider_eval.py
+
+      - name: Validate Apps Script provider eval runner contract
+        run: python member_voices/tests/validate_gas_eval_runner_contract.py
