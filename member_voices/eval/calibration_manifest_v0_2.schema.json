@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ohisamaconnect.com/member-voices/eval/calibration_manifest_v0_2.schema.json",
+  "title": "MEMBER VOICES Calibration Recovered Gold Manifest v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "pilot_phase",
+    "status",
+    "approved_delta",
+    "source_root",
+    "gold_bundle",
+    "cases",
+    "recovery_notes"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "0.2"
+    },
+    "pilot_phase": {
+      "const": "CALIBRATION_10"
+    },
+    "status": {
+      "enum": [
+        "PENDING_RECOVERY",
+        "READY"
+      ]
+    },
+    "approved_delta": {
+      "const": "VOICE-20261007-18"
+    },
+    "source_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gold_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gold_type",
+        "recovery_version",
+        "commit_sha",
+        "raw_url",
+        "sha256",
+        "full_artifact_v1_1_recovered",
+        "evaluation_scope"
+      ],
+      "properties": {
+        "gold_type": {
+          "const": "RECOVERED_APPROVED_CORE"
+        },
+        "recovery_version": {
+          "const": "0.1"
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "raw_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "full_artifact_v1_1_recovered": {
+          "const": false
+        },
+        "evaluation_scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CASE_IDENTITY",
+              "SOURCE_SPEAKER_RETURNABILITY",
+              "ACCEPTED_VOICE_COUNT",
+              "ZERO_VOICE_SAFETY",
+              "BOUNDARY_CASE_HANDLING",
+              "SEMANTIC_CORE_HUMAN_AUDIT",
+              "VOICE_COUNT_STABILITY"
+            ]
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_no",
+          "article_id",
+          "expected_speaker",
+          "local_dir",
+          "original_url",
+          "published_at",
+          "spoken_at",
+          "relation_context",
+          "comparison_context",
+          "article_text_drive_file_id",
+          "metadata_drive_file_id",
+          "article_sha256",
+          "gold_case_key",
+          "expected_accepted_voice_count",
+          "boundary_review_expected",
+          "gold_status"
+        ],
+        "properties": {
+          "case_no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "article_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_speaker": {
+            "type": "string",
+            "minLength": 1
+          },
+          "local_dir": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original_url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spoken_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relation_context": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "comparison_context": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "article_text_drive_file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata_drive_file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "article_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "gold_case_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_accepted_voice_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "boundary_review_expected": {
+            "type": "boolean"
+          },
+          "gold_status": {
+            "const": "RECOVERED_APPROVED_CORE"
+          }
+        }
+      }
+    },
+    "recovery_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "READY"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cases": {
+            "minItems": 10,
+            "maxItems": 10
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PENDING_RECOVERY"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cases": {
+            "maxItems": 9
+          }
+        }
+      }
+    }
+  ]
+}
