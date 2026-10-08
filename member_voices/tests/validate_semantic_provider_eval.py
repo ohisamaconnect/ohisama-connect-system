@@ -33,7 +33,7 @@ def main() -> int:
     assert metrics["accepted_voice_precision"] == 1.0
     assert metrics["exact_article_voice_count_rate"] == 1.0
     assert metrics["within_one_article_voice_count_rate"] == 1.0
-    assert metrics["topic_category_macro_f1"] == 1.0
+    assert metrics["topic_category_f1"] == 1.0
     assert metrics["temporal_perspective_agreement"] == 1.0
     assert metrics["theme_thread_specificity_precision"] == 1.0
     assert metrics["thread_membership_recall"] == 1.0
