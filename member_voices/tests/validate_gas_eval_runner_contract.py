@@ -6,9 +6,12 @@ import json
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER = ROOT / "apps-script" / "member_voices" / "MEMBER_VOICES_Provider_Eval_Current.gs"
+RUNTIME_RUNNER = ROOT / "apps-script" / "runtime" / "MEMBER_VOICES_Provider_Eval_Current.gs"
 READY = ROOT / "member_voices" / "eval" / "CALIBRATION_10_MANIFEST.ready.json"
 
 text = RUNNER.read_text(encoding="utf-8")
+runtime_text = RUNTIME_RUNNER.read_text(encoding="utf-8")
+assert runtime_text == text, "clasp runtime mirror differs from MEMBER VOICES evaluator source"
 ready = json.loads(READY.read_text(encoding="utf-8"))
 
 required = [
@@ -64,4 +67,5 @@ print(json.dumps({
     "notion_write_surface_present": False,
     "production_sqlite_surface_present": False,
     "permanent_voice_id_target_present": False,
+    "clasp_runtime_mirror_matches_source": True,
 }, ensure_ascii=False, indent=2))
