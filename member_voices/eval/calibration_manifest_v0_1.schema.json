@@ -44,6 +44,10 @@
           "expected_speaker",
           "local_dir",
           "original_url",
+          "published_at",
+          "spoken_at",
+          "relation_context",
+          "comparison_context",
           "article_text_drive_file_id",
           "metadata_drive_file_id",
           "article_sha256",
@@ -95,6 +99,33 @@
           },
           "gold_status": {
             "const": "APPROVED"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spoken_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relation_context": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "comparison_context": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         }
       }
