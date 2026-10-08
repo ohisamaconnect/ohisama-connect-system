@@ -36,3 +36,6 @@ jobs:
 
       - name: Validate Apps Script provider eval runner contract
         run: python member_voices/tests/validate_gas_eval_runner_contract.py
+
+      - name: Validate recovered Calibration assets
+        run: python member_voices/tests/validate_calibration_recovery_assets.py
