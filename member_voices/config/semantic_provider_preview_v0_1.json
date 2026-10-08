@@ -1,0 +1,67 @@
+{
+  "contract_version": "0.1",
+  "status": "PREVIEW_ONLY",
+  "primary": {
+    "provider": "google-gemini",
+    "model_id": "gemini-3.8-flash",
+    "thinking_level": "medium",
+    "structured_output": true,
+    "tools_enabled": false,
+    "grounding_enabled": false,
+    "sampling_parameters": "OMIT",
+    "role": "PRODUCTION_CANDIDATE"
+  },
+  "challenger": {
+    "provider": "openai",
+    "model_id": "gpt-5.4-mini-2026-03-17",
+    "reasoning_effort": "medium",
+    "structured_output_strict": true,
+    "role": "EVALUATION_ONLY",
+    "automatic_fallback": false
+  },
+  "retry_policy": {
+    "transport_timeout_429_5xx": {
+      "max_retries": 2,
+      "backoff_seconds": [
+        2,
+        8
+      ],
+      "same_prompt_and_config": true
+    },
+    "provider_format_error": {
+      "max_retries": 1,
+      "same_prompt_and_config": true
+    },
+    "local_semantic_invariant_failure": {
+      "max_retries": 0,
+      "route": "REVIEW"
+    },
+    "refusal_or_safety_block": {
+      "max_retries": 0,
+      "route": "REVIEW"
+    },
+    "cross_provider_fallback": {
+      "enabled": false
+    }
+  },
+  "versioning": {
+    "extractor_version_binds": [
+      "prompt_version",
+      "prompt_sha256",
+      "provider_payload_schema_version",
+      "provider_payload_schema_sha256",
+      "provider_name",
+      "model_id",
+      "thinking_level_or_reasoning_effort"
+    ],
+    "model_or_prompt_change_requires_new_extractor_version": true
+  },
+  "production_guards": {
+    "allocate_voice_id": false,
+    "notion_write": false,
+    "bulk_archive_processing": false,
+    "provider_may_generate_machine_keys": false,
+    "provider_may_generate_source_identity": false,
+    "provider_may_invent_hha_ids": false
+  }
+}
