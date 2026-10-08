@@ -266,7 +266,7 @@ def aggregate(pair_metrics: list[Mapping[str, Any]]) -> dict[str, float | int]:
         "accepted_voice_precision": matched / max(1, pred_accept),
         "exact_article_voice_count_rate": sum(x["exact_voice_count"] for x in pair_metrics) / n,
         "within_one_article_voice_count_rate": sum(x["within_one_voice_count"] for x in pair_metrics) / n,
-        "topic_category_macro_f1": cat_f1,
+        "topic_category_f1": cat_f1,
         "temporal_perspective_agreement": (
             sum(x["temporal_ok"] for x in pair_metrics) / max(1, temporal_total)
         ),
