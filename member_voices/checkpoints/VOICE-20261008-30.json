@@ -1,0 +1,60 @@
+{
+  "checkpoint_version": "1.0",
+  "delta_id": "VOICE-20261008-30",
+  "workstream": "MEMBER VOICES",
+  "date": "2026-10-08",
+  "result": "PROVIDER EVAL INFRASTRUCTURE READY / CALIBRATION GOLD RECOVERY REQUIRED",
+  "base_revision_observed": "PC-20261008-105",
+  "last_approved_point": "Production Provider Evaluation Pilot",
+  "execution": {
+    "gemini_api_calls": 0,
+    "calibration_runs_completed": 0,
+    "stability_runs_completed": 0,
+    "challenger_runs_completed": 0,
+    "production_provider_pass_claimed": false
+  },
+  "runtime_path": {
+    "platform": "Google Apps Script",
+    "existing_secret_property": "GEMINI_API_KEY",
+    "secret_value_read": false,
+    "secret_copied_to_repo": false,
+    "runner": "apps-script/member_voices/MEMBER_VOICES_Provider_Eval_Current.gs",
+    "model": "gemini-3.8-flash",
+    "thinking_level": "medium",
+    "api": "Gemini Interactions API v1beta",
+    "store": false,
+    "unit_of_execution": "one article per invocation"
+  },
+  "calibration_preservation": {
+    "approved_delta": "VOICE-20261007-18",
+    "exact_original_case_list_recovered": false,
+    "newly_select_replacement_cases": false,
+    "blocker": "Exact 10 Article_ID + approved per-case gold artifacts are not present in the currently accessible durable sources.",
+    "manifest_schema": "member_voices/eval/calibration_manifest_v0_1.schema.json",
+    "pending_manifest": "member_voices/eval/CALIBRATION_10_MANIFEST.pending.json",
+    "gap_report": "member_voices/eval/CALIBRATION_GOLD_RECOVERY_GAP_2026-10-08.md"
+  },
+  "searched_sources": [
+    "Project Control calibration/main/temporal history",
+    "Implementation Handover / Restart v1.0",
+    "Schema v1.1 & Extraction / Thread Contract v1.0",
+    "GitHub repository searches",
+    "Project and Library file search",
+    "Google Drive keyword search",
+    "personal prior-context retrieval"
+  ],
+  "safety": {
+    "runner_requires_ready_exact_10_manifest": true,
+    "notion_write": false,
+    "permanent_voice_id_allocation": false,
+    "production_sqlite_mutation": false,
+    "bulk_archive_processing": false,
+    "automatic_cross_provider_fallback": false
+  },
+  "voice_state": {
+    "accepted_permanent_voices": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008"
+  },
+  "restart_point": "Calibration Gold Recovery Gate — recover original approved 10-case gold corpus, do not reselect"
+}
