@@ -1,0 +1,64 @@
+{
+  "contract_version": "0.1",
+  "name": "MEMBER VOICES Calibration Recovered Gold Gate",
+  "purpose": "Pre-gate for recovered original Calibration 10 only; not Production approval.",
+  "gold_type": "RECOVERED_APPROVED_CORE",
+  "full_artifact_v1_1_gold": false,
+  "automatic_gates": {
+    "case_coverage_count": {
+      "operator": "==",
+      "threshold": 10
+    },
+    "duplicate_record_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "unexpected_record_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "runtime_invariants_pass_rate": {
+      "operator": "==",
+      "threshold": 1
+    },
+    "zero_voice_false_positive_accept_count": {
+      "operator": "==",
+      "threshold": 0
+    },
+    "exact_article_voice_count_rate": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "within_one_article_voice_count_rate": {
+      "operator": ">=",
+      "threshold": 0.98
+    }
+  },
+  "human_gates": {
+    "semantic_core_alignment": "10/10 reviewed against recovered approved wording",
+    "boundary_case_handling": "Article_ID 50967 reviewed explicitly",
+    "unsupported_critical_summary_claim_count": {
+      "operator": "==",
+      "threshold": 0
+    }
+  },
+  "stability_gate": {
+    "repeated_runs": 3,
+    "article_voice_count_all_runs_equal_rate": {
+      "operator": ">=",
+      "threshold": 0.9
+    },
+    "zero_voice_case_stability": {
+      "operator": "==",
+      "threshold": 1
+    }
+  },
+  "excluded_from_scoring": [
+    "topic_category_f1",
+    "primary_anchor_precision",
+    "primary_anchor_recall",
+    "thread_membership_recall",
+    "comparison_relation_accuracy"
+  ],
+  "production_contract_unchanged": "member_voices/eval/SEMANTIC_PROVIDER_EVAL_CONTRACT_v0.1.json"
+}
