@@ -1,0 +1,691 @@
+{
+  "recovered_gold_version": "0.1",
+  "pilot_phase": "CALIBRATION_10",
+  "approved_delta": "VOICE-20261007-18",
+  "approval_checkpoint": "PC-20261007-66",
+  "recovery_date": "2026-10-08",
+  "recovery_status": "RECOVERED_PARTIAL_STRUCTURED_GOLD",
+  "semantic_basis": "Only semantic judgments explicitly recoverable from the approved Calibration conversation are preserved. Missing Artifact v1.1 fields are not reconstructed by new interpretation.",
+  "source_basis": "Personal Blog Archive metadata/article.txt read back on 2026-10-08; source locator excerpts were reselected only to point back to supporting text and are not claimed as original Calibration annotations.",
+  "full_artifact_v1_1_recovered": false,
+  "allowed_evaluation_uses": [
+    "exact Calibration case identity",
+    "speaker/source returnability",
+    "accepted voice count",
+    "zero-VOICE safety",
+    "borderline-case handling for Article_ID 50967",
+    "semantic-core human audit against recovered Calibration wording",
+    "stability of article-level voice count"
+  ],
+  "not_valid_as_gold_for": [
+    "full topic-category F1 across all 10 cases",
+    "full Primary Anchor precision/recall",
+    "full Thread membership recall",
+    "full Comparison relation accuracy",
+    "fields not explicitly recovered from the original Calibration output"
+  ],
+  "cases": [
+    {
+      "case_no": 1,
+      "article_id": "25481",
+      "author": "小坂菜緒",
+      "title": "昔はこんな自分だったんだと思うと懐かしくなるなぁ、振り返ってみて感じることって想像以上に多い、今しか感じられないこと",
+      "published_at": "2018-06-23T22:14:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481",
+      "local_dir": "BLOG/小坂菜緒/2018/2018-06-23_25481_5869488c",
+      "archive_folder_drive_id": "103OqPe4r4d6ugtCABCH0Ja4LLP0Mv7Kn",
+      "metadata_drive_file_id": "17-SxZXnhsKtg2BJnd97hK0qMa1WSjlYU",
+      "article_text_drive_file_id": "19EYrs9dFz5ADgRfdOhq8BlYB_unAWOmI",
+      "article_text_sha256": "3d9e43f56950741f4e8e5fb6f570f591b444ea788111d6e607494366fe7d2a9f",
+      "canonical_key": "5869488c75c4efcc625a7a6b",
+      "expected_voice_count": 2,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "坂道合同オーディションCMを担当する重み",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "自身のオーディション時、進路に迷い、自分の性格を嫌い、『何かから逃げたかった』",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "C",
+          "calibration_wording": "ひらがなけやきになりたかった思いと応募者への願い",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": "小坂菜緒｜オーディション当時に抱えていた迷いと『ひらがなけやきになりたい』思い",
+          "calibration_wording": "本人は進路に迷い、自分の性格が嫌いで『目に見えない何かから逃げたかった』と振り返る一方、ひらがなけやきになりたかったと記す。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B",
+            "C"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": "小坂菜緒｜坂道合同オーディションCMに感じた責任と応募者への願い",
+          "calibration_wording": "応募を迷う人の後押しになり得る重み、けやき坂46が好きな応募者と出会い一緒に頑張りたい思い。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A",
+            "C"
+          ]
+        }
+      ],
+      "structured_field_fragments": [
+        {
+          "scope": "candidate_identity_not_recovered",
+          "referenced_period": "自身のオーディション応募時",
+          "temporal_perspective": "RETROSPECTIVE",
+          "primary_topic": "オーディション",
+          "secondary_topics": [
+            "自己認識",
+            "進路"
+          ],
+          "topic_categories": [
+            "PATH",
+            "SELF",
+            "REFLECTION"
+          ]
+        }
+      ],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "このCMを見て少しでも多くの女の子にこのオーディションを受ける後押しになれるんじゃないかなと思うと、とても重みを感じました。"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "私は目に見えない何かから逃げたかったんだと思います。進路に迷ってた 自分の性格が嫌いだった"
+        },
+        {
+          "supports": [
+            "C"
+          ],
+          "excerpt": "何よりもひらがなけやきになりたかった"
+        }
+      ]
+    },
+    {
+      "case_no": 2,
+      "article_id": "26676",
+      "author": "松田好花",
+      "title": "自分とは無縁だと勝手に思っていた",
+      "published_at": "2018-11-08T06:53:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/26676",
+      "local_dir": "BLOG/松田好花/2018/2018-11-08_26676_0ce09743",
+      "archive_folder_drive_id": "1_w6_2L5_pcCwKCaZtnQ5WrQX8a70ykIO",
+      "metadata_drive_file_id": "1G_KU5yf2SJwUKv4cR2805niYBKc4N38p",
+      "article_text_drive_file_id": "1pqCk-AFSVYiBenXde4d2KyTm0X7jC58E",
+      "article_text_sha256": "169cf19ce0d8302a7b3253d5d17646ed5cf539f2c57b9e19735c187469c1e222",
+      "canonical_key": "0ce097438fcc220300690cd4",
+      "expected_voice_count": 0,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "スマホ故障",
+          "final_status": "NOT_VOICE"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "握手会の花",
+          "final_status": "NOT_VOICE"
+        },
+        {
+          "label": "C",
+          "calibration_wording": "メンバーとの写真・日常エピソード",
+          "final_status": "NOT_VOICE"
+        }
+      ],
+      "voices": [],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "メールを書いている途中にフリーズしてそのままアプリが落ちたから消えました"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "この間の京都個別握手会で頂いたお花を紹介します!!"
+        },
+        {
+          "supports": [
+            "C"
+          ],
+          "excerpt": "メンバーとの写真いきます!!"
+        }
+      ]
+    },
+    {
+      "case_no": 3,
+      "article_id": "33683",
+      "author": "松田好花",
+      "title": "どんなに些細なことでも、目標を立てて日々過ごせたらいいな",
+      "published_at": "2020-05-07T00:19:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/33683",
+      "local_dir": "BLOG/松田好花/2020/2020-05-07_33683_d6661642",
+      "archive_folder_drive_id": "1RMY663GmLKHOG4qp3rziAkSB9CC-Ne8T",
+      "metadata_drive_file_id": "1psgoN54xP4dPZTtYNcZym1vFwMdtkrbW",
+      "article_text_drive_file_id": "1qjeeUFCEvC-obs2L_oyQopAMjljAA4qe",
+      "article_text_sha256": "204c90a9ad35dec6e20a78d88ada688c58bbab78f956e273a445e930c0d3ab78",
+      "canonical_key": "d66616422ba495e28274f2d1",
+      "expected_voice_count": 1,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "小さな目標・習慣化の難しさ",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "小さな目標・習慣化の難しさ。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "ラジオ体操も明日で1週間達成になります!! 習慣づけるって難しい"
+        }
+      ]
+    },
+    {
+      "case_no": 4,
+      "article_id": "35133",
+      "author": "小坂菜緒",
+      "title": "誰にも染められない自分だけのキャンバス",
+      "published_at": "2020-08-11T23:36:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133",
+      "local_dir": "BLOG/小坂菜緒/2020/2020-08-11_35133_bacc653f",
+      "archive_folder_drive_id": "1ukQT94sN5U0nciotcEmRiJDUF_iUD7hb",
+      "metadata_drive_file_id": "1xfCYBf3U0FEpt5j5K5eR3VMCZelpGlCX",
+      "article_text_drive_file_id": "1OzSgpSUKpWfH9CUmb3vHlwFr2x_iKoZj",
+      "article_text_sha256": "5da9dc2895168cbedc69312b0f4b5db147425247212acf6d947efae24b4222d1",
+      "canonical_key": "bacc653fdadd8470ca76c24b",
+      "expected_voice_count": 3,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "4作連続センター期間の怖さ・プレッシャー",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "センターを外れた時の安心・解放・悔しさ・悲しさ",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "C",
+          "calibration_wording": "『第2章』として前向きに捉える認識",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "4作連続センター期間の怖さ・プレッシャー。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "センターを外れた時の安心・解放・悔しさ・悲しさ。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        },
+        {
+          "label": "V3",
+          "calibration_title": null,
+          "calibration_wording": "『第2章』として前向きに捉える認識。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "C"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "正直なことを言うと、先頭に立つのは何よりも怖かったです。"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "解かれた安心感なのか解放感なのか、外れた悔しさなのか悲しみなのか、よく分かりません。"
+        },
+        {
+          "supports": [
+            "C"
+          ],
+          "excerpt": "ここが小坂の第1章の終幕だとするならば 新たなる物語、第2章の幕開けだ"
+        }
+      ]
+    },
+    {
+      "case_no": 5,
+      "article_id": "65922",
+      "author": "大田美月",
+      "title": "夢は見るものじゃない 叶えるものだよ #みーちゃんのぶろぐ",
+      "published_at": "2025-10-01T09:51:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922",
+      "local_dir": "BLOG/大田美月/2025/2025-10-01_65922_dbf335ce",
+      "archive_folder_drive_id": "1wx-63h5-_KmCIHSt9WYNsq8r9tXnCsTw",
+      "metadata_drive_file_id": "1CVEjqhfusv-TYSk0mPYDdEAQAMoGocAv",
+      "article_text_drive_file_id": "1PFWbpO4PlLjPQ7JJAYMCDkcSt5WPZoE6",
+      "article_text_sha256": "03f00076235557186449c82024db4987ad07dff9468534f726a37f099c66d7a4",
+      "canonical_key": "dbf335ceacc9174e4a500a08",
+      "expected_voice_count": 3,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "ブログをファンへの『ラブレター』と捉える",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "『桜梅桃李』と比較経験",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "C",
+          "calibration_wording": "個人ブログを夢を叶える一歩にしたい",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "ブログをファンへの『ラブレター』と捉える。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "『桜梅桃李』と比較経験。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        },
+        {
+          "label": "V3",
+          "calibration_title": null,
+          "calibration_wording": "個人ブログを夢を叶える一歩にしたい。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "C"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "みづきからのラブレターだと思ってこれからも読んでねっ♡"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "座右の銘: 桜梅桃李 ... よく比較してしまっていた私にとってとても大切な言葉です"
+        },
+        {
+          "supports": [
+            "C"
+          ],
+          "excerpt": "これからこの個人ブログも夢を叶えていくための1歩にできたらいいなと思います"
+        }
+      ]
+    },
+    {
+      "case_no": 6,
+      "article_id": "67706",
+      "author": "大田美月",
+      "title": "あの頃に見た夢",
+      "published_at": "2026-01-27T19:49:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/67706",
+      "local_dir": "BLOG/大田美月/2026/2026-01-27_67706_b7c24683",
+      "archive_folder_drive_id": "19hltwQ5VaOKHXrYUi3xCRr5h3mZMtriG",
+      "metadata_drive_file_id": "1s6KFZzXq_opXsLFN55LwqRUXdof8SP_O",
+      "article_text_drive_file_id": "1F3JI-kESkKPqfOy7gb0zH0Mfyob_nCqM",
+      "article_text_sha256": "54e2f5b5dff18a788e70df303219d1b4ec0040a305f8d5f8a324347167291f82",
+      "canonical_key": "b7c246833f4d363fa3808df1",
+      "expected_voice_count": 2,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "『月と星が踊るMidnight』参加で夢が一つ叶った",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "同期がテレビで活躍する喜び",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "『月と星が踊るMidnight』参加で夢が一つ叶った。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "同期がテレビで活躍する喜び。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "ずっと踊ってみたい楽曲だったので ... 今回できてまた1つ夢が叶いました!!"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "同期がテレビに映るのってこんなに嬉しいんだって改めて思ったよっ!!"
+        }
+      ]
+    },
+    {
+      "case_no": 7,
+      "article_id": "50967",
+      "author": "上村ひなの",
+      "title": "夢が叶いました",
+      "published_at": "2023-07-18T11:17:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/50967",
+      "local_dir": "BLOG/上村ひなの/2023/2023-07-18_50967_ab95a94d",
+      "archive_folder_drive_id": "1ZCIcL1iGU0mJQb6DALJ9ggGgb6vg_fbv",
+      "metadata_drive_file_id": "1yhi-EpG3tl5mCETdXdM7x4bf2AIQdPsa",
+      "article_text_drive_file_id": "11yWPQBMauz2nZF3iHkBJDcBpNDAlkSps",
+      "article_text_sha256": "f62c9286f2f6136aba663f4066824ea8d42a2b4c5c5bbffa6cc390426e5c8fd3",
+      "canonical_key": "ab95a94d577030ec72d97b4c",
+      "expected_voice_count": 2,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "写真集発売が以前からの夢",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "日向市・秩父・東京を本人の思い出と結びつく『パワースポット』として撮影地にした",
+          "final_status": "BORDERLINE"
+        },
+        {
+          "label": "C",
+          "calibration_wording": "変わらない自分と新しい自分の両方を見せたい",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "写真集発売が以前からの夢。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "変わらない自分と新しい自分の両方を見せたい。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "C"
+          ]
+        }
+      ],
+      "borderline_candidates": [
+        {
+          "label": "B1",
+          "calibration_wording": "日向市・秩父・東京を自分にとってのパワースポットとして選んだ。",
+          "decision": "BORDERLINE",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "写真集を発売することがずっと夢だったので"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "私にとっての『パワースポット』の3ヶ所で撮影しました"
+        },
+        {
+          "supports": [
+            "C"
+          ],
+          "excerpt": "ずっと変わらない子供っぽさの残る私も、新しい雰囲気の私も。"
+        }
+      ]
+    },
+    {
+      "case_no": 8,
+      "article_id": "55209",
+      "author": "金村美玖",
+      "title": "人と話すこと、自分と話すこと",
+      "published_at": "2024-03-24T13:18:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/55209",
+      "local_dir": "BLOG/金村美玖/2024/2024-03-24_55209_67136bb4",
+      "archive_folder_drive_id": "1S4BHhaRJ_NCSu_0pLGbLSctwG2xHm4Zl",
+      "metadata_drive_file_id": "1XtTw2NDKzfkgGtuGlsgv0g99-0eHtkrm",
+      "article_text_drive_file_id": "1a1fO6hhyhY9Gqs41hQ10Bl2wFx0dyVYb",
+      "article_text_sha256": "0bf3ed2f2b7f5ef97cd63a73c1673d30244fcafee9473bedaab56c994f7df9c0",
+      "canonical_key": "67136bb41e3e286acffb73e4",
+      "expected_voice_count": 2,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "物事を俯瞰して見るようになった自分への複雑な認識と『やさしい人になりたい』という思い",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "メンバーや友人が自分の固定観念を取り払ってくれることへの感謝",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "物事を俯瞰して見るようになった自分への複雑な認識と『やさしい人になりたい』という思い。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "メンバーや友人が自分の固定観念を取り払ってくれることへの感謝。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "物事を俯瞰から見ることが多くなった ... やさしい人になりたいなぁ。"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "自分の固定観念を取り払ってくれるので本当感謝です!"
+        }
+      ]
+    },
+    {
+      "case_no": 9,
+      "article_id": "25939",
+      "author": "高本彩花",
+      "title": "夢",
+      "published_at": "2018-08-08T21:31:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25939",
+      "local_dir": "BLOG/高本彩花/2018/2018-08-08_25939_a6ec994b",
+      "archive_folder_drive_id": "1UAKNIL4IKxY2Spqx4PN8cy-7SuoDGE1Y",
+      "metadata_drive_file_id": "1lIMrHg2tHULbIVintbyljyul6JZV-x5L",
+      "article_text_drive_file_id": "1SHqoiuOyZ09poC_gAURL0EH0gPd5C2T4",
+      "article_text_sha256": "63245f38d3b45b6f16c526d5515d5af94ab4de69fa8ce9dca6ec9690da208df9",
+      "canonical_key": "a6ec994b1e82c3577c06e186",
+      "expected_voice_count": 2,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "モデルへの憧れ→夢を言葉にするようになる→20歳までという期限→諦めかける→TGC決定、という一続きの経験",
+          "final_status": "VOICE_SUPPORT"
+        },
+        {
+          "label": "B",
+          "calibration_wording": "今泉佑唯との加入初期からの記憶と卒業発表への思い",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "モデルへの憧れ→夢を言葉にするようになる→20歳までという期限→諦めかける→TGC決定、という一続きの経験。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        },
+        {
+          "label": "V2",
+          "calibration_title": null,
+          "calibration_wording": "今泉佑唯との加入初期からの記憶と卒業発表への思い。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "B"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "モデルのお仕事が小さい頃から憧れていました ... 東京ガールズコレクションに出れると聞きました"
+        },
+        {
+          "supports": [
+            "B"
+          ],
+          "excerpt": "今泉佑唯さんの卒業が発表されました ... 私達が入ったばかりの時、優しく話しかけて下さった"
+        }
+      ]
+    },
+    {
+      "case_no": 10,
+      "article_id": "44109",
+      "author": "山口陽世",
+      "title": "( ̮̈ )>≡1つ夢が叶いました⚾️",
+      "published_at": "2022-05-31T22:59:00+09:00",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/44109",
+      "local_dir": "BLOG/山口陽世/2022/2022-05-31_44109_f453efd8",
+      "archive_folder_drive_id": "1VaptkAnvTGuYHZMdimoIwKI4qPWfcui9",
+      "metadata_drive_file_id": "1Y7YEKUdrPe6CmAfZXLpxSROvltnyscN_",
+      "article_text_drive_file_id": "11tFEMpVk5fQiIcUG8XlQc5oK0uQLTzlQ",
+      "article_text_sha256": "f675b9701d33ade4bc844dc60b216cb0835ea988a8fb46d611f9768cc12f3bc9",
+      "canonical_key": "f453efd8d97e3fa9799d8a4d",
+      "expected_voice_count": 1,
+      "meaning_units": [
+        {
+          "label": "A",
+          "calibration_wording": "始球式という夢が叶った喜び、強い緊張、ワンバウンドへの悔しさ、再挑戦したい思い",
+          "final_status": "VOICE_SUPPORT"
+        }
+      ],
+      "voices": [
+        {
+          "label": "V1",
+          "calibration_title": null,
+          "calibration_wording": "始球式という夢が叶った喜び、強い緊張、ワンバウンドへの悔しさ、再挑戦したい思い。",
+          "decision": "ACCEPT",
+          "meaning_unit_labels": [
+            "A"
+          ]
+        }
+      ],
+      "structured_field_fragments": [],
+      "evidence_locators": [
+        {
+          "supports": [
+            "A"
+          ],
+          "excerpt": "始球式は私の夢だったので本当に嬉しかったです ... 少し悔しい気持ちもあるので何年か後などまた呼んで頂けるように頑張ります!!"
+        }
+      ]
+    }
+  ]
+}
