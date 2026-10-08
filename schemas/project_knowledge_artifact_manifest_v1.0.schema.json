@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ohisamaconnect/ohisama-connect-system/schemas/project_knowledge_artifact_manifest_v1.0.schema.json",
+  "title": "Project Knowledge Artifact Manifest v1.0",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "artifact_id",
+    "artifact_type",
+    "workstream_id",
+    "title",
+    "created_at",
+    "status"
+  ],
+  "properties": {
+    "manifest_version": {"const": "1.0"},
+    "artifact_id": {"type": "string", "minLength": 1},
+    "artifact_type": {
+      "type": "string",
+      "enum": ["EVIDENCE_PACK", "WORKING_SNAPSHOT", "CHECKPOINT", "MANIFEST", "CONTRACT", "SCHEMA", "EXPORT", "OTHER"]
+    },
+    "workstream_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "CURRENT", "APPROVED", "FROZEN", "SUPERSEDED", "ARCHIVED", "BLOCKED"]
+    },
+    "contract_version": {"type": ["string", "null"]},
+    "schema_version": {"type": ["string", "null"]},
+    "drive_url": {"type": ["string", "null"], "format": "uri"},
+    "drive_file_id": {"type": ["string", "null"]},
+    "github_path": {"type": ["string", "null"]},
+    "github_commit_sha": {"type": ["string", "null"]},
+    "notion_url": {"type": ["string", "null"], "format": "uri"},
+    "source_chat_reference": {"type": ["string", "null"]},
+    "parent_artifact_id": {"type": ["string", "null"]},
+    "supersedes": {"type": "array", "items": {"type": "string"}, "default": []},
+    "superseded_by": {"type": ["string", "null"]},
+    "baseline": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "integrity": {
+      "type": ["object", "null"],
+      "properties": {
+        "algorithm": {"type": ["string", "null"]},
+        "digest": {"type": ["string", "null"]},
+        "row_count": {"type": ["integer", "null"], "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "open_issues": {
+      "type": "array",
+      "items": {"type": "string"},
+      "default": []
+    },
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}
