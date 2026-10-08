@@ -1,0 +1,17 @@
+{
+  "manifest_version": "0.1",
+  "pilot_phase": "CALIBRATION_10",
+  "status": "PENDING_RECOVERY",
+  "approved_delta": "VOICE-20261007-18",
+  "source_root": "https://drive.google.com/drive/folders/15XFoL6qBDi0RtfypixtfMgzFSypUhwn1",
+  "cases": [],
+  "recovery_notes": [
+    "Do not select replacement articles.",
+    "Project Control preserves the Calibration 10 design and approval criteria but not the 10 article IDs.",
+    "Implementation Handover confirms 60-article Pilot completion but does not enumerate the Calibration corpus.",
+    "GitHub repository search did not locate a Calibration 10 case manifest or gold artifact bundle.",
+    "Project/Library file search did not recover the exact case list.",
+    "Google Drive keyword search returned ambiguous Archive files and is not sufficient evidence of Calibration membership.",
+    "Recover the original approved case list and per-case gold artifacts before setting status=READY."
+  ]
+}
