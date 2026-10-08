@@ -16,7 +16,7 @@
 
 2026-10-05の初回clasp移行で、旧約60ファイル構成からCurrent Runtimeへ統合した。
 
-ProductionへpushするCurrent Runtime定義は次の10ファミリ。HHA Member MaintenanceはCURRENT / PILOTとして扱う。
+ProductionへpushするCurrent Runtime定義は次の11ファミリ。HHA Member MaintenanceとMEMBER VOICES Provider EvaluationはCURRENT / PILOTとして扱う。
 
 - `OCOS_Crawler_Current.gs`
 - `OCOS_Processor_Current.gs`
@@ -28,6 +28,7 @@ ProductionへpushするCurrent Runtime定義は次の10ファミリ。HHA Member
 - `OCOS_ArchivePublishing_Current.gs`
 - `OCOS_Diagnostics_Current.gs`
 - `HHA_Member_Maintenance_Current.gs` — HHA MEMBERS定期監査。CURRENT / PILOT。Canonical自動更新なし、Trigger未導入。
+- `MEMBER_VOICES_Provider_Eval_Current.gs` — MEMBER VOICES Production Provider Evaluation用。CURRENT / PILOT。手動実行のみ。既存`GEMINI_API_KEY`を再利用し、Calibration評価証拠はDriveへ保存するが、Notion VOICE・production SQLite・永久Voice_IDへは書き込まない。
 
 `OCOS_Deployment_Bridge.gs` は初回移行時のみ使用し、Crawler / ProcessorのCurrent Trigger移行完了と `reportGasRuntimeInventoryCurrent()` の `migrationComplete=true` 確認後に削除した。Git履歴には移行証跡として残る。
 
@@ -44,3 +45,28 @@ Current必須Triggerは、少なくとも次を各1本とする。
 Studio系の `runStudioCandidateSeederV01` / `generateStudioPackV01` はWeekly Current内で同名handlerを維持する。
 
 詳細: `docs/OC-OS_CLASP_SETUP_v1.0.md`
+
+
+## MEMBER VOICES Provider Evaluation の同期
+
+開発側正本:
+
+`apps-script/member_voices/MEMBER_VOICES_Provider_Eval_Current.gs`
+
+clasp配布用Runtime mirror:
+
+`apps-script/runtime/MEMBER_VOICES_Provider_Eval_Current.gs`
+
+両者は同内容を維持する。GitHub CIで一致を検証する。
+
+ローカルProduction同期の標準手順:
+
+```powershell
+cd C:\Users\junas\Documents\ohisama-connect-system
+git pull --ff-only
+powershell -ExecutionPolicy Bypass -File .\tools\audit_apps_script_runtime.ps1
+clasp status
+clasp push
+```
+
+push後はApps Scriptエディタで `memberVoicesEvalPreflightV02()` を手動実行し、READYを確認してからCalibration Passへ進む。
