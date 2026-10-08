@@ -58,5 +58,14 @@
     "highest_voice_id": "VOC-000007",
     "next_voice_id": "VOC-000008"
   },
-  "restart_point": "Local git pull -> Runtime Audit -> clasp status -> clasp push -> reportGasRuntimeInventoryCurrent -> memberVoicesEvalPreflightV02"
+  "restart_point": "Local git pull -> Runtime Audit -> clasp status -> clasp push -> reportGasRuntimeInventoryCurrent -> memberVoicesEvalPreflightV02",
+  "project_control": {
+    "base_revision": "PC-20261009-110",
+    "first_applied_revision": "PC-20261009-111",
+    "final_applied_revision": "PC-20261009-112",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "readback_correction": "Windows path display changed to forward-slash form only; no semantic state change.",
+    "voice_row_status": "CLASP RUNTIME READY / LOCAL PUSH + GEMINI PREFLIGHT GATE / P3",
+    "delta_present": true
+  }
 }
