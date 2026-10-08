@@ -1133,12 +1133,12 @@ function readinessV01DateStart_(prop) {
 // ============================================================
 
 const OCOS_RUNTIME_AUDIT_CURRENT = Object.freeze({
-  VERSION: 'current-2026-10-05.1',
+  VERSION: 'current-2026-10-09.1',
   EXPECTED_PROPERTIES: [
     'NOTION_API_TOKEN', 'NOTION_TOKEN', 'NOTION_SECRET', 'YOUTUBE_API_KEY',
     'OC_TARGET_EPISODE_KEY', 'OC_TARGET_EPISODE_LOCK_MODE',
     'OC_TARGET_EPISODE_LOCKED_AT', 'OC_CALENDAR_ID',
-    'OC_AIR_START_TIME', 'OC_AIR_DURATION_MIN'
+    'OC_AIR_START_TIME', 'OC_AIR_DURATION_MIN', 'GEMINI_API_KEY'
   ],
   LEGACY_TRIGGER_HANDLERS: [
     'runFrequentCrawler', 'runScheduleCrawler', 'runDailyCrawler',
@@ -1204,6 +1204,13 @@ function reportGasRuntimeInventoryCurrent() {
       typeof installHhaMemberWatchTriggersCurrent === 'function' &&
       typeof auditHhaMemberWatchTriggersCurrent === 'function' &&
       typeof removeHhaMemberWatchTriggersCurrent === 'function'),
+    runtimeAuditCurrentModule_('MEMBER VOICES Provider Eval Current / Pilot',
+      typeof memberVoicesEvalPreflightV02 === 'function' &&
+      typeof memberVoicesEvalStartPass1V02 === 'function' &&
+      typeof memberVoicesEvalStartPass2V02 === 'function' &&
+      typeof memberVoicesEvalStartPass3V02 === 'function' &&
+      typeof memberVoicesEvalRunNextV02 === 'function' &&
+      typeof memberVoicesEvalStatusV02 === 'function'),
     runtimeAuditCurrentModule_('Lifecycle Auditor', typeof auditEpisodeLifecycleV01 === 'function'),
     runtimeAuditCurrentModule_('Completion Gate', typeof previewEpisodeCompletionGateV01 === 'function'),
     runtimeAuditCurrentModule_('Weekly Readiness', typeof reportWeeklyReadinessV01 === 'function')
@@ -1250,6 +1257,7 @@ function reportGasRuntimeInventoryCurrent() {
   const warnings = [];
   if (missingModules.length) warnings.push('Missing Current module(s): ' + missingModules.join(', '));
   if (!notionTokenPresent) warnings.push('No Notion token property is present.');
+  if (!propertyPresence.GEMINI_API_KEY) warnings.push('MEMBER VOICES Gemini credential property is absent.');
   if (missingCoreTriggers.length) warnings.push('Current core trigger count mismatch: ' + missingCoreTriggers.join(', '));
   if (legacyTriggers.length) warnings.push('Legacy trigger(s) still installed; migration not complete.');
   if (duplicateTriggers.length) warnings.push('Duplicate trigger(s) detected.');
