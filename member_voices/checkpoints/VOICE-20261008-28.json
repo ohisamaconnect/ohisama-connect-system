@@ -62,5 +62,14 @@
     "permanent_id_allocation": false,
     "bulk_processing": false
   },
-  "restart_point": "Production Semantic Provider + Prompt + Evaluation Contract Preview"
+  "restart_point": "Production Semantic Provider + Prompt + Evaluation Contract Preview",
+  "project_control_update": {
+    "attempted": true,
+    "intended_revision": "PC-20261008-102",
+    "result": "NOT_APPLIED",
+    "observed_revision_after_failure": "PC-20261008-101",
+    "delta_present_after_failure": false,
+    "reason": "Notion update_content was first blocked by safety check, then minimal targeted retries returned validation_error. Per protocol, do not claim Project Control updated.",
+    "recovery_rule": "On next writable opportunity, refetch latest Project Control revision, rebase VOICE-20261008-28, then update revision header + VOICE row + history and read back."
+  }
 }
