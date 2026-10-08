@@ -31,5 +31,12 @@
   "full_artifact_v1_1_recovered": false,
   "gemini_api_calls": 0,
   "next_voice_id": "VOC-000008",
-  "restart_point": "Run memberVoicesEvalPreflightV02 in existing Apps Script project; Calibration Pass1/2/3 before Main/Temporal."
+  "restart_point": "Run memberVoicesEvalPreflightV02 in existing Apps Script project; Calibration Pass1/2/3 before Main/Temporal.",
+  "project_control": {
+    "base_revision": "PC-20261008-106",
+    "applied_revision": "PC-20261008-107",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "voice_row_status": "CALIBRATION CORE GOLD RECOVERED / READY FOR GEMINI PREFLIGHT / P3",
+    "delta_present": true
+  }
 }
