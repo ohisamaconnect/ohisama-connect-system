@@ -1,0 +1,66 @@
+{
+  "checkpoint_version": "1.0",
+  "delta_id": "VOICE-20261008-28",
+  "workstream": "MEMBER VOICES",
+  "date": "2026-10-08",
+  "result": "SEMANTIC EXTRACTOR BOUNDARY PREVIEW PASS",
+  "base_revision_observed": "PC-20261008-101",
+  "last_approved_point": "Production Semantic Extractor Adapter Preview",
+  "source_basis": [
+    "MEMBER VOICES Schema v1.1",
+    "Extraction / Thread Contract v1.0",
+    "Extraction JSON Contract v1.0",
+    "Fresh Source Resolver results",
+    "Personal Blog Archive article bytes for 26676, 65922, 71234",
+    "approved Preview artifacts"
+  ],
+  "implementation": {
+    "semantic_extractor": "member_voices/semantic_extractor.py",
+    "validation_test": "member_voices/tests/validate_semantic_extractor_boundary.py",
+    "design_doc": "member_voices/docs/MEMBER_VOICES_SEMANTIC_EXTRACTOR_INTERFACE_PREVIEW_v0.1.md",
+    "provider_neutral": true,
+    "fixture_provider_production": false
+  },
+  "dry_run": {
+    "26676": {
+      "gate": "PASS",
+      "meaning_units": 1,
+      "voice_candidates": 0,
+      "sha256_match": true
+    },
+    "65922": {
+      "gate": "PASS",
+      "meaning_units": 2,
+      "voice_candidates": 2,
+      "thread_candidates": 1,
+      "sha256_match": true
+    },
+    "71234": {
+      "gate": "BLOCK",
+      "block_reason": "SPEAKER_MISMATCH",
+      "provider_called": false,
+      "sha256_match": true
+    }
+  },
+  "production_sqlite": {
+    "integrity_check": "ok",
+    "committed": 7,
+    "reserved": 0,
+    "max_sequence_no": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008",
+    "sha256": "b3674236a63ce760c50b29610e01f627d11d847317914f5d95c7ab6cc08305de",
+    "mutated": false
+  },
+  "github_actions": {
+    "workflow_updated": true,
+    "observed_run": false,
+    "actions_pass_claimed": false
+  },
+  "authorization": {
+    "notion_write": false,
+    "permanent_id_allocation": false,
+    "bulk_processing": false
+  },
+  "restart_point": "Production Semantic Provider + Prompt + Evaluation Contract Preview"
+}
