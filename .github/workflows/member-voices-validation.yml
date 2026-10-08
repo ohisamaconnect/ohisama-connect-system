@@ -20,7 +20,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install validation dependencies
+        run: python -m pip install "jsonschema>=4.20,<5"
       - name: Validate implementation and Preview
         run: python member_voices/tests/validate_member_voices_impl.py
       - name: Validate incremental runner
         run: python member_voices/tests/validate_incremental_runner.py
+      - name: Validate semantic extractor boundary
+        run: python member_voices/tests/validate_semantic_extractor_boundary.py
