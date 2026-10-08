@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ohisamaconnect.com/member-voices/eval/calibration_manifest_v0_1.schema.json",
+  "title": "MEMBER VOICES Calibration Gold Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "pilot_phase",
+    "status",
+    "approved_delta",
+    "source_root",
+    "cases",
+    "recovery_notes"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "0.1"
+    },
+    "pilot_phase": {
+      "const": "CALIBRATION_10"
+    },
+    "status": {
+      "enum": [
+        "PENDING_RECOVERY",
+        "READY"
+      ]
+    },
+    "approved_delta": {
+      "const": "VOICE-20261007-18"
+    },
+    "source_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_no",
+          "article_id",
+          "expected_speaker",
+          "local_dir",
+          "original_url",
+          "article_text_drive_file_id",
+          "metadata_drive_file_id",
+          "article_sha256",
+          "gold_artifact_drive_file_id",
+          "gold_artifact_sha256",
+          "gold_status"
+        ],
+        "properties": {
+          "case_no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "article_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_speaker": {
+            "type": "string",
+            "minLength": 1
+          },
+          "local_dir": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original_url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "article_text_drive_file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata_drive_file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "article_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "gold_artifact_drive_file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "gold_artifact_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "gold_status": {
+            "const": "APPROVED"
+          }
+        }
+      }
+    },
+    "recovery_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "READY"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cases": {
+            "minItems": 10,
+            "maxItems": 10
+          }
+        },
+        "description": "READY manifests must contain exactly the original approved Calibration 10 cases."
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PENDING_RECOVERY"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cases": {
+            "maxItems": 9
+          }
+        }
+      }
+    }
+  ]
+}
