@@ -56,5 +56,12 @@
     "highest_voice_id": "VOC-000007",
     "next_voice_id": "VOC-000008"
   },
-  "restart_point": "Calibration Gold Recovery Gate — recover original approved 10-case gold corpus, do not reselect"
+  "restart_point": "Calibration Gold Recovery Gate — recover original approved 10-case gold corpus, do not reselect",
+  "project_control": {
+    "base_revision": "PC-20261008-105",
+    "applied_revision": "PC-20261008-106",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "voice_row_status": "PROVIDER EVAL PREFLIGHT READY / GOLD RECOVERY GATE / P3",
+    "restart_point": "Calibration Gold Recovery Gate — recover original approved 10-case gold corpus, do not reselect"
+  }
 }
