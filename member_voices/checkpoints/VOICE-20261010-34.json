@@ -127,5 +127,12 @@
     "highest_voice_id": "VOC-000007",
     "next_voice_id": "VOC-000008"
   },
-  "restart_point": "Local git pull -> Runtime Audit -> clasp.cmd status -> clasp.cmd push -> reportGasRuntimeInventoryCurrent() -> memberVoicesEvalPreflightV02() -> fresh Pass1 -> restart from Article_ID 25481"
+  "restart_point": "Local git pull -> Runtime Audit -> clasp.cmd status -> clasp.cmd push -> reportGasRuntimeInventoryCurrent() -> memberVoicesEvalPreflightV02() -> fresh Pass1 -> restart from Article_ID 25481",
+  "project_control": {
+    "base_revision": "PC-20261009-126",
+    "applied_revision": "PC-20261010-127",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "voice_row_status": "PROVIDER CONTRACT v0.2.1 READY / LOCAL REDEPLOY GATE / P3",
+    "delta_present": true
+  }
 }
