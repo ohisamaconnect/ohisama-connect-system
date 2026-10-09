@@ -15,13 +15,13 @@ assert runtime_text == text, "clasp runtime mirror differs from MEMBER VOICES ev
 ready = json.loads(READY.read_text(encoding="utf-8"))
 
 required = [
-    "VERSION: '0.2.0'",
+    "VERSION: '0.2.1'",
     "gemini-3.8-flash",
     "thinking_level",
     "GEMINI_API_KEY",
     "MANIFEST_PINNED_URL",
     "a1e60999da8342ee7aa00569be304d5d78842708",
-    "b5f7dd7e915ebb6749cba86dec9f0b7cd382ba4f",
+    "b28149ae8eac60c6ea54f8d95e6d55f3b3fb0232",
     "manifest.manifest_version !== '0.2'",
     "manifest.cases.length !== 10",
     "VOICE-20261007-18",
@@ -34,6 +34,9 @@ required = [
     "CANONICAL anchor ID is outside RELATION_CONTEXT",
     "DRIVE_EVAL_EVIDENCE_ONLY",
     "one invocation processes at most one article",
+    "memberVoicesEvalLoadValidatedMetadataV02_",
+    "source_title:sourceMetadata.title",
+    "sourceMetadataValidated:true",
 ]
 for token in required:
     assert token in text, f"missing runner contract token: {token}"
