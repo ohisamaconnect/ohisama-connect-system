@@ -1,0 +1,131 @@
+{
+  "checkpoint_version": "1.0",
+  "delta_id": "VOICE-20261010-34",
+  "workstream": "MEMBER VOICES",
+  "date": "2026-10-10",
+  "base_revision_observed": "PC-20261009-126",
+  "approved_gate": "General contract fix after Calibration Pass1 cases 3-4: Archive Source Title input + exact evidence preservation + temporal granularity clarification",
+  "result": "PROVIDER CONTRACT v0.2.1 READY / LOCAL REDEPLOY REQUIRED",
+  "stopped_run": {
+    "run_id": "CAL10-P1-20261009-210808",
+    "pass_no": 1,
+    "formal_gate_status": "ABORTED_AFTER_CASE_4",
+    "completed_cases": [
+      {
+        "case_no": 1,
+        "article_id": "25481",
+        "gold_expected": 2,
+        "accepted": 2,
+        "runtime_invariants_pass": true,
+        "result_file_id": "1aYHHTKrd80jBwrAp-JxIeyZEAlq0qq8c"
+      },
+      {
+        "case_no": 2,
+        "article_id": "26676",
+        "gold_expected": 0,
+        "accepted": 0,
+        "runtime_invariants_pass": true,
+        "result_file_id": "1ULBSYNNeBHagqgXG06DmtVslP5ndW0JE"
+      },
+      {
+        "case_no": 3,
+        "article_id": "33683",
+        "gold_expected": 1,
+        "accepted": 0,
+        "runtime_invariants_pass": true,
+        "result_file_id": "1v3UNg_Gc78GCj86c_VsMbuk6M1eCgd1d",
+        "diagnosis": "Provider input omitted Archive source title; body-only interpretation classified routine habit content as non-VOICE."
+      },
+      {
+        "case_no": 4,
+        "article_id": "35133",
+        "gold_expected": 3,
+        "accepted": 4,
+        "runtime_invariants_pass": false,
+        "result_file_id": "1rA1Hwev9_N9MqR-_NFhRh94OQ5ut4acP",
+        "diagnosis": "Exact evidence invariant correctly blocked whitespace/newline-normalized evidence; semantic core also diverged by merging temporal center states and adding extra durable candidates."
+      }
+    ],
+    "do_not_continue_cases_5_to_10": true,
+    "do_not_reuse_cases_1_to_2_after_contract_change": true
+  },
+  "root_causes": {
+    "source_context_gap": {
+      "article_id": "33683",
+      "archive_metadata_title": "どんなに些細なことでも、目標を立てて日々過ごせたらいいな",
+      "metadata_drive_file_id": "1psgoN54xP4dPZTtYNcZym1vFwMdtkrbW",
+      "rule": "Source title must come from validated Personal Blog Archive metadata, never from Gold."
+    },
+    "evidence_exactness_gap": {
+      "article_id": "35133",
+      "rule": "Evidence must preserve ARTICLE_TEXT character-for-character including line breaks, spaces, digits, punctuation and symbols; use shorter contiguous excerpts if needed."
+    },
+    "temporal_granularity_gap": {
+      "rule": "Do not merge independently durable retrospective past role/feeling, current reaction/reinterpretation, and future self-positioning solely because they concern the same event or role."
+    }
+  },
+  "implementation": {
+    "runner_version": "0.2.1",
+    "prompt_commit": "b28149ae8eac60c6ea54f8d95e6d55f3b3fb0232",
+    "semantic_provider_input_commit": "82700d55594ee1303f07108a8d4dfcc62148544b",
+    "semantic_contract_test_commit": "fd63715c1cd56896a7dc237c90b4074c3907490a",
+    "gas_runner_commit": "3d298c5a212b3a785eafde88837e841c18abc08d",
+    "runtime_mirror_initial_commit": "6f989f67019d698a5f3d3f33f00874d01ae82d82",
+    "gas_static_test_commit": "2d840f9cbaf5b3084478bc4e4c9941616a68deda",
+    "runtime_audit_commit": "58ad79a19af3f94e2363437e569185335eefe05d",
+    "runner_label_commit": "911f10e45efd8fbf33012ab029671d68813c162c",
+    "runtime_mirror_final_commit": "7ac10954f2b1723dd21c83955f5079d0783da88b",
+    "archive_metadata_validation": [
+      "article_id",
+      "author",
+      "published_at",
+      "text_sha256",
+      "source_url",
+      "title"
+    ],
+    "provider_input_addition": "source_title",
+    "gold_changed": false,
+    "provider_output_schema_changed": false,
+    "recovered_gold_changed": false,
+    "voice_decision_criteria_changed": false
+  },
+  "validation": {
+    "latest_workflow_run_number": 85,
+    "latest_workflow_run_id": 37955298106,
+    "head_sha": "7ac10954f2b1723dd21c83955f5079d0783da88b",
+    "conclusion": "success",
+    "all_11_member_voices_validation_steps": "success",
+    "transient_failures": [
+      {
+        "run_number": 80,
+        "reason": "runner changed before static contract/runtime follow-up"
+      },
+      {
+        "run_number": 81,
+        "reason": "runtime mirror synced before static contract follow-up"
+      },
+      {
+        "run_number": 84,
+        "reason": "source label updated before runtime mirror sync"
+      }
+    ]
+  },
+  "execution_accounting": {
+    "gemini_api_calls_cumulative": 5,
+    "diagnostic_calls": 1,
+    "stopped_formal_pass_calls": 4
+  },
+  "safety": {
+    "notion_voice_write": false,
+    "permanent_voice_id_allocation": false,
+    "production_sqlite_mutation": false,
+    "archive_bulk": false,
+    "automatic_trigger_added": false
+  },
+  "current_voice_state": {
+    "accepted_permanent_voices": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008"
+  },
+  "restart_point": "Local git pull -> Runtime Audit -> clasp.cmd status -> clasp.cmd push -> reportGasRuntimeInventoryCurrent() -> memberVoicesEvalPreflightV02() -> fresh Pass1 -> restart from Article_ID 25481"
+}
