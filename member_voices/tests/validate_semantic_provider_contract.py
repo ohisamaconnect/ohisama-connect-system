@@ -16,6 +16,7 @@ from semantic_extractor import ExtractionBoundaryError, ExtractionRequest
 from semantic_provider_contract import (
     ProviderConfig,
     approved_artifact_to_fixture_payload,
+    build_provider_input,
     materialize_provider_payload,
 )
 from semantic_providers import wire_schema
@@ -158,8 +159,17 @@ def main() -> int:
         "Thread Candidate `thread_ref`: `T1`",
         "Comparison Candidate `comparison_ref`: `C1`",
         "Do not use alternate names such as `mu_1`, `vc_1`, `thread_1`, `cmp_1`",
+        "SOURCE_TITLE is trusted source metadata supplied by the caller.",
+        "Evidence matching is character-for-character",
+        "do not merge distinct temporal self-positions",
     ]:
-        assert token in PROMPT, f"prompt missing local-ref contract token: {token}"
+        assert token in PROMPT, f"prompt missing provider contract token: {token}"
+    source_title_fixture = load(MV_ROOT / "preview" / "2026-10-08" / "35133_kosaka_center_temporal.json")
+    source_title_request = request_from_artifact(source_title_fixture)
+    provider_input = build_provider_input(source_title_request)
+    assert provider_input["source_title"] == source_title_fixture["source"].get("source_title", source_title_fixture["source"].get("title"))
+    assert provider_input["article_text"] == source_title_request.article_text
+
     # Wire schema is intentionally weaker; local schema remains authoritative.
     wire = wire_schema(PROVIDER_SCHEMA)
     assert "$schema" not in wire
