@@ -18,7 +18,7 @@
  */
 
 const MEMBER_VOICES_EVAL_V02 = Object.freeze({
-  VERSION: '0.2.0',
+  VERSION: '0.2.1',
   MODEL: 'gemini-3.8-flash',
   THINKING_LEVEL: 'medium',
   INTERACTIONS_URL: 'https://generativelanguage.googleapis.com/v1beta/interactions',
@@ -35,7 +35,7 @@ const MEMBER_VOICES_EVAL_V02 = Object.freeze({
     'member_voices/eval/CALIBRATION_10_MANIFEST.ready.json',
   PROMPT_PINNED_URL:
     'https://raw.githubusercontent.com/ohisamaconnect/ohisama-connect-system/' +
-    'b5f7dd7e915ebb6749cba86dec9f0b7cd382ba4f/' +
+    'b28149ae8eac60c6ea54f8d95e6d55f3b3fb0232/' +
     'member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.1.md',
   SCHEMA_PINNED_URL:
     'https://raw.githubusercontent.com/ohisamaconnect/ohisama-connect-system/' +
@@ -203,6 +203,7 @@ function memberVoicesEvalPreflightInternalV02_() {
   try {
     const loaded = memberVoicesEvalLoadManifestV02_();
     memberVoicesEvalValidateReadyManifestV02_(loaded.manifest);
+    loaded.manifest.cases.forEach(c => memberVoicesEvalLoadValidatedMetadataV02_(c));
     const gold = memberVoicesEvalLoadGoldBundleV02_(loaded.manifest);
     const prompt = memberVoicesEvalLoadPinnedTextV02_(
       MEMBER_VOICES_EVAL_V02.PROMPT_FILE_ID_PROPERTY,
@@ -225,6 +226,8 @@ function memberVoicesEvalPreflightInternalV02_() {
       thinkingLevel:MEMBER_VOICES_EVAL_V02.THINKING_LEVEL,
       calibrationCases:loaded.manifest.cases.length,
       articleIds:loaded.manifest.cases.map(c => String(c.article_id)),
+      sourceMetadataValidated:true,
+      sourceTitleAvailableForAllCases:true,
       recoveredGoldFullArtifactV11:false,
       scoringScope:loaded.manifest.gold_bundle.evaluation_scope,
       notionWrite:false,
@@ -318,7 +321,34 @@ function memberVoicesEvalGoldCaseV02_(bundle, evalCase) {
   return goldCase;
 }
 
+function memberVoicesEvalLoadValidatedMetadataV02_(evalCase) {
+  const file = DriveApp.getFileById(evalCase.metadata_drive_file_id);
+  const text = file.getBlob().getDataAsString('UTF-8');
+  let metadata;
+  try {
+    metadata = JSON.parse(text);
+  } catch (err) {
+    throw new Error('metadata.json parse failed for Article_ID='+evalCase.article_id);
+  }
+
+  const failures = [];
+  if (String(metadata.article_id || '') !== String(evalCase.article_id)) failures.push('article_id');
+  if (String(metadata.author || '') !== String(evalCase.expected_speaker)) failures.push('author');
+  if (String(metadata.published_at || '') !== String(evalCase.published_at || '')) failures.push('published_at');
+  if (String(metadata.text_sha256 || '') !== String(evalCase.article_sha256 || '')) failures.push('text_sha256');
+  if (evalCase.original_url && String(metadata.source_url || '') !== String(evalCase.original_url)) failures.push('source_url');
+  if (!String(metadata.title || '').trim()) failures.push('title');
+
+  if (failures.length) {
+    throw new Error(
+      'Archive metadata mismatch for Article_ID='+evalCase.article_id+': '+failures.join(',')
+    );
+  }
+  return { metadata, text };
+}
+
 function memberVoicesEvalRunCaseV02_(state, manifest, evalCase, goldCase) {
+  const sourceMetadata = memberVoicesEvalLoadValidatedMetadataV02_(evalCase).metadata;
   const articleBlob = DriveApp.getFileById(evalCase.article_text_drive_file_id).getBlob();
   const articleBytes = articleBlob.getBytes();
   const articleText = articleBlob.getDataAsString('UTF-8');
@@ -342,6 +372,7 @@ function memberVoicesEvalRunCaseV02_(state, manifest, evalCase, goldCase) {
 
   const input = {
     confirmed_speaker:evalCase.expected_speaker,
+    source_title:sourceMetadata.title,
     published_at:evalCase.published_at || null,
     spoken_at:evalCase.spoken_at || null,
     relation_context:evalCase.relation_context || {},
@@ -383,6 +414,8 @@ function memberVoicesEvalRunCaseV02_(state, manifest, evalCase, goldCase) {
     case_no:evalCase.case_no,
     article_id:String(evalCase.article_id),
     expected_speaker:evalCase.expected_speaker,
+    source_title:sourceMetadata.title,
+    metadata_drive_file_id:evalCase.metadata_drive_file_id,
     model:state.model,
     thinking_level:state.thinkingLevel,
     extractor_version:state.extractorVersion,
