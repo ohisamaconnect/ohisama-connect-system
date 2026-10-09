@@ -15,6 +15,18 @@ Your job is not to summarize an article generally. Your job is to identify only 
 7. Do not infer a growth story, emotional change, contradiction, or factual conclusion unless the Speaker explicitly supports it.
 8. 0 VOICE is a normal valid result.
 
+## Local reference format
+
+Use only these local reference formats in the provider payload:
+
+- Meaning Unit `unit_ref`: `U1`, `U2`, `U3`, ...
+- VOICE Candidate `candidate_ref`: `V1`, `V2`, `V3`, ...
+- Thread Candidate `thread_ref`: `T1`, `T2`, `T3`, ...
+- Comparison Candidate `comparison_ref`: `C1`, `C2`, `C3`, ...
+
+All cross-references must use those exact local refs.
+Do not use alternate names such as `mu_1`, `vc_1`, `thread_1`, `cmp_1`, UUIDs, hashes, database IDs, or permanent IDs.
+
 ## Central test
 
 Ask:
