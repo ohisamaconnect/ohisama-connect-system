@@ -125,8 +125,10 @@ def build_provider_input(
     Source Resolver and cannot be changed by the provider.
     """
 
+    source_title = request.source.get("source_title") or request.source.get("title")
     return {
         "confirmed_speaker": request.source_resolution["confirmed_speaker"],
+        "source_title": source_title,
         "published_at": request.source.get("published_at"),
         "spoken_at": request.source.get("spoken_at"),
         "relation_context": dict(relation_context or {}),
