@@ -21,6 +21,7 @@ required = [
     "GEMINI_API_KEY",
     "MANIFEST_PINNED_URL",
     "a1e60999da8342ee7aa00569be304d5d78842708",
+    "b5f7dd7e915ebb6749cba86dec9f0b7cd382ba4f",
     "manifest.manifest_version !== '0.2'",
     "manifest.cases.length !== 10",
     "VOICE-20261007-18",
