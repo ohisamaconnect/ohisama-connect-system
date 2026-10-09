@@ -198,15 +198,15 @@ if ($fileTexts['OCOS_ArchivePublishing_Current.gs'] -match 'AUTO_TRIGGER:\s*fals
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'NOTION_WRITE:\s*false' -and $fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'CANONICAL_AUTO_UPDATE:\s*false') { Pass 'HHA Member Maintenance remains no-Canonical-write / no-Notion-write Pilot.' } else { Fail 'HHA Member Maintenance Canonical/Notion safety markers missing or changed.' }
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match 'PROFILE_MAX_PER_RUN:\s*1') { Pass 'HHA Raw Snapshot Runtime remains one-profile Pilot.' } else { Fail 'HHA Raw Snapshot Pilot scope is no longer limited to one profile.' }
 
-if ($fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "VERSION:\s*'0\.2\.0'" -and
+if ($fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "VERSION:\s*'0\.2\.1'" -and
     $fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "GEMINI_KEY_PROPERTY:\s*'GEMINI_API_KEY'" -and
     $fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "DRIVE_EVAL_EVIDENCE_ONLY" -and
     $fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "notionWrite:false" -and
     $fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "permanentVoiceIdAllocation:false" -and
     $fileTexts['MEMBER_VOICES_Provider_Eval_Current.gs'] -match "productionSqliteMutation:false") {
-  Pass 'MEMBER VOICES Provider Eval Runtime v0.2 safety boundaries are present.'
+  Pass 'MEMBER VOICES Provider Eval Runtime v0.2.1 safety boundaries are present.'
 } else {
-  Fail 'MEMBER VOICES Provider Eval Runtime v0.2 safety markers missing or changed.'
+  Fail 'MEMBER VOICES Provider Eval Runtime v0.2.1 safety markers missing or changed.'
 }
 if ($fileTexts['HHA_Member_Maintenance_Current.gs'] -match "function\s+installHhaMemberWatchTriggersCurrent\s*\(" -and
     $fileTexts['HHA_Member_Maintenance_Current.gs'] -match "newTrigger\('runHhaMemberRosterWatchCurrent'\)" -and
