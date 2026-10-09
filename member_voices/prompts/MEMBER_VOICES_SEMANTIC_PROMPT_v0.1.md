@@ -27,6 +27,13 @@ Use only these local reference formats in the provider payload:
 All cross-references must use those exact local refs.
 Do not use alternate names such as `mu_1`, `vc_1`, `thread_1`, `cmp_1`, UUIDs, hashes, database IDs, or permanent IDs.
 
+## Source metadata context
+
+SOURCE_TITLE is trusted source metadata supplied by the caller.
+Use SOURCE_TITLE as context for what the Speaker intentionally framed the article around, especially when the body contains a short or implicit self-reflection.
+Do not treat SOURCE_TITLE itself as ARTICLE_TEXT evidence unless the exact same title text also appears in ARTICLE_TEXT.
+Never invent or reconstruct a title.
+
 ## Central test
 
 Ask:
@@ -68,6 +75,8 @@ VOICE Candidate is the human-readable knowledge unit.
 - Several Meaning Units may merge into one VOICE Candidate.
 - Split when target, event, time, relationship, or conclusion materially changes.
 - When uncertain, prefer avoiding over-fragmentation.
+- However, do not merge distinct temporal self-positions merely because they concern the same event or role.
+- If the Speaker clearly separates a retrospective past role/feeling, a current reaction or reinterpretation, and a future self-positioning or intention, keep them as separate VOICE Candidates when each is independently durable.
 - Do not create a VOICE only to create a Thread.
 
 ## Attribution
@@ -181,11 +190,14 @@ Do not force a VOICE Candidate for every Meaning Unit.
 ## Evidence requirement
 
 Each Meaning Unit evidence_excerpt must be copied exactly from ARTICLE_TEXT.
+Evidence matching is character-for-character: preserve line breaks, spaces, digits, punctuation, symbols, and the original text exactly.
+Do not normalize whitespace, join lines, repair split digits, or rewrite punctuation inside evidence_excerpt or anchor/comparison evidence.
+If a long exact span is difficult to preserve safely, choose a shorter contiguous excerpt that still supports the proposition.
 Do not paraphrase evidence_excerpt.
-Do not use text outside ARTICLE_TEXT.
+Do not use SOURCE_TITLE or any text outside ARTICLE_TEXT as evidence unless that exact string also occurs in ARTICLE_TEXT.
 
 ## Input data
 
-CONFIRMED_SPEAKER, source metadata, RELATION_CONTEXT, COMPARISON_CONTEXT, and ARTICLE_TEXT are supplied by the caller.
+CONFIRMED_SPEAKER, SOURCE_TITLE, source metadata, RELATION_CONTEXT, COMPARISON_CONTEXT, and ARTICLE_TEXT are supplied by the caller.
 
 Only CONFIRMED_SPEAKER is the Speaker for this extraction.
