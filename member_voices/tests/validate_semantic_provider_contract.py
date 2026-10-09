@@ -150,6 +150,16 @@ def main() -> int:
         provider_schema=PROVIDER_SCHEMA,
     )
 
+    # Provider-facing wire schema drops regex pattern constraints, so the prompt
+    # must explicitly preserve the Contract-owned local reference grammar.
+    for token in [
+        "Meaning Unit `unit_ref`: `U1`",
+        "VOICE Candidate `candidate_ref`: `V1`",
+        "Thread Candidate `thread_ref`: `T1`",
+        "Comparison Candidate `comparison_ref`: `C1`",
+        "Do not use alternate names such as `mu_1`, `vc_1`, `thread_1`, `cmp_1`",
+    ]:
+        assert token in PROMPT, f"prompt missing local-ref contract token: {token}"
     # Wire schema is intentionally weaker; local schema remains authoritative.
     wire = wire_schema(PROVIDER_SCHEMA)
     assert "$schema" not in wire
