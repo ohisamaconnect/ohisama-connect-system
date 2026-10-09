@@ -1,0 +1,87 @@
+{
+  "checkpoint_version": "1.0",
+  "delta_id": "VOICE-20261009-33",
+  "workstream": "MEMBER VOICES",
+  "date": "2026-10-09",
+  "approved_gate": "Fix provider local reference naming mismatch without changing semantic or Gold criteria",
+  "result": "LOCAL-REF PROMPT FIX READY / REDEPLOY REQUIRED",
+  "diagnostic_run": {
+    "run_id": "CAL10-P1-20261009-192928",
+    "pass_no": 1,
+    "case_no": 1,
+    "article_id": "25481",
+    "result_file_id": "1DP4uYX_WsrVxfrFogPC3OGzzq1U8ex64",
+    "gemini_api_calls": 1,
+    "accepted_voice_count": 2,
+    "gold_expected_accepted_voice_count": 2,
+    "exact_gold_voice_count": true,
+    "runtime_invariants_pass": false,
+    "provider_status": "COMPLETED_SEMANTIC_REVIEW",
+    "total_tokens": 16421,
+    "diagnostic_only": true,
+    "score_in_formal_pass": false,
+    "failure_class": "HARNESS_LOCAL_REF_NAMING_MISMATCH",
+    "observed_refs": [
+      "mu_1..mu_5",
+      "vc_1..vc_2",
+      "thread_1..thread_2"
+    ],
+    "contract_refs": [
+      "U1..",
+      "V1..",
+      "T1..",
+      "C1.."
+    ]
+  },
+  "root_cause": {
+    "provider_schema_contract_patterns": [
+      "^U[1-9][0-9]*$",
+      "^V[1-9][0-9]*$",
+      "^T[1-9][0-9]*$",
+      "^C[1-9][0-9]*$"
+    ],
+    "wire_schema_behavior": "pattern removed intentionally for provider compatibility",
+    "prompt_gap": "Local reference grammar was not explicitly stated to provider",
+    "semantic_gold_changed": false,
+    "provider_schema_changed": false,
+    "gold_changed": false
+  },
+  "fix": {
+    "prompt_commit": "b5f7dd7e915ebb6749cba86dec9f0b7cd382ba4f",
+    "runner_prompt_pin_commit": "85ac891ca0fe0138aeec40f560a8ad22cd9dcd4c",
+    "runtime_mirror_commit": "7ab9c94204cf9a5540fbc4dbb54806690be3de5a",
+    "semantic_prompt_test_commit": "a8b85f9c8e39f80b6b06a3f64570f10fee88b058",
+    "gas_validation_pin_commit": "37bd218420da1e2cb2ae08cc30eaaa5c6f61ade3",
+    "required_ref_examples": [
+      "U1",
+      "V1",
+      "T1",
+      "C1"
+    ],
+    "forbidden_alternates": [
+      "mu_1",
+      "vc_1",
+      "thread_1",
+      "cmp_1"
+    ]
+  },
+  "validation": {
+    "latest_run_number": 74,
+    "latest_run_id": 37927406585,
+    "head_sha": "37bd218420da1e2cb2ae08cc30eaaa5c6f61ade3",
+    "conclusion": "success",
+    "transient_run_71_failure": "Expected source/runtime mirror mismatch during two-step update; resolved by runtime sync in run 72"
+  },
+  "safety": {
+    "notion_voice_write": false,
+    "permanent_voice_id_allocation": false,
+    "production_sqlite_mutation": false,
+    "archive_bulk": false
+  },
+  "current_voice_state": {
+    "accepted_permanent_voices": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008"
+  },
+  "restart_point": "Local git pull -> Runtime Audit -> clasp status -> clasp push -> Runtime Audit -> Preflight -> fresh Pass1 -> RunNext case 25481"
+}
