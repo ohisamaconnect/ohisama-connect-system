@@ -35,7 +35,7 @@ const MEMBER_VOICES_EVAL_V02 = Object.freeze({
     'member_voices/eval/CALIBRATION_10_MANIFEST.ready.json',
   PROMPT_PINNED_URL:
     'https://raw.githubusercontent.com/ohisamaconnect/ohisama-connect-system/' +
-    'a9cea5d48af7bee87b8b779f07716c6bebeec8a1/' +
+    'b5f7dd7e915ebb6749cba86dec9f0b7cd382ba4f/' +
     'member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.1.md',
   SCHEMA_PINNED_URL:
     'https://raw.githubusercontent.com/ohisamaconnect/ohisama-connect-system/' +
