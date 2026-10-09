@@ -83,5 +83,12 @@
     "highest_voice_id": "VOC-000007",
     "next_voice_id": "VOC-000008"
   },
-  "restart_point": "Local git pull -> Runtime Audit -> clasp status -> clasp push -> Runtime Audit -> Preflight -> fresh Pass1 -> RunNext case 25481"
+  "restart_point": "Local git pull -> Runtime Audit -> clasp status -> clasp push -> Runtime Audit -> Preflight -> fresh Pass1 -> RunNext case 25481",
+  "project_control": {
+    "base_revision": "PC-20261009-121",
+    "applied_revision": "PC-20261009-122",
+    "update_status": "APPLIED_AND_READBACK_VERIFIED",
+    "voice_row_status": "PROVIDER DIAGNOSTIC PASS / LOCAL-REF FIX READY / REDEPLOY GATE / P3",
+    "delta_present": true
+  }
 }
