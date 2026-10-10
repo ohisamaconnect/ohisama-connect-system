@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MEMBER VOICES isolated REVIEW Sidecar v0.1 DRAFT",
+  "description": "Nonproduction only. REVIEW ledger has NO authority to promote, allocate VOC IDs, mutate recovered Gold, or update Production. Cross-record/source and allow-list checks are enforced by standalone validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "artifact_kind",
+    "status",
+    "owner_decision_id",
+    "owner_decision_source",
+    "base_checkpoint",
+    "baseline_run_id",
+    "groups",
+    "production_write_authorized"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "MV_REVIEW_SIDECAR_v0.1_DRAFT"
+    },
+    "artifact_kind": {
+      "const": "NONPRODUCTION_REVIEW_LEDGER"
+    },
+    "status": {
+      "const": "EVALUATION_ONLY_NO_PROMOTION"
+    },
+    "owner_decision_id": {
+      "const": "MV-REF-OWNER-ADJUDICATION-20261011-01"
+    },
+    "owner_decision_source": {
+      "const": "member_voices/eval/CAL10_OWNER_SEMANTIC_SANDBOX_DECISION_20261011.json"
+    },
+    "base_checkpoint": {
+      "const": "VOICE-20261011-37"
+    },
+    "baseline_run_id": {
+      "const": "CAL10-P1-20261010-084821"
+    },
+    "production_write_authorized": {
+      "const": false
+    },
+    "groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "relation_context",
+          "reviews"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "article_id",
+              "source_ref_key",
+              "confirmed_speaker",
+              "article_text_drive_file_id",
+              "article_text_sha256",
+              "original_url"
+            ],
+            "properties": {
+              "article_id": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "source_ref_key": {
+                "type": "string",
+                "pattern": "^src_[a-f0-9]+$"
+              },
+              "confirmed_speaker": {
+                "type": "string",
+                "minLength": 1
+              },
+              "article_text_drive_file_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "article_text_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "original_url": {
+                "type": "string",
+                "pattern": "^https://www\\.hinatazaka46\\.com/s/official/diary/detail/[0-9]+$"
+              }
+            }
+          },
+          "relation_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "MEMBER": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "SONG": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "LIVE": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "EVENT": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "RELEASE": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "reviews": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "local_review_ref",
+                "provisional_core_id",
+                "semantic_theme",
+                "evidence_excerpt",
+                "evidence_exact_substring_verified",
+                "article_body_scope_verification",
+                "disposition",
+                "voice_eligible",
+                "owner_semantic_status",
+                "owner_promotion_status",
+                "risk_flags",
+                "source_origins",
+                "relations",
+                "review_reason"
+              ],
+              "properties": {
+                "local_review_ref": {
+                  "type": "string",
+                  "pattern": "^R[1-9][0-9]*$"
+                },
+                "provisional_core_id": {
+                  "type": "string",
+                  "pattern": "^[0-9]+-C[1-9][0-9]*$"
+                },
+                "semantic_theme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_excerpt": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_exact_substring_verified": {
+                  "const": true
+                },
+                "article_body_scope_verification": {
+                  "enum": [
+                    "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+                    "VERIFIED_OWNER_SOURCE"
+                  ]
+                },
+                "disposition": {
+                  "const": "REVIEW"
+                },
+                "voice_eligible": {
+                  "const": false
+                },
+                "owner_semantic_status": {
+                  "const": "APPROVED_FOR_SANDBOX_ONLY"
+                },
+                "owner_promotion_status": {
+                  "const": "NOT_AUTHORIZED"
+                },
+                "risk_flags": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "REFERENCE_CONFLICT",
+                      "GRANULARITY",
+                      "SELECTION",
+                      "SOURCE_SCOPE",
+                      "DURABILITY",
+                      "ATTRIBUTION",
+                      "RELATION_ALLOWLIST"
+                    ]
+                  }
+                },
+                "source_origins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "review_reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "relations": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "related_members",
+                    "related_songs",
+                    "related_lives",
+                    "related_events",
+                    "related_releases"
+                  ],
+                  "properties": {
+                    "related_members": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "related_songs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "related_lives": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "related_events": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "related_releases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
