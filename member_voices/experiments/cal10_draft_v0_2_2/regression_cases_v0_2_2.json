@@ -1,0 +1,608 @@
+{
+  "suite": "MV-SEMANTIC-CONTRACT-v0.2.2-DRAFT",
+  "fixture_type": "SYNTHETIC_GENERAL_CONTRACT",
+  "case_ids_are_not_10_calibration_articles": true,
+  "cases": [
+    {
+      "name": "zero_voice_negative",
+      "reference": {
+        "gold_core_keys": [],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "REJECT",
+            "voice_eligible": false,
+            "evidence_excerpt": "snippet",
+            "core_key": "routine"
+          }
+        ],
+        "voice_candidates": []
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [],
+      "expected_accepted_count": 0
+    },
+    {
+      "name": "habit_reflection_review",
+      "reference": {
+        "gold_core_keys": [
+          "habit"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "REVIEW",
+            "voice_eligible": false,
+            "evidence_excerpt": "snippet",
+            "core_key": "habit"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "REVIEW",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "MISSING_GOLD_CORE"
+      ],
+      "expected_accepted_count": 0
+    },
+    {
+      "name": "independent_grounded_extra",
+      "reference": {
+        "gold_core_keys": [
+          "path"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "path"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "cosmetic"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          },
+          {
+            "candidate_ref": "V2",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U2"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U2"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "EXTRA_ACCEPTED_CORE"
+      ],
+      "expected_accepted_count": 2
+    },
+    {
+      "name": "count_equal_substitution",
+      "reference": {
+        "gold_core_keys": [
+          "song",
+          "peer"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "song"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "friendship"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          },
+          {
+            "candidate_ref": "V2",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U2"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U2"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "MISSING_GOLD_CORE",
+        "EXTRA_ACCEPTED_CORE",
+        "COUNT_EQUAL_SEMANTIC_SUBSTITUTION"
+      ],
+      "expected_accepted_count": 2
+    },
+    {
+      "name": "over_merge_two_independent_cores",
+      "reference": {
+        "gold_core_keys": [
+          "dream",
+          "self"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "dream"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "self"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1",
+              "U2"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1",
+              "U2"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "MERGE_REVIEW_REQUIRED"
+      ],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "borderline_asserted_in_accepted",
+      "reference": {
+        "gold_core_keys": [
+          "dream",
+          "self"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "dream"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "self"
+          },
+          {
+            "unit_ref": "U3",
+            "disposition": "REVIEW",
+            "voice_eligible": false,
+            "evidence_excerpt": "snippet",
+            "core_key": "place"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1",
+              "U2",
+              "U3"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1",
+              "U2",
+              "U3"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "BOUNDARY_ABSORPTION",
+        "MERGE_REVIEW_REQUIRED"
+      ],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "boundary_kept_as_context",
+      "reference": {
+        "gold_core_keys": [
+          "dream"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "dream"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "REVIEW",
+            "voice_eligible": false,
+            "evidence_excerpt": "snippet",
+            "core_key": "place"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [
+              "U2"
+            ],
+            "meaning_unit_refs": [
+              "U1",
+              "U2"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "empty_allowlist_song_label",
+      "reference": {
+        "gold_core_keys": [
+          "song"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "song"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ],
+            "related_songs": [
+              "Some Song Title"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "RELATION_ALLOWLIST_VIOLATION"
+      ],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "populated_allowlist_known_id",
+      "reference": {
+        "gold_core_keys": [
+          "song"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "song"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ],
+            "related_songs": [
+              "SNG-090"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {
+        "SONG": {
+          "SNG-090": "Canonical Song"
+        }
+      },
+      "expected_flags": [],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "reference_conflict_blocks_oracle",
+      "reference": {
+        "gold_core_keys": [
+          "past",
+          "future"
+        ],
+        "preview_core_keys": [
+          "past_future_joined"
+        ]
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "past"
+          },
+          {
+            "unit_ref": "U2",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "future"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          },
+          {
+            "candidate_ref": "V2",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U2"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U2"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "REFERENCE_CONFLICT"
+      ],
+      "expected_accepted_count": 2
+    },
+    {
+      "name": "title_not_valid_as_body_evidence",
+      "reference": {
+        "gold_core_keys": [
+          "goal"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "Title only",
+            "core_key": "goal"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "EVIDENCE_NOT_IN_ARTICLE"
+      ],
+      "expected_accepted_count": 1
+    },
+    {
+      "name": "review_boolean_contract_error",
+      "reference": {
+        "gold_core_keys": [
+          "goal"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "REVIEW",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "goal"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "REVIEW",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [],
+            "meaning_unit_refs": [
+              "U1"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "MISSING_GOLD_CORE",
+        "INVALID_DISPOSITION_MAPPING"
+      ],
+      "expected_accepted_count": 0
+    },
+    {
+      "name": "role_partition_overlap",
+      "reference": {
+        "gold_core_keys": [
+          "goal"
+        ],
+        "preview_core_keys": null
+      },
+      "payload": {
+        "meaning_units": [
+          {
+            "unit_ref": "U1",
+            "disposition": "ACCEPT",
+            "voice_eligible": true,
+            "evidence_excerpt": "snippet",
+            "core_key": "goal"
+          }
+        ],
+        "voice_candidates": [
+          {
+            "candidate_ref": "V1",
+            "candidate_decision": "ACCEPT",
+            "asserted_unit_refs": [
+              "U1"
+            ],
+            "context_only_refs": [
+              "U1"
+            ],
+            "meaning_unit_refs": [
+              "U1",
+              "U1"
+            ]
+          }
+        ]
+      },
+      "article_text": "snippet",
+      "relation_context": {},
+      "expected_flags": [
+        "INVALID_UNIT_ROLE_PARTITION"
+      ],
+      "expected_accepted_count": 1
+    }
+  ]
+}
