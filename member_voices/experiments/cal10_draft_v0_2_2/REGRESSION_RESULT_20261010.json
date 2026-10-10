@@ -1,0 +1,159 @@
+{
+  "workstream_id": "MEMBER_VOICES",
+  "approval_gate": "MV-CAL10-RECON-APPROVAL-20261010-01",
+  "execution_date_jst": "2026-10-10",
+  "status": "NONPRODUCTION_DRAFT_ONLY",
+  "suite": "MV-SEMANTIC-CONTRACT-v0.2.2-DRAFT",
+  "results": {
+    "synthetic_cases_total": 13,
+    "synthetic_cases_pass": 13,
+    "assertion_parity": "PASS",
+    "full_provider_e2e": "NOT_RUN",
+    "new_gemini_api_calls": 0
+  },
+  "test_methods": {
+    "python": "The standalone Python diagnostic runner passed 13/13 synthetic cases in an isolated local mirror. Local schema file in mirror was a structural placeholder for draft fields; full production or DRAFT JSON Schema instance validation was NOT run.",
+    "independent_readback": "GitHub DRAFT schema, prompt, contract, regression script and 13 saved fixtures fetched and inspected. Independent JS parity audit against saved fixture JSON passed 13/13.",
+    "semantic_limits": "core_key values are synthetic human-authored annotations, not live semantic extraction; count and flags do not establish model precision."
+  },
+  "files_readback": {
+    "contract": {
+      "path": "member_voices/docs/MEMBER_VOICES_GENERAL_SEMANTIC_CONTRACT_v0.2.2.DRAFT.md",
+      "blob_sha": "5e72bfac842d04dd892c02f1d1fd2c313d239eee"
+    },
+    "prompt": {
+      "path": "member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.2.2.DRAFT.md",
+      "blob_sha": "6f36438b4701a49664e1f4bec75ac6e0b31b6f01"
+    },
+    "schema_draft": {
+      "path": "member_voices/schemas/member_voices_provider_payload_v0_2_2.DRAFT.schema.json",
+      "blob_sha": "7d02d7d2e75aa38029714a4382cb7dff954386b0"
+    },
+    "test_code": {
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/validate_contract_draft_v0_2_2.py",
+      "blob_sha": "eae72ed250d09dec5aee61db49373c89c06ad622"
+    },
+    "test_cases": {
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/regression_cases_v0_2_2.json",
+      "blob_sha": "86dde26e03438e661bb4df96c8cb5b2c11870bd4"
+    }
+  },
+  "source_immutability_check": {
+    "current_schema_path": "member_voices/schemas/member_voices_provider_payload_v0_1.schema.json",
+    "current_schema_blob_sha": "21b5b51576c2f595c9be43ddfc1ef9d1fa3bf335",
+    "current_prompt_path": "member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.1.md",
+    "current_prompt_blob_sha": "bc4f59869fef2d755c50c9cbdcedc574005feab0",
+    "old_checkpoint": "VOICE-20261010-35",
+    "old_calibration_gate": "FAIL"
+  },
+  "cases": [
+    {
+      "name": "zero_voice_negative",
+      "pass": true,
+      "expected_flags": []
+    },
+    {
+      "name": "habit_reflection_review",
+      "pass": true,
+      "expected_flags": [
+        "MISSING_GOLD_CORE"
+      ]
+    },
+    {
+      "name": "independent_grounded_extra",
+      "pass": true,
+      "expected_flags": [
+        "EXTRA_ACCEPTED_CORE"
+      ]
+    },
+    {
+      "name": "count_equal_substitution",
+      "pass": true,
+      "expected_flags": [
+        "COUNT_EQUAL_SEMANTIC_SUBSTITUTION",
+        "EXTRA_ACCEPTED_CORE",
+        "MISSING_GOLD_CORE"
+      ]
+    },
+    {
+      "name": "over_merge_two_independent_cores",
+      "pass": true,
+      "expected_flags": [
+        "MERGE_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "name": "borderline_asserted_in_accepted",
+      "pass": true,
+      "expected_flags": [
+        "BOUNDARY_ABSORPTION",
+        "MERGE_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "name": "boundary_kept_as_context",
+      "pass": true,
+      "expected_flags": []
+    },
+    {
+      "name": "empty_allowlist_song_label",
+      "pass": true,
+      "expected_flags": [
+        "RELATION_ALLOWLIST_VIOLATION"
+      ]
+    },
+    {
+      "name": "populated_allowlist_known_id",
+      "pass": true,
+      "expected_flags": []
+    },
+    {
+      "name": "reference_conflict_blocks_oracle",
+      "pass": true,
+      "expected_flags": [
+        "REFERENCE_CONFLICT"
+      ]
+    },
+    {
+      "name": "title_not_valid_as_body_evidence",
+      "pass": true,
+      "expected_flags": [
+        "EVIDENCE_NOT_IN_ARTICLE"
+      ]
+    },
+    {
+      "name": "review_boolean_contract_error",
+      "pass": true,
+      "expected_flags": [
+        "INVALID_DISPOSITION_MAPPING",
+        "MISSING_GOLD_CORE"
+      ]
+    },
+    {
+      "name": "role_partition_overlap",
+      "pass": true,
+      "expected_flags": [
+        "INVALID_UNIT_ROLE_PARTITION"
+      ]
+    }
+  ],
+  "nonproduction_borders": {
+    "new_provider_calls": 0,
+    "new_calibration_runs": 0,
+    "pass2_3_runs": 0,
+    "gold_mutation": 0,
+    "active_prompt_mutation": 0,
+    "active_schema_mutation": 0,
+    "active_adapter_mutation": 0,
+    "notion_voice_writes": 0,
+    "production_sqlite_mutation": 0,
+    "permanent_voice_id_allocation": 0,
+    "github_workflow_configuration_change": 0
+  },
+  "pending": [
+    "Owner review of Gold-vs-Preview conflict sources for 25481/35133/65922",
+    "Choose staged tri-state vs separate REVIEW ledger integration design",
+    "Full real-article semantic evaluation and versioned Schema/adapter compatibility tests under separate authorization",
+    "Next provider Calibration Pass1 requires fresh explicit permission; Pass2/3 remain blocked"
+  ]
+}
