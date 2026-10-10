@@ -76,7 +76,7 @@ def audit(payload: dict, reference: dict, article_text: str, relation_context: d
 def main() -> int:
     root = Path(__file__).resolve().parent
     fixture = json.loads((root / "regression_cases_v0_2_2.json").read_text(encoding="utf-8"))
-    schema = json.loads((root / "provider_payload_v0_2_2.DRAFT.schema.json").read_text(encoding="utf-8"))
+    schema = json.loads((root.parents[1] / "schemas" / "member_voices_provider_payload_v0_2_2.DRAFT.schema.json").read_text(encoding="utf-8"))
     assert "disposition" in schema["$defs"]["providerMeaningUnit"]["properties"]
     assert "asserted_unit_refs" in schema["$defs"]["providerVoiceCandidate"]["properties"]
     assert "context_only_refs" in schema["$defs"]["providerVoiceCandidate"]["properties"]
