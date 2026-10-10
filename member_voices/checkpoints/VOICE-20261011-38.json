@@ -1,0 +1,113 @@
+{
+  "delta_id": "VOICE-20261011-38",
+  "workstream_id": "MEMBER_VOICES",
+  "checkpoint_date_jst": "2026-10-11",
+  "checkpoint_type": "OWNER_APPROVED_SANDBOX_SEMANTICS_AND_ISOLATED_REVIEW_SIDECAR_PROTOTYPE",
+  "prior_checkpoint": "member_voices/checkpoints/VOICE-20261011-37.json",
+  "authorized_gate": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "owner_scope": "Owner OK approved previous 2/3/4 semantic hypothesis package and B-method isolated nonproduction Sidecar prototype/regression. This is not Gold/Production/integration/Calibration approval.",
+  "status": "NONPRODUCTION_PILOT_SAVED_VALIDATED_BY_JS_PARITY_PYTHON_RUN_PENDING",
+  "case_approval": {
+    "case_counts": {
+      "25481": 2,
+      "35133": 3,
+      "65922": 4
+    },
+    "total": 9,
+    "semantics": "sandbox semantic partition hypotheses",
+    "permanent_voice_accepted_delta": 0
+  },
+  "artifacts": [
+    {
+      "type": "OWNER_SANDBOX_DECISION",
+      "path": "member_voices/eval/CAL10_OWNER_SEMANTIC_SANDBOX_DECISION_20261011.json",
+      "blob_sha": "a68bd26c4acbb1653f6648fd32196863d2a1deda"
+    },
+    {
+      "type": "SOURCE_IDENTITY_MANIFEST",
+      "path": "member_voices/experiments/review_sidecar_v0_1/THREE_CASE_SOURCE_IDENTITY_MANIFEST_20261011.DRAFT.json",
+      "blob_sha": "095c94c2287e305a2c6996e175ad42c14b25c4d5"
+    },
+    {
+      "type": "ISOLATED_REVIEW_SCHEMA",
+      "path": "member_voices/experiments/review_sidecar_v0_1/review_sidecar_v0_1.DRAFT.schema.json",
+      "blob_sha": "5c3724dc5839d7e257ed66fabd45747dc161cac1"
+    },
+    {
+      "type": "NINE_REVIEW_RECORD_LEDGER",
+      "path": "member_voices/experiments/review_sidecar_v0_1/SANDBOX_THREE_CASE_LEDGER_20261011.DRAFT.json",
+      "blob_sha": "dbaa5eca71ca91b41c4de72e8c6680556bae5248"
+    },
+    {
+      "type": "PYTHON_VALIDATOR",
+      "path": "member_voices/experiments/review_sidecar_v0_1/validate_review_sidecar_v0_1.py",
+      "blob_sha": "8894942ef040fe87a06ee7b1c41b9ee50ed0654b"
+    },
+    {
+      "type": "PYTHON_TEST_SUITE",
+      "path": "member_voices/experiments/review_sidecar_v0_1/test_review_sidecar_v0_1.py",
+      "blob_sha": "deb69d95da032a46e21ba38cfb4e113733e5d8b4"
+    },
+    {
+      "type": "JS_PARITY_AUDIT_28_CASES",
+      "path": "member_voices/experiments/review_sidecar_v0_1/REVIEW_SIDECAR_REGRESSION_AUDIT_20261011.json",
+      "blob_sha": "e810aeb26296700202ee7bf1c14ebdb6b31901c1"
+    },
+    {
+      "type": "README",
+      "path": "member_voices/experiments/review_sidecar_v0_1/README.md",
+      "blob_sha": "460a4131c3572d3e21cc81e64af3fb22a92f223f"
+    }
+  ],
+  "test_result": {
+    "readback_count": 8,
+    "readback_pass": true,
+    "independent_js_contract_parity": {
+      "cases": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    "archived_excerpt_verification_from_prior_checkpoint": {
+      "article_cases": 3,
+      "exact_excerpt_matches": "9/9"
+    },
+    "python_schema_validator_created": true,
+    "python_schema_validator_executed": false,
+    "python_test_suite_created": true,
+    "python_test_suite_executed": false,
+    "source_body_boundary_verified": false,
+    "actual_provider_recovery_or_precision_tested": false,
+    "calibration_pass1_new_run": false,
+    "provider_api_calls_new": 0
+  },
+  "immutability_readback": {
+    "baseline_gold_sha": "150243809c5d96cf355114a75cc08090d9d7df39",
+    "preview_shas": {
+      "25481": "6104c7f7ec07e8bfaa435aaac3268767d0e380a3",
+      "35133": "f6705b9cba0a913480d43fa6f10d9cfb578cb0e6",
+      "65922": "54cdba5690e1d3ce0f0be44dfbec9de0513d0a41"
+    },
+    "active_prompt_sha": "bc4f59869fef2d755c50c9cbdcedc574005feab0",
+    "active_provider_schema_sha": "21b5b51576c2f595c9be43ddfc1ef9d1fa3bf335",
+    "active_semantic_adapter_sha": "0b25de0b6e789c1f978a60b5d32a2822166ca9f6"
+  },
+  "historical_provider": {
+    "run_id": "CAL10-P1-20261010-084821",
+    "gate": "FAIL",
+    "pass2": "BLOCKED",
+    "pass3": "BLOCKED"
+  },
+  "production_safety": {
+    "existing_permanent_accepted_voices_at_last_verified_checkpoint": 7,
+    "existing_highest_voice_id": "VOC-000007",
+    "new_permanent_voice_ids_allocated": 0,
+    "new_notion_voice_writes": 0,
+    "new_production_sqlite_writes": 0,
+    "active_prompt_schema_adapter_changes": 0,
+    "old_gold_or_preview_changes": 0,
+    "new_calibration_runs": 0,
+    "pass2_3_runs": 0
+  },
+  "next_permitted_safe_action": "Execute the saved read-only Python test on a connected repository copy, check source-body boundary and refine isolated prototype. Do not promote results or run new Calibration. Separate Owner approval is required for Gold changes, active runtime integration, Production writes or re-Calibration.",
+  "restart": "PC -> VOICE-20261011-38 -> owner decision + sidecar README + 9-core ledger -> source manifesto and pending Python test -> prior VOICE-20261011-37/35 as needed"
+}
