@@ -1,0 +1,184 @@
+{
+  "audit_id": "MV-REVIEW-SIDECAR-v0.1-20261011",
+  "status": "NONPRODUCTION_SYNTHETIC_CONTRACT_PARITY_PASS",
+  "date_jst": "2026-10-11",
+  "owner_gate": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "method": "In-session independent JavaScript readback/structural parity audit of persisted sandbox ledger, its Owner approval, 3-case adjudication packet, source identity manifest, and DRAFT Schema. Each case deep-clones the 9-record ledger, mutates one relevant boundary, then checks accepted/rejected behavior. This is not a run of the saved Python script.",
+  "case_count": 28,
+  "case_pass_count": 28,
+  "case_fail_count": 0,
+  "cases": [
+    {
+      "name": "baseline_3_article_9_core_strict",
+      "expected_behavior": "ACCEPT",
+      "result": "PASS"
+    },
+    {
+      "name": "zero_review_partial",
+      "expected_behavior": "ACCEPT",
+      "result": "PASS"
+    },
+    {
+      "name": "zero_review_strict_reject",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "missing_core_reject",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "duplicate_group_reject",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "article_id_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "drive_file_id_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "source_sha_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "speaker_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "source_ref_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "owner_gate_tamper",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "production_write_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "review_to_accept_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "voice_eligible_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "promotion_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "permanent_id_key_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "permanent_id_value_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "evidence_change_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "semantic_substitution_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "origin_substitution_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "reference_conflict_cannot_remove",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "65922_source_scope_risk_cannot_remove",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "body_scope_false_verification_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "duplicate_local_review_ref_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "foreign_cross_article_core_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "relation_label_empty_allowlist_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    },
+    {
+      "name": "allow_typed_canonical_in_isolated_ledger",
+      "expected_behavior": "ACCEPT",
+      "result": "PASS"
+    },
+    {
+      "name": "wrong_relation_type_block",
+      "expected_behavior": "REJECT",
+      "result": "PASS"
+    }
+  ],
+  "identity_and_reference_checks": {
+    "owner_sandbox_9_cores": "PASS",
+    "source_identity": "PASS",
+    "three_articles": "PASS",
+    "strict_scope": "PASS",
+    "zero_review_partial": "PASS",
+    "permanent_id_rejected": "PASS",
+    "allowlist_fail_closed": "PASS",
+    "original_gold_unchanged": "VERIFIED_BY_READBACK_PRIOR",
+    "original_preview_unchanged": "VERIFIED_BY_READBACK_PRIOR",
+    "source_text_evidence_exact_substring": "9/9 PREVIOUS_ARCHIVE_READBACK"
+  },
+  "readback_blobs": {
+    "decision": "a68bd26c4acbb1653f6648fd32196863d2a1deda",
+    "packet": "aee963255b39077954c5c8f3e23bc31d345d371d",
+    "ledger": "dbaa5eca71ca91b41c4de72e8c6680556bae5248",
+    "schema": "5c3724dc5839d7e257ed66fabd45747dc161cac1"
+  },
+  "limits": {
+    "python_validator_script_was_executed": false,
+    "python_regression_script_was_executed": false,
+    "python_jsonschema_instance_validation_completed": false,
+    "real_provider_article_extraction_run": false,
+    "source_body_footer_delimitation_completed": false,
+    "new_calibration_calls": 0,
+    "pass2_3_runs": 0,
+    "production_writes": 0,
+    "notion_voice_writes": 0,
+    "gold_mutations": 0,
+    "permanent_voices_allocated": 0
+  },
+  "next": "Execute the saved Python test on a connected copy of GitHub repo or separately sanctioned nonproduction CI; verify source-body bounds; production integration/new Calibration require distinct approval."
+}
