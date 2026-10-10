@@ -1,0 +1,300 @@
+{
+  "schema_id": "MV_REVIEW_SIDECAR_v0.1_DRAFT",
+  "artifact_kind": "NONPRODUCTION_REVIEW_LEDGER",
+  "status": "EVALUATION_ONLY_NO_PROMOTION",
+  "owner_decision_id": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "owner_decision_source": "member_voices/eval/CAL10_OWNER_SEMANTIC_SANDBOX_DECISION_20261011.json",
+  "base_checkpoint": "VOICE-20261011-37",
+  "baseline_run_id": "CAL10-P1-20261010-084821",
+  "production_write_authorized": false,
+  "groups": [
+    {
+      "source": {
+        "article_id": "25481",
+        "source_ref_key": "src_e30372c378c9726ec1e1e278",
+        "confirmed_speaker": "小坂菜緒",
+        "article_text_drive_file_id": "19EYrs9dFz5ADgRfdOhq8BlYB_unAWOmI",
+        "article_text_sha256": "3d9e43f56950741f4e8e5fb6f570f591b444ea788111d6e607494366fe7d2a9f",
+        "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481"
+      },
+      "relation_context": {},
+      "reviews": [
+        {
+          "local_review_ref": "R1",
+          "provisional_core_id": "25481-C1",
+          "semantic_theme": "加入前の迷いとひらがなけやき志望",
+          "evidence_excerpt": "私は目に見えない何かから逃げたかったんだと思います。",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "GRANULARITY"
+          ],
+          "source_origins": [
+            "GOLD_V1",
+            "PREVIEW_V1_MU_1"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "回想として独立して後日比較できる動機・自己理解"
+        },
+        {
+          "local_review_ref": "R2",
+          "provisional_core_id": "25481-C2",
+          "semantic_theme": "オーディションCMの重みと応募者を後押ししたい思い",
+          "evidence_excerpt": "このCMを見て少しでも多くの女の子にこのオーディションを受ける後押しになれるんじゃないかなと思うと、とても重みを感じました。",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "GRANULARITY"
+          ],
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V1_MU_2"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "次の応募者への現在の責任・意図は加入前動機とは異なる時間・対象を持つ"
+        }
+      ]
+    },
+    {
+      "source": {
+        "article_id": "35133",
+        "source_ref_key": "src_d690c965f30468fd4e761af4",
+        "confirmed_speaker": "小坂菜緒",
+        "article_text_drive_file_id": "1OzSgpSUKpWfH9CUmb3vHlwFr2x_iKoZj",
+        "article_text_sha256": "5da9dc2895168cbedc69312b0f4b5db147425247212acf6d947efae24b4222d1",
+        "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133"
+      },
+      "relation_context": {},
+      "reviews": [
+        {
+          "local_review_ref": "R1",
+          "provisional_core_id": "35133-C1",
+          "semantic_theme": "センター期の怖さと重圧",
+          "evidence_excerpt": "先頭に立つのは何よりも怖かったです。",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "GRANULARITY"
+          ],
+          "source_origins": [
+            "GOLD_V1",
+            "PREVIEW_V1"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "過去の役割に対する独立した回想"
+        },
+        {
+          "local_review_ref": "R2",
+          "provisional_core_id": "35133-C2",
+          "semantic_theme": "センターを離れる時の複雑な感情",
+          "evidence_excerpt": "解かれた安心感なのか解放感なのか、外れた悔しさなのか悲しみなのか、よく分かりません。",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "GRANULARITY"
+          ],
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V2_PART"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "現在の混在した感情、自己認識"
+        },
+        {
+          "local_review_ref": "R3",
+          "provisional_core_id": "35133-C3",
+          "semantic_theme": "第2章として次へ向かう意志",
+          "evidence_excerpt": "新たなる物語、第2章の幕開けだ",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "GRANULARITY"
+          ],
+          "source_origins": [
+            "GOLD_V3",
+            "PREVIEW_V2_PART"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "明示された将来志向。単に現在感情の言い換えではない"
+        }
+      ]
+    },
+    {
+      "source": {
+        "article_id": "65922",
+        "source_ref_key": "src_3b8e9eeb15954711a552d9c7",
+        "confirmed_speaker": "大田美月",
+        "article_text_drive_file_id": "1PFWbpO4PlLjPQ7JJAYMCDkcSt5WPZoE6",
+        "article_text_sha256": "03f00076235557186449c82024db4987ad07dff9468534f726a37f099c66d7a4",
+        "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922"
+      },
+      "relation_context": {},
+      "reviews": [
+        {
+          "local_review_ref": "R1",
+          "provisional_core_id": "65922-C1",
+          "semantic_theme": "ブログをファンへのラブレターと捉える",
+          "evidence_excerpt": "みづきからのラブレターだと思ってこれからも読んでねっ♡",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "SOURCE_SCOPE"
+          ],
+          "source_origins": [
+            "GOLD_V1"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "ファンとの発信・関係性の解釈として保持し得る"
+        },
+        {
+          "local_review_ref": "R2",
+          "provisional_core_id": "65922-C2",
+          "semantic_theme": "比較してきた経験と桜梅桃李の価値観",
+          "evidence_excerpt": "よく比較してしまっていた私にとってとても大切な言葉です✨️",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "SOURCE_SCOPE"
+          ],
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V1"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "自己理解・継続的価値観"
+        },
+        {
+          "local_review_ref": "R3",
+          "provisional_core_id": "65922-C3",
+          "semantic_theme": "個人ブログを夢実現の一歩にしたい意志",
+          "evidence_excerpt": "これからこの個人ブログも夢を叶えていくための1歩にできたらいいなと思いますっ💭",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "SOURCE_SCOPE"
+          ],
+          "source_origins": [
+            "GOLD_V3"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "発信手段を将来の目標達成につなぐ行動意図。C1と同一対象だが違う中心命題"
+        },
+        {
+          "local_review_ref": "R4",
+          "provisional_core_id": "65922-C4",
+          "semantic_theme": "技術だけでなく表現力で魅了したい目標",
+          "evidence_excerpt": "ただダンス上手いねで終わりたくない気持ちが強くて、",
+          "evidence_exact_substring_verified": true,
+          "article_body_scope_verification": "UNVERIFIED_NEEDS_BOUNDARY_CHECK",
+          "disposition": "REVIEW",
+          "voice_eligible": false,
+          "owner_semantic_status": "APPROVED_FOR_SANDBOX_ONLY",
+          "owner_promotion_status": "NOT_AUTHORIZED",
+          "risk_flags": [
+            "REFERENCE_CONFLICT",
+            "SOURCE_SCOPE"
+          ],
+          "source_origins": [
+            "PREVIEW_V2"
+          ],
+          "relations": {
+            "related_members": [],
+            "related_songs": [],
+            "related_lives": [],
+            "related_events": [],
+            "related_releases": []
+          },
+          "review_reason": "パフォーマンスに対する具体的長期目標、Goldに未採録でも直ちに不適格ではない"
+        }
+      ]
+    }
+  ]
+}
