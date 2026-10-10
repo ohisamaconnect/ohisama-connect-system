@@ -1,0 +1,87 @@
+{
+  "delta_id": "VOICE-20261010-36",
+  "workstream_id": "MEMBER_VOICES",
+  "date_jst": "2026-10-10",
+  "checkpoint_type": "OWNER_APPROVED_GENERAL_REMEDIATION_DRAFT_AND_NONPRODUCTION_REGRESSION",
+  "base_pc_revision_observed": "PC-20261010-128",
+  "base_checkpoint": "VOICE-20261010-35",
+  "owner_approval": {
+    "gate_id": "MV-CAL10-RECON-APPROVAL-20261010-01",
+    "scope": "Approve general contract revision DRAFT and isolated nonproduction regression tests only.",
+    "approved": true,
+    "exclusions": [
+      "Recovered Gold change",
+      "approved implementation Preview change",
+      "active semantic criteria/Prompt/Schema/Adapter adoption",
+      "permanent VOICE or Production SQLite/Notion write",
+      "new Calibration Pass1",
+      "Pass2",
+      "Pass3",
+      "new trigger"
+    ],
+    "human_approval_message": "MV-CAL10-RECON-APPROVAL-20261010-01 を承認します。提示された範囲の一般契約改訂DRAFTと非Production回帰テスト整備へ進んでください。Gold変更、Production変更、新規Calibration、Pass2/Pass3は承認しません。"
+  },
+  "source_run": {
+    "run_id": "CAL10-P1-20261010-084821",
+    "status": "COMPLETED",
+    "calibration_gate": "FAIL",
+    "pass2_3": "NOT_STARTED"
+  },
+  "draft_artifacts": [
+    {
+      "kind": "GENERAL_CONTRACT",
+      "path": "member_voices/docs/MEMBER_VOICES_GENERAL_SEMANTIC_CONTRACT_v0.2.2.DRAFT.md",
+      "blob_sha": "5e72bfac842d04dd892c02f1d1fd2c313d239eee"
+    },
+    {
+      "kind": "PROMPT",
+      "path": "member_voices/prompts/MEMBER_VOICES_SEMANTIC_PROMPT_v0.2.2.DRAFT.md",
+      "blob_sha": "6f36438b4701a49664e1f4bec75ac6e0b31b6f01"
+    },
+    {
+      "kind": "SCHEMA",
+      "path": "member_voices/schemas/member_voices_provider_payload_v0_2_2.DRAFT.schema.json",
+      "blob_sha": "7d02d7d2e75aa38029714a4382cb7dff954386b0"
+    },
+    {
+      "kind": "ISOLATED_REGRESSION_RUNNER",
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/validate_contract_draft_v0_2_2.py",
+      "blob_sha": "eae72ed250d09dec5aee61db49373c89c06ad622"
+    },
+    {
+      "kind": "SYNTHETIC_FIXTURES",
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/regression_cases_v0_2_2.json",
+      "blob_sha": "86dde26e03438e661bb4df96c8cb5b2c11870bd4"
+    },
+    {
+      "kind": "REGRESSION_RESULT",
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/REGRESSION_RESULT_20261010.json",
+      "blob_sha": "07b6698a9169609dca17a9bf7ac03b37f4350442"
+    }
+  ],
+  "test_result": {
+    "synthetic_general_contract_cases": "13/13 PASS",
+    "actual_provider_accuracy": "NOT TESTED",
+    "full_schema_instance_validation": "NOT RUN",
+    "new_Gemini_calls": 0,
+    "ci_workflow_modified": false
+  },
+  "source_state_unchanged": {
+    "schema_v0_1_sha": "21b5b51576c2f595c9be43ddfc1ef9d1fa3bf335",
+    "prompt_v0_1_sha": "bc4f59869fef2d755c50c9cbdcedc574005feab0",
+    "gold": "UNCHANGED",
+    "provider_run": "UNCHANGED",
+    "notion_voice_write": 0,
+    "production_sqlite_mutation": 0,
+    "permanent_voice_id_allocation": 0,
+    "permanent_voice_count_last_checkpoint": 7,
+    "highest_voice_id_last_checkpoint": "VOC-000007"
+  },
+  "reference_conflicts_pending": [
+    "25481",
+    "35133",
+    "65922"
+  ],
+  "next_action": "Owner review of the DRAFT and explicit adjudication/design approval of reference authority, staged REVIEW contract compatibility and integration. No live schema/prompt changes or new Pass1/2/3 without distinct approval.",
+  "restart_point": "Fetch Project Control, this checkpoint and VOICE-20261010-35. Read the six DRAFT artifacts and original Gold/Preview/Provider evidence. Remain nonProduction/Calibration FAIL; do not rerun Gemini or alter Production."
+}
