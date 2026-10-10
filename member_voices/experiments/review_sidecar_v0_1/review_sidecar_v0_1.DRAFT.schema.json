@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MEMBER VOICES isolated REVIEW Sidecar v0.1 DRAFT",
-  "description": "Nonproduction only. REVIEW ledger has NO authority to promote, allocate VOC IDs, mutate recovered Gold, or update Production. Cross-record/source and allow-list checks are enforced by standalone validator.",
+  "description": "Nonproduction only. REVIEW ledger has NO authority to promote, allocate VOC IDs, mutate recovered Gold, or update Production. Cross-record/source and allow-list checks are enforced by standalone validator. Empty group / zero-REVIEW documents are legal in the nonproduction partial validation mode; strict approved 9-core completeness check is independent.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -42,7 +42,7 @@
     },
     "groups": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -133,7 +133,7 @@
           },
           "reviews": {
             "type": "array",
-            "minItems": 1,
+            "minItems": 0,
             "items": {
               "type": "object",
               "additionalProperties": false,
