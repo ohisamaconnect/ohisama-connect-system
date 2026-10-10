@@ -12,7 +12,9 @@
 - LIV-0017 specialist date-specific listing orders W before 僕, whereas old legacy order reverses them; actual HHA stage involvement in W not independently established. Both kept as candidate with order Review, not frozen.
 - Foreign covers are not silently added to HHA SONGS. Original 4th-single song participants are not copied into stage cast.
 - Private Library data-bearing checkpoint: `/HHA_PERFORMANCES/2026-10-11_v2_LIV0015_0017_SOURCE_FIRST_APPROVAL_DRAFT/HHA_PRF_R2_B0015_0017_SOURCE_FIRST_APPROVAL_DRAFT_20261011.zip`
-- ZIP size 14630 bytes, SHA256 `7cfab171e555b75d974deb7fe78d5740877fcdcebc0f7b1602dbfea9b076b3b0`. Library upload followed by actual ZIP re-fetch and exact byte/hash/ZIP internal checksum validation **PASS**.
+- ZIP size 14604 bytes, SHA256 `e938ad3e2273e54446134197d326f68c2ee70356816b9f5e899f0ea6eba5a9ce`. Library upload followed by actual ZIP re-fetch and exact byte/hash/ZIP internal checksum validation **PASS**.
 - Public GitHub carries metadata only, not conversation quotes or raw private row-level data.
 - Next action: show all 19 detailed proposals, 11 issue distinctions, and a **single Owner approval gate at end of response block**. If approved, append to existing Google Sheets Working, Fact Evidence, Review, Progress, read back every range; then update Project Control and proceed LIV-0018.
 - No permanent PRF IDs, no Notion PERFORMANCES database write.
+
+- Revised candidate LIV-0017 W: original studio collaboration does not establish stage cast; current performing_members is Unknown, issue PRF-R2-L0017-W-PARTICIPATION. Library ZIP re-fetched after overwrite and hash checked again.
