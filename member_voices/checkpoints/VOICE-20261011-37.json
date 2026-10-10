@@ -1,0 +1,91 @@
+{
+  "delta_id": "VOICE-20261011-37",
+  "workstream_id": "MEMBER_VOICES",
+  "date_jst": "2026-10-11",
+  "checkpoint_type": "SOURCE_FIRST_REFERENCE_RECONCILIATION_AND_SIDECAR_DESIGN_DRAFT",
+  "predecessor": "member_voices/checkpoints/VOICE-20261010-36.json",
+  "last_approved_gate": "MV-CAL10-RECON-APPROVAL-20261010-01",
+  "process_rule": "In same chat, user OK/approval of completed block authorizes auto-advance into next already permitted phase; '続き' is for new chat restart only. Prior explicit prohibitions remain binding.",
+  "process_rule_location": "https://app.notion.com/p/3f0031bc0d4581eb945cfb742568968c",
+  "source_verification": {
+    "archive_article_texts_read_from_google_drive": 3,
+    "article_ids": [
+      "25481",
+      "35133",
+      "65922"
+    ],
+    "proposed_semantic_cores_count": 9,
+    "exact_excerpt_matches": 9,
+    "note": "9 excerpts verified against connector-read saved article.txt; full source SHA256 not independently recomputed this block."
+  },
+  "artifacts": [
+    {
+      "kind": "OWNER_ADJUDICATION_CROSSWALK_DRAFT",
+      "path": "member_voices/eval/CAL10_REFERENCE_ADJUDICATION_PACKET_2026-10-11.DRAFT.json",
+      "blob_sha": "aee963255b39077954c5c8f3e23bc31d345d371d"
+    },
+    {
+      "kind": "SIDECAR_DESIGN_DRAFT",
+      "path": "member_voices/docs/MEMBER_VOICES_REVIEW_SIDECAR_INTEGRATION_DESIGN_v0.1.DRAFT.md",
+      "blob_sha": "0dc16b08de6a3c3d3dd1ed31d280c65efd43d12d"
+    },
+    {
+      "kind": "CROSSWALK_VALIDATOR_CODE",
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/validate_reference_adjudication_draft.py",
+      "blob_sha": "15de8a653253a18100b811cc7ee513f523706586"
+    },
+    {
+      "kind": "SOURCE_AUDIT_RESULT",
+      "path": "member_voices/experiments/cal10_draft_v0_2_2/REFERENCE_ADJUDICATION_EVIDENCE_AUDIT_20261011.json",
+      "blob_sha": "4adee93a4a7fc7c88ca7fa4b3396a887634126a5"
+    }
+  ],
+  "proposed_owner_adjudication": {
+    "status": "PENDING_NOT_IMPLIED_BY_PRIOR_OK",
+    "gate_id": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+    "cases": {
+      "25481": {
+        "recovered_gold": 2,
+        "approved_implementation_preview": 1,
+        "proposed_distinct_cores": 2
+      },
+      "35133": {
+        "recovered_gold": 3,
+        "approved_implementation_preview": 2,
+        "proposed_distinct_cores": 3
+      },
+      "65922": {
+        "recovered_gold": 3,
+        "approved_implementation_preview": 2,
+        "proposed_distinct_cores": 4
+      }
+    },
+    "architecture_preference": "B - isolated nonproduction REVIEW Sidecar first; retain v0.2.2 tri-state Schema DRAFT for future compatibility tests",
+    "authorization_requested": "Owner semantic adjudication for 9 provisional cores and approval to build isolated nonproduction sidecar prototype only; does not authorize Gold/Preview mutation, active integration or any Calibration."
+  },
+  "readback_verified": {
+    "ledger": true,
+    "design": true,
+    "code": true,
+    "evidence_result": true,
+    "notion_protocol": true,
+    "baseline_prompt_sha": "bc4f59869fef2d755c50c9cbdcedc574005feab0",
+    "baseline_schema_sha": "21b5b51576c2f595c9be43ddfc1ef9d1fa3bf335",
+    "baseline_adapter_sha": "0b25de0b6e789c1f978a60b5d32a2822166ca9f6",
+    "recovered_gold_sha": "150243809c5d96cf355114a75cc08090d9d7df39"
+  },
+  "limits": {
+    "original_calibration_pass1": "CAL10-P1-20261010-084821",
+    "calibration_gate": "FAIL",
+    "new_provider_runs": 0,
+    "pass2_runs": 0,
+    "pass3_runs": 0,
+    "gold_mutations": 0,
+    "preview_mutations": 0,
+    "active_schema_prompt_adapter_mutations": 0,
+    "production_sqlite_writes": 0,
+    "notion_voice_writes": 0,
+    "permanent_voice_allocations": 0
+  },
+  "next_safe_phase": "Upon explicit Owner approval of adjudication proposal, record Owner ruling in separate sidecar DRAFT, then implement and test nonproduction Sidecar. Never touch Gold/Production or run Calibration under the current gate. An alternative owner ruling should be applied to a NEW owner decision artifact, not erase original evidence."
+}
