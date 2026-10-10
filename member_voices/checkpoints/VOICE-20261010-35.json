@@ -1,0 +1,207 @@
+{
+  "delta_id": "VOICE-20261010-35",
+  "workstream_id": "MEMBER_VOICES",
+  "base_revision_observed": "PC-20261010-127",
+  "date_jst": "2026-10-10",
+  "checkpoint_type": "CALIBRATION_PASS1_COMPLETED_DIAGNOSTIC",
+  "source_identity_gate": "VERIFIED",
+  "last_approved_point": "User explicitly requested completion summary and durable cross-chat save after fresh Calibration Pass1 10/10 completed; no semantic contract, Gold, schema, permanent VOICE, or production-data change approved.",
+  "contract_version": "MEMBER VOICES Schema v1.1 + Extraction & Thread Contract v1.0 + Semantic Provider Prompt/Runner v0.2.1 + Recovered Calibration Manifest v0.2",
+  "output_version": "Recovered Calibration evaluation evidence / Runner v0.2.1",
+  "run": {
+    "run_id": "CAL10-P1-20261010-084821",
+    "status": "COMPLETED",
+    "pass_no": 1,
+    "model": "gemini-3.8-flash",
+    "thinking_level": "medium",
+    "extractor_version": "mv-semantic-p0.1-ps0.1-google-gemini-gemini-3.8-flash-medium-phaf45ed9e374b-sh28b671ccbd01",
+    "manifest_sha256": "916d98f1e75bb8a027f8ec1ca7acad3a1aa55eea90359c82208220becccf9d9f",
+    "gold_bundle_sha256": "029b95ea134ecee0e63adc137cd744a064902eab2e7b888bd683510312464682",
+    "prompt_sha256": "af45ed9e374b3dec012aab3fa0f15548612887201438d5568b10f62a5dca0231",
+    "provider_schema_sha256": "28b671ccbd018215d5b97ae1dddd29a88234635e78d52ac3e38f54a5fe89e4fc",
+    "run_folder_id": "1CG2JfoaNTI9ztf2PGHXhXzVx7ruKUTVm",
+    "started_at": "2026-10-09T23:48:22.066Z",
+    "completed_at": "2026-10-10T00:32:00.388Z",
+    "write_boundary": "DRIVE_EVAL_EVIDENCE_ONLY",
+    "notion_write": false,
+    "permanent_voice_id_allocation": false,
+    "production_sqlite_mutation": false
+  },
+  "aggregate": {
+    "calibration_gate": "FAIL",
+    "exact_count_rate": {
+      "pass": 5,
+      "total": 10,
+      "rate": 0.5,
+      "required": 0.9
+    },
+    "within_one_rate": {
+      "pass": 9,
+      "total": 10,
+      "rate": 0.9,
+      "required": 0.98
+    },
+    "runtime_invariant_rate": {
+      "pass": 8,
+      "total": 10,
+      "rate": 0.8,
+      "required": 1
+    },
+    "zero_voice_false_positive_count": 0,
+    "strict_human_semantic_selection_pass": {
+      "pass": 4,
+      "total": 10,
+      "rate": 0.4
+    },
+    "all_dimensions_pass": {
+      "pass": 3,
+      "total": 10,
+      "rate": 0.3
+    },
+    "gemini_api_calls_cumulative": 15
+  },
+  "cases": [
+    {
+      "case_no": 1,
+      "article_id": "25481",
+      "gold_count": 2,
+      "accepted_count": 2,
+      "count_exact": true,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "PASS",
+      "error_type": "NONE",
+      "result_file_id": "10NWJUJOsuRrrHiuD6p8znRfZlrLtDn1q",
+      "note": "Both Gold semantic cores recovered; Source Title caused no over-extraction."
+    },
+    {
+      "case_no": 2,
+      "article_id": "26676",
+      "gold_count": 0,
+      "accepted_count": 0,
+      "count_exact": true,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "PASS",
+      "error_type": "NONE",
+      "result_file_id": "1GiZRJ52t6tsqJS09c19pzPjeALhtaI6P",
+      "note": "0-VOICE safety preserved after Source Title input."
+    },
+    {
+      "case_no": 3,
+      "article_id": "33683",
+      "gold_count": 1,
+      "accepted_count": 0,
+      "count_exact": false,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "FAIL",
+      "error_type": "FALSE_NEGATIVE_DURABILITY_THRESHOLD",
+      "result_file_id": "1rbQlIafY4REeTbr8-pATpE2zQZ1bb3As",
+      "note": "Provider extracted habit-formation reflection as MU but rejected as not durable; Source Title was correctly available, so prior title-input hypothesis was insufficient."
+    },
+    {
+      "case_no": 4,
+      "article_id": "35133",
+      "gold_count": 3,
+      "accepted_count": 5,
+      "count_exact": false,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "FAIL",
+      "error_type": "OVER_SELECTION_EXTRA_VALID_GROUNDED_VOICES",
+      "result_file_id": "1SJMtjFcEA3Yz8JTVzphuQxEhcmn1ERuZ",
+      "note": "Gold 3 cores recovered as V1/V2/V4; extra grounded V3 relationship/support and V5 tears/emotion view. Exact-evidence fix succeeded."
+    },
+    {
+      "case_no": 5,
+      "article_id": "65922",
+      "gold_count": 3,
+      "accepted_count": 4,
+      "count_exact": false,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "FAIL",
+      "error_type": "MISS_PLUS_EXTRA_AND_GOLD_PREVIEW_DIVERGENCE",
+      "result_file_id": "1IV7eUDLNtczEoTP1o8YA2acdXv_aQb30",
+      "note": "Recovered Gold: love-letter/blog, Oubaitouri, blog-as-dream-step. Provider missed love-letter, recovered Oubaitouri/blog-dream-step, added dance-expression and twintail identity. Later approved implementation Preview had only Oubaitouri + dance-expression, proving Recovered Gold is not a complete v1.1 artifact."
+    },
+    {
+      "case_no": 6,
+      "article_id": "67706",
+      "gold_count": 2,
+      "accepted_count": 2,
+      "count_exact": true,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "FAIL",
+      "error_type": "SEMANTIC_SUBSTITUTION_COUNT_ACCIDENTALLY_MATCHES",
+      "result_file_id": "1iCL-2lUzvi2bi_0BQP4Cxn3dWB3M1lCn",
+      "note": "Song/dream core matched. Provider missed Gold '同期がテレビに映る喜び' and instead accepted grounded '稲熊ひなとの親交'; count 2/2 therefore masks semantic mismatch. Approved Preview confirms Gold second core."
+    },
+    {
+      "case_no": 7,
+      "article_id": "50967",
+      "gold_count": 2,
+      "accepted_count": 1,
+      "count_exact": false,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "FAIL",
+      "error_type": "OVER_MERGE_AND_BORDERLINE_ABSORPTION",
+      "result_file_id": "1fZE7zKXfz4_WDahI_455zpeEBKogM8eX",
+      "note": "Provider found Gold A/C and Borderline B as MUs, then merged A+B+C into one VOICE. Expected two Accepted VOICEs plus B boundary."
+    },
+    {
+      "case_no": 8,
+      "article_id": "55209",
+      "gold_count": 2,
+      "accepted_count": 2,
+      "count_exact": true,
+      "runtime_invariants_pass": true,
+      "human_semantic_selection": "PASS",
+      "error_type": "NONE",
+      "result_file_id": "1qq0C51C_k2klHR0J7KJLRNbDfyy4X3F-",
+      "note": "Both Gold semantic cores recovered; non-durable song first impression rejected."
+    },
+    {
+      "case_no": 9,
+      "article_id": "25939",
+      "gold_count": 2,
+      "accepted_count": 2,
+      "count_exact": true,
+      "runtime_invariants_pass": false,
+      "human_semantic_selection": "PASS",
+      "error_type": "RELATION_ALLOWLIST_VIOLATION",
+      "result_file_id": "1XhNQhq7JiLXKJZF-pIsbwTWd7lrlY9qF",
+      "runtime_error": "V2 related_songs ID is outside RELATION_CONTEXT: 夏の花は向日葵だけじゃない",
+      "note": "Both Gold semantic cores recovered; invariant correctly blocked non-canonical song-name string in related_songs when RELATION_CONTEXT empty."
+    },
+    {
+      "case_no": 10,
+      "article_id": "44109",
+      "gold_count": 1,
+      "accepted_count": 2,
+      "count_exact": false,
+      "runtime_invariants_pass": false,
+      "human_semantic_selection": "FAIL",
+      "error_type": "OVER_SELECTION_PLUS_RELATION_ALLOWLIST_VIOLATION",
+      "result_file_id": "1oMh3u_4pxB5CWswDhe9yLIZAUDjk-HnN",
+      "runtime_error": "V2 related_songs ID is outside RELATION_CONTEXT: 僕なんか",
+      "note": "Gold ceremonial-first-pitch core recovered; extra release/22-member VOICE accepted and related_songs contained non-canonical title string."
+    }
+  ],
+  "conclusions": [
+    "Runner v0.2.1 Source Title and exact-evidence changes are materially improved but the fresh Pass1 does not meet Calibration gates.",
+    "The dominant remaining problems are semantic selection/granularity, not source identity or evidence copying.",
+    "Recovered Gold and later approved v1.1 implementation Previews diverge for at least 65922; do not blindly tune Prompt to recovered counts.",
+    "Count-only evaluation is insufficient; 67706 demonstrates accidental exact-count match with semantic substitution.",
+    "Boundary preservation/granularity needs explicit treatment; 50967 merged two Accepted cores and a Borderline candidate.",
+    "Relation allow-list enforcement works, but provider still emits non-canonical labels into related_* arrays on 25939 and 44109.",
+    "Do not run Pass2/Pass3 or mutate Gold/Prompt/Schema/production data until a new explicit Approval Gate selects the general remediation strategy."
+  ],
+  "unchanged_production_state": {
+    "accepted_permanent_voice_count": 7,
+    "highest_voice_id": "VOC-000007",
+    "next_voice_id": "VOC-000008",
+    "notion_voice_write": 0,
+    "permanent_voice_id_allocation": 0,
+    "production_sqlite_mutation": 0,
+    "archive_bulk_processing": 0,
+    "trigger_additions": 0
+  },
+  "restart_point": "NEW CHAT: fetch Project Control and this checkpoint first. Treat CAL10-P1-20261010-084821 as completed diagnostic / Calibration FAIL. Build a three-way reconciliation matrix (Recovered Gold vs approved implementation Preview where available vs Provider v0.2.1), then present one explicit Approval Gate for a general remediation plan. Do NOT start Pass2/Pass3, change Gold, change Prompt/Schema, or write permanent VOICE/SQLite/Notion semantics before approval."
+}
