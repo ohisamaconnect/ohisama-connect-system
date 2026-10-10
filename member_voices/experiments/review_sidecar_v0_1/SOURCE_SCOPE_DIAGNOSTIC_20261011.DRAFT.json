@@ -1,0 +1,42 @@
+{
+  "audit_id": "MV-SOURCE-SCOPE-DIAGNOSTIC-20261011",
+  "status": "NONPRODUCTION_READONLY_SOURCE_SCOPE_DIAGNOSTIC",
+  "predecessor_checkpoint": "VOICE-20261011-38",
+  "owner_gate": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "source_validation": "Stored archive article bodies provisionally delimited by unique author signoff + post number; excluded adjacent post/navigation. No original HTML verification.",
+  "summary": {
+    "article_cases": 3,
+    "proposal_core_evidence_in_article_body": 9,
+    "proposal_core_evidence_outside": 0,
+    "historical_provider_mu_checked": 13,
+    "historical_provider_mu_inside_body": 12,
+    "historical_provider_mu_outside_body": 1
+  },
+  "by_article": [
+    {
+      "article_id": "25481",
+      "historical_provider_mu_total": 3,
+      "outside": 0
+    },
+    {
+      "article_id": "35133",
+      "historical_provider_mu_total": 6,
+      "outside": 1,
+      "affected_mu": "U6",
+      "affected_accepted_candidate": "V5",
+      "diagnostic_class": "SOURCE_SCOPE_CONTAMINATION"
+    },
+    {
+      "article_id": "65922",
+      "historical_provider_mu_total": 4,
+      "outside": 0
+    }
+  ],
+  "scope": "Diagnostic only; no Gold, Preview, Provider output, Adapter, permanent VOICE, Notion VOICE, SQLite or Calibration changes.",
+  "limitations": [
+    "Archives may embed adjacent posts; signoff rule is article-specific, not a universal parser.",
+    "Archive text body boundary is provisional pending official HTML comparison.",
+    "This finding does not itself quantify any change in Provider precision.",
+    "Existing independent 28-case Sidecar Python suite has not yet been run in an identical local repository checkout."
+  ]
+}
