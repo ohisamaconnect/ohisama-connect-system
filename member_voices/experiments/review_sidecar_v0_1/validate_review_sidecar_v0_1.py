@@ -28,7 +28,8 @@ def load(path: Path) -> dict:
 
 
 def validate(ledger: dict, schema: dict, decision: dict, packet: dict,
-             source_texts: dict[str, str] | None = None, *, strict_complete=True) -> dict:
+             source_manifest: dict, source_texts: dict[str, str] | None = None,
+             *, strict_complete=True) -> dict:
     errors = [str(error) for error in Draft202012Validator(schema).iter_errors(ledger)]
     if errors:
         raise ValueError("Draft Schema validation failed: " + "; ".join(errors[:5]))
@@ -40,6 +41,9 @@ def validate(ledger: dict, schema: dict, decision: dict, packet: dict,
         raise ValueError("Production boundary broken")
 
     packet_by_id = {c["article_id"]: c for c in packet["cases"]}
+    manifest_by_id = {c["article_id"]: c for c in source_manifest["records"]}
+    if set(manifest_by_id) != set(decision["subject_case_ids"]):
+        raise ValueError("Source manifest scope differs from Owner authorization")
     allowed_cores = set(decision["sandbox_approved_core_ids"])
     observed_cores: set[str] = set()
     seen_sources: set[str] = set()
@@ -48,10 +52,12 @@ def validate(ledger: dict, schema: dict, decision: dict, packet: dict,
     for group in ledger["groups"]:
         source = group["source"]
         article_id = source["article_id"]
-        if article_id not in packet_by_id or article_id in seen_sources:
+        if article_id not in packet_by_id or article_id not in manifest_by_id or article_id in seen_sources:
             raise ValueError("Unapproved or duplicate article: " + article_id)
         seen_sources.add(article_id)
         packet_case = packet_by_id[article_id]
+        if source != manifest_by_id[article_id]:
+            raise ValueError("Source identity mismatch with immutable manifest")
         if packet_case["source_text_drive_file_id"] != source["article_text_drive_file_id"]:
             raise ValueError("Wrong Drive source")
         if packet_case["article_id"] != article_id:
@@ -71,12 +77,20 @@ def validate(ledger: dict, schema: dict, decision: dict, packet: dict,
                 raise ValueError("Duplicate core: " + core)
             observed_cores.add(core)
             origin = expected_core[core]
+            if set(record["source_origins"]) != set(origin["source_origins"]):
+                raise ValueError("Gold / Preview lineage changed: " + core)
             if record["semantic_theme"] != origin["semantic_theme"]:
                 raise ValueError("Unadjudicated semantic substitution: " + core)
             if record["evidence_excerpt"] != origin["exact_excerpt_for_crosscheck"]:
                 raise ValueError("Evidence changed: " + core)
             if set(record["source_origins"]) != set(origin["source_origins"]):
                 raise ValueError("Gold/Preview lineage mismatch: " + core)
+            if record["article_body_scope_verification"] != "UNVERIFIED_NEEDS_BOUNDARY_CHECK":
+                raise ValueError("Unverified Article body scope may not be declared verified")
+            if "REFERENCE_CONFLICT" not in record["risk_flags"]:
+                raise ValueError("Reference conflict prematurely removed")
+            if article_id == "65922" and "SOURCE_SCOPE" not in record["risk_flags"]:
+                raise ValueError("Known source-scope risk prematurely removed")
             if record["disposition"] != "REVIEW" or record["voice_eligible"] or record["owner_promotion_status"] != "NOT_AUTHORIZED":
                 raise ValueError("Unexpected promotion: " + core)
             for field, kind in RELATION_TYPES.items():
@@ -109,6 +123,7 @@ def main() -> int:
     p.add_argument("--schema", type=Path, required=True)
     p.add_argument("--decision", type=Path, required=True)
     p.add_argument("--packet", type=Path, required=True)
+    p.add_argument("--identity-manifest", type=Path, required=True)
     p.add_argument("--source-map", type=Path)
     p.add_argument("--allow-partial", action="store_true")
     args = p.parse_args()
@@ -117,7 +132,8 @@ def main() -> int:
         paths = load(args.source_map)
         source_texts = {k: Path(v).read_text(encoding="utf-8") for k, v in paths.items()}
     result = validate(load(args.ledger), load(args.schema), load(args.decision),
-                      load(args.packet), source_texts, strict_complete=not args.allow_partial)
+                      load(args.packet), load(args.identity_manifest), source_texts,
+                      strict_complete=not args.allow_partial)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
