@@ -1,0 +1,42 @@
+{
+  "decision_id": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "decision_date_jst": "2026-10-11",
+  "decision_status": "APPROVED_NONPRODUCTION_EVALUATION_HYPOTHESIS_ONLY",
+  "owner_response": "OK",
+  "owner_approved_scope": "Three-case semantic-core proposal (25481=2, 35133=3, 65922=4) for isolated REVIEW Sidecar prototype and nonproduction tests. Preservation of historical Gold, original Implementation Previews and mainline adapter required.",
+  "authorization_source_checkpoint": "member_voices/checkpoints/VOICE-20261011-37.json",
+  "proposal_readback_source": "member_voices/eval/CAL10_REFERENCE_ADJUDICATION_PACKET_2026-10-11.DRAFT.json",
+  "proposal_source_blob_sha": "aee963255b39077954c5c8f3e23bc31d345d371d",
+  "subject_case_ids": [
+    "25481",
+    "35133",
+    "65922"
+  ],
+  "sandbox_approved_core_ids": [
+    "25481-C1",
+    "25481-C2",
+    "35133-C1",
+    "35133-C2",
+    "35133-C3",
+    "65922-C1",
+    "65922-C2",
+    "65922-C3",
+    "65922-C4"
+  ],
+  "sandbox_approved_counts": {
+    "25481": 2,
+    "35133": 3,
+    "65922": 4
+  },
+  "semantics": "Owner accepts the previously disclosed proposal for sandbox evaluation; all nine remain blocked from production acceptance and Gold/Preview overwrite. This record does not mark permanent VOICE acceptance.",
+  "review_ledger_status": "REVIEW_PENDING_SEPARATE_PROMOTION_GATE",
+  "architecture": "B_ISOLATED_REVIEW_SIDECAR_PILOT_APPROVED_NONPRODUCTION_ONLY",
+  "gold_rewrite_authorized": false,
+  "preview_rewrite_authorized": false,
+  "active_prompt_schema_adapter_rewrite_authorized": false,
+  "new_calibration_authorized": false,
+  "pass2_authorized": false,
+  "pass3_authorized": false,
+  "production_write_authorized": false,
+  "next_permitted_work": "Build isolated draft schema, sidecar pilot exporter/validator and synthetic plus nine-core structure regression; read back and save checkpoint."
+}
