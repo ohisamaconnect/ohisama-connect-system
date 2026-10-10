@@ -1,0 +1,34 @@
+{
+  "artifact_id": "MV-CAL10-REFERENCE-EVIDENCE-AUDIT-20261011",
+  "date_jst": "2026-10-11",
+  "status": "NONPRODUCTION_EVIDENCE_AUDIT_PASS_OWNER_UNDECIDED",
+  "packet": "member_voices/eval/CAL10_REFERENCE_ADJUDICATION_PACKET_2026-10-11.DRAFT.json",
+  "packet_blob_sha": "aee963255b39077954c5c8f3e23bc31d345d371d",
+  "verification_type": "Three archived Drive article.txt files fetched; each proposed excerpt checked as exact substring in corresponding live connector-read archive content. Structural crosswalk checked using independent JavaScript assertion logic.",
+  "cases_checked": 3,
+  "proposed_core_excerpts_checked": 9,
+  "excerpt_exact_matches": 9,
+  "unresolved_owner_cases": 3,
+  "structural_results": {
+    "unique_case_identity": "PASS",
+    "gold_vs_preview_disagreement": "PASS",
+    "crosswalk_completeness": "PASS",
+    "no_owner_adjudications": "PASS",
+    "no_gold_or_production_mutations": "PASS"
+  },
+  "limitations": {
+    "new_gemini_calls": 0,
+    "real_provider_precision_assessed": false,
+    "python_validator_executed": false,
+    "article_sha256_recomputed": false,
+    "official_web_article_comparison": false,
+    "source_boundary_footer_extraction_automated": false,
+    "draft_only": true
+  },
+  "case_evidence_counts": {
+    "25481": 2,
+    "35133": 3,
+    "65922": 4
+  },
+  "next": "Await Owner adjudication of semantic proposals and integration design; only nonProduction draft/tests may proceed without separate authorization."
+}
