@@ -1,0 +1,230 @@
+{
+  "artifact_id": "MV-CAL10-REFERENCE-ADJUDICATION-PACKET-20261011-DRAFT",
+  "status": "DRAFT_FOR_OWNER_SEMANTIC_ADJUDICATION_NO_ORACLE_CHANGE",
+  "created_jst": "2026-10-11",
+  "source_artifacts": {
+    "gold": "member_voices/eval/CALIBRATION_10_RECOVERED_GOLD_v0.1.json",
+    "reconciliation": "member_voices/eval/CAL10_P1_THREE_WAY_RECONCILIATION_DRAFT_2026-10-10.json",
+    "checkpoint": "member_voices/checkpoints/VOICE-20261010-36.json",
+    "approved_implementation_preview_dir": "member_voices/preview/2026-10-08",
+    "article_text_fetched_directly_from_saved_drive_files": 3
+  },
+  "authority": "Readback originals are observations. Proposals below have NO approval authority. Only owner can resolve semantics and adopt a new eval oracle. Case counts here are diagnostic, not new Calibration targets.",
+  "cases": [
+    {
+      "article_id": "25481",
+      "member": "小坂菜緒",
+      "gold_accepted_count": 2,
+      "preview_accepted_count": 1,
+      "provisional_distinct_core_count": 2,
+      "source_text_drive_file_id": "19EYrs9dFz5ADgRfdOhq8BlYB_unAWOmI",
+      "preview_path": "member_voices/preview/2026-10-08/25481_kosaka_audition.json",
+      "conflict_type": "GRANULARITY_SAME_SOURCE_FLOW",
+      "crosswalk": [
+        {
+          "gold_voice": "V1",
+          "preview_voice": "V1_PART",
+          "proposal": "25481-C1"
+        },
+        {
+          "gold_voice": "V2",
+          "preview_voice": "V1_PART",
+          "proposal": "25481-C2"
+        }
+      ],
+      "proposed_cores": [
+        {
+          "provisional_core_id": "25481-C1",
+          "semantic_theme": "加入前の迷いとひらがなけやき志望",
+          "exact_excerpt_for_crosscheck": "私は目に見えない何かから逃げたかったんだと思います。",
+          "source_origins": [
+            "GOLD_V1",
+            "PREVIEW_V1_MU_1"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "回想として独立して後日比較できる動機・自己理解",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "25481-C2",
+          "semantic_theme": "オーディションCMの重みと応募者を後押ししたい思い",
+          "exact_excerpt_for_crosscheck": "このCMを見て少しでも多くの女の子にこのオーディションを受ける後押しになれるんじゃないかなと思うと、とても重みを感じました。",
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V1_MU_2"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "次の応募者への現在の責任・意図は加入前動機とは異なる時間・対象を持つ",
+          "owner_decision": null
+        }
+      ],
+      "suggested_adjudication": "PROVISIONALLY_SPLIT_2_WITH_SHARED_CONTEXT",
+      "alternative": "APPROVE_PREVIEW_MERGED_1_AS_SINGLE_EXPERIENCE_FLOW",
+      "source_text_evidence_present": true,
+      "owner_adjudication": null
+    },
+    {
+      "article_id": "35133",
+      "member": "小坂菜緒",
+      "gold_accepted_count": 3,
+      "preview_accepted_count": 2,
+      "provisional_distinct_core_count": 3,
+      "source_text_drive_file_id": "1OzSgpSUKpWfH9CUmb3vHlwFr2x_iKoZj",
+      "preview_path": "member_voices/preview/2026-10-08/35133_kosaka_center_temporal.json",
+      "conflict_type": "GRANULARITY_CURRENT_TO_FUTURE_ROLE_TRANSITION",
+      "crosswalk": [
+        {
+          "gold_voice": "V1",
+          "preview_voice": "V1",
+          "proposal": "35133-C1"
+        },
+        {
+          "gold_voice": "V2",
+          "preview_voice": "V2_PART",
+          "proposal": "35133-C2"
+        },
+        {
+          "gold_voice": "V3",
+          "preview_voice": "V2_PART",
+          "proposal": "35133-C3"
+        }
+      ],
+      "proposed_cores": [
+        {
+          "provisional_core_id": "35133-C1",
+          "semantic_theme": "センター期の怖さと重圧",
+          "exact_excerpt_for_crosscheck": "先頭に立つのは何よりも怖かったです。",
+          "source_origins": [
+            "GOLD_V1",
+            "PREVIEW_V1"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "過去の役割に対する独立した回想",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "35133-C2",
+          "semantic_theme": "センターを離れる時の複雑な感情",
+          "exact_excerpt_for_crosscheck": "解かれた安心感なのか解放感なのか、外れた悔しさなのか悲しみなのか、よく分かりません。",
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V2_PART"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "現在の混在した感情、自己認識",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "35133-C3",
+          "semantic_theme": "第2章として次へ向かう意志",
+          "exact_excerpt_for_crosscheck": "新たなる物語、第2章の幕開けだ",
+          "source_origins": [
+            "GOLD_V3",
+            "PREVIEW_V2_PART"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "明示された将来志向。単に現在感情の言い換えではない",
+          "owner_decision": null
+        }
+      ],
+      "suggested_adjudication": "PROVISIONALLY_SPLIT_3_CURRENT_VS_FUTURE_FOR_LATER_COMPARISON",
+      "alternative": "APPROVE_PREVIEW_2_BY_MERGING_CURRENT_AND_FUTURE",
+      "source_text_evidence_present": true,
+      "owner_adjudication": null
+    },
+    {
+      "article_id": "65922",
+      "member": "大田美月",
+      "gold_accepted_count": 3,
+      "preview_accepted_count": 2,
+      "provisional_distinct_core_count": 4,
+      "source_text_drive_file_id": "1PFWbpO4PlLjPQ7JJAYMCDkcSt5WPZoE6",
+      "preview_path": "member_voices/preview/2026-10-08/65922_ota_values_expression.json",
+      "conflict_type": "MATERIAL_SELECTION_MISMATCH_DIFFERENT_DURABLE_PROPOSITIONS",
+      "crosswalk": [
+        {
+          "gold_voice": "V1",
+          "preview_voice": null,
+          "proposal": "65922-C1"
+        },
+        {
+          "gold_voice": "V2",
+          "preview_voice": "V1",
+          "proposal": "65922-C2"
+        },
+        {
+          "gold_voice": "V3",
+          "preview_voice": null,
+          "proposal": "65922-C3"
+        },
+        {
+          "gold_voice": null,
+          "preview_voice": "V2",
+          "proposal": "65922-C4"
+        }
+      ],
+      "proposed_cores": [
+        {
+          "provisional_core_id": "65922-C1",
+          "semantic_theme": "ブログをファンへのラブレターと捉える",
+          "exact_excerpt_for_crosscheck": "みづきからのラブレターだと思ってこれからも読んでねっ♡",
+          "source_origins": [
+            "GOLD_V1"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "ファンとの発信・関係性の解釈として保持し得る",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "65922-C2",
+          "semantic_theme": "比較してきた経験と桜梅桃李の価値観",
+          "exact_excerpt_for_crosscheck": "よく比較してしまっていた私にとってとても大切な言葉です✨️",
+          "source_origins": [
+            "GOLD_V2",
+            "PREVIEW_V1"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "自己理解・継続的価値観",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "65922-C3",
+          "semantic_theme": "個人ブログを夢実現の一歩にしたい意志",
+          "exact_excerpt_for_crosscheck": "これからこの個人ブログも夢を叶えていくための1歩にできたらいいなと思いますっ💭",
+          "source_origins": [
+            "GOLD_V3"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "発信手段を将来の目標達成につなぐ行動意図。C1と同一対象だが違う中心命題",
+          "owner_decision": null
+        },
+        {
+          "provisional_core_id": "65922-C4",
+          "semantic_theme": "技術だけでなく表現力で魅了したい目標",
+          "exact_excerpt_for_crosscheck": "ただダンス上手いねで終わりたくない気持ちが強くて、",
+          "source_origins": [
+            "PREVIEW_V2"
+          ],
+          "provisional_decision": "REVIEW_FOR_OWNER",
+          "merge_boundary_reason": "パフォーマンスに対する具体的長期目標、Goldに未採録でも直ちに不適格ではない",
+          "owner_decision": null
+        }
+      ],
+      "suggested_adjudication": "REVIEW_FOUR_DISTINCT_CORES_WITHOUT_TARGET_COUNT_CAP",
+      "alternative": "OWNER_MAY_MERGE_BLOG_C1_C3_ONLY_IF_INDEPENDENT_RETRIEVAL_NOT_LOST; REVIEW_DANCE_AS_NEW_SEPARATE_CORE",
+      "source_text_evidence_present": true,
+      "owner_adjudication": null,
+      "other_provider_candidate": "ツインテールに関する自己像は独立の永続VOICEか別途REVIEW、今回の4候補に自動追加しない",
+      "source_boundary_note": "Google Drive article.txt contains adjacent site-navigation/article-title text after blog ending; future extraction must not reinterpret adjacent links as Speaker's own remarks."
+    }
+  ],
+  "unresolved": {
+    "semantic_owner_votes_required": 3,
+    "reference_conflicts_resolved": 0,
+    "preview_deleted": 0,
+    "gold_edited": 0,
+    "production_changes": 0,
+    "new_calibration_calls": 0
+  },
+  "next_safe_step": "Build nonproduction sidecar REVIEW ledger design and regressions. Do not rewrite evaluation Gold or change any active extraction output until explicit Owner decision."
+}
