@@ -1,0 +1,32 @@
+{
+  "artifact_id": "MV-CAL10-SANDBOX-IDENTITY-MANIFEST-20261011-DRAFT",
+  "status": "NONPRODUCTION_READBACK_ONLY",
+  "authority": "Crosschecked original recovered Gold and existing Approved Implementation Preview, not a replacement for either source",
+  "case_count": 3,
+  "records": [
+    {
+      "article_id": "25481",
+      "source_ref_key": "src_e30372c378c9726ec1e1e278",
+      "confirmed_speaker": "小坂菜緒",
+      "article_text_drive_file_id": "19EYrs9dFz5ADgRfdOhq8BlYB_unAWOmI",
+      "article_text_sha256": "3d9e43f56950741f4e8e5fb6f570f591b444ea788111d6e607494366fe7d2a9f",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481"
+    },
+    {
+      "article_id": "35133",
+      "source_ref_key": "src_d690c965f30468fd4e761af4",
+      "confirmed_speaker": "小坂菜緒",
+      "article_text_drive_file_id": "1OzSgpSUKpWfH9CUmb3vHlwFr2x_iKoZj",
+      "article_text_sha256": "5da9dc2895168cbedc69312b0f4b5db147425247212acf6d947efae24b4222d1",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133"
+    },
+    {
+      "article_id": "65922",
+      "source_ref_key": "src_3b8e9eeb15954711a552d9c7",
+      "confirmed_speaker": "大田美月",
+      "article_text_drive_file_id": "1PFWbpO4PlLjPQ7JJAYMCDkcSt5WPZoE6",
+      "article_text_sha256": "03f00076235557186449c82024db4987ad07dff9468534f726a37f099c66d7a4",
+      "original_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922"
+    }
+  ]
+}
