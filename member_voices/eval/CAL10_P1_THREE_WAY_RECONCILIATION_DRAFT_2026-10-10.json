@@ -1,0 +1,349 @@
+{
+  "artifact_id": "MV-CAL10-THREEWAY-20261010-DRAFT",
+  "status": "DRAFT_AWAITING_OWNER_APPROVAL",
+  "base_pc_revision": "PC-20261010-128",
+  "run_id": "CAL10-P1-20261010-084821",
+  "runner_version": "0.2.1",
+  "calibration_gate": "FAIL",
+  "pass_2_and_3": "NOT_AUTHORIZED",
+  "gold_path": "member_voices/eval/CALIBRATION_10_RECOVERED_GOLD_v0.1.json",
+  "gold_full_v1_1_artifact": false,
+  "source_checkpoint_path": "member_voices/checkpoints/VOICE-20261010-35.json",
+  "provider_drive_folder_id": "1CG2JfoaNTI9ztf2PGHXhXzVx7ruKUTVm",
+  "human_reference_conflict_case_ids": [
+    "25481",
+    "35133",
+    "65922"
+  ],
+  "relation_context_empty_all_ten": true,
+  "cases": [
+    {
+      "case_no": 1,
+      "article_id": "25481",
+      "author": "小坂菜緒",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/25481",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 2,
+      "gold_semantic_cores": [
+        "本人は進路に迷い、自分の性格が嫌いで『目に見えない何かから逃げたかった』と振り返る一方、ひらがなけやきになりたかったと記す。",
+        "応募を迷う人の後押しになり得る重み、けやき坂46が好きな応募者と出会い一緒に頑張りたい思い。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": "member_voices/preview/2026-10-08/25481_kosaka_audition.json",
+      "implementation_preview_count": 1,
+      "preview_semantic_cores": [
+        "audition origin + CM encouragement merged"
+      ],
+      "provider_file_id": "10NWJUJOsuRrrHiuD6p8znRfZlrLtDn1q",
+      "provider_result_url": "https://drive.google.com/file/d/10NWJUJOsuRrrHiuD6p8znRfZlrLtDn1q/view",
+      "provider_accepted_count": 2,
+      "provider_semantic_cores": [
+        "audition retrospective",
+        "CM/aspirants"
+      ],
+      "diagnostic_classes": [
+        "REFERENCE_GRANULARITY_CONFLICT"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": true,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 2,
+      "article_id": "26676",
+      "author": "松田好花",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/26676",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 0,
+      "gold_semantic_cores": [],
+      "gold_borderline": [],
+      "implementation_preview_path": "member_voices/preview/2026-10-08/26676_matsuda_zero_voice.json",
+      "implementation_preview_count": 0,
+      "preview_semantic_cores": [],
+      "provider_file_id": "1GiZRJ52t6tsqJS09c19pzPjeALhtaI6P",
+      "provider_result_url": "https://drive.google.com/file/d/1GiZRJ52t6tsqJS09c19pzPjeALhtaI6P/view",
+      "provider_accepted_count": 0,
+      "provider_semantic_cores": [],
+      "diagnostic_classes": [
+        "PASS"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 3,
+      "article_id": "33683",
+      "author": "松田好花",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/33683",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 1,
+      "gold_semantic_cores": [
+        "小さな目標・習慣化の難しさ。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": null,
+      "implementation_preview_count": null,
+      "preview_semantic_cores": null,
+      "provider_file_id": "1rbQlIafY4REeTbr8-pATpE2zQZ1bb3As",
+      "provider_result_url": "https://drive.google.com/file/d/1rbQlIafY4REeTbr8-pATpE2zQZ1bb3As/view",
+      "provider_accepted_count": 0,
+      "provider_semantic_cores": [],
+      "diagnostic_classes": [
+        "FALSE_NEGATIVE",
+        "DURABILITY_AMBIGUITY"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 4,
+      "article_id": "35133",
+      "author": "小坂菜緒",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 3,
+      "gold_semantic_cores": [
+        "4作連続センター期間の怖さ・プレッシャー。",
+        "センターを外れた時の安心・解放・悔しさ・悲しさ。",
+        "『第2章』として前向きに捉える認識。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": "member_voices/preview/2026-10-08/35133_kosaka_center_temporal.json",
+      "implementation_preview_count": 2,
+      "preview_semantic_cores": [
+        "prior burden",
+        "current relief + second chapter merged"
+      ],
+      "provider_file_id": "1SJMtjFcEA3Yz8JTVzphuQxEhcmn1ERuZ",
+      "provider_result_url": "https://drive.google.com/file/d/1SJMtjFcEA3Yz8JTVzphuQxEhcmn1ERuZ/view",
+      "provider_accepted_count": 5,
+      "provider_semantic_cores": [
+        "prior burden",
+        "complex relief",
+        "new center supporting relationship",
+        "second chapter",
+        "tears/emotion view"
+      ],
+      "diagnostic_classes": [
+        "OVER_SELECTION_VS_GOLD",
+        "REFERENCE_GRANULARITY_CONFLICT"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": true,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 5,
+      "article_id": "65922",
+      "author": "大田美月",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/65922",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 3,
+      "gold_semantic_cores": [
+        "ブログをファンへの『ラブレター』と捉える。",
+        "『桜梅桃李』と比較経験。",
+        "個人ブログを夢を叶える一歩にしたい。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": "member_voices/preview/2026-10-08/65922_ota_values_expression.json",
+      "implementation_preview_count": 2,
+      "preview_semantic_cores": [
+        "Oubaitouri vs comparison",
+        "dance/expression ambition"
+      ],
+      "provider_file_id": "1IV7eUDLNtczEoTP1o8YA2acdXv_aQb30",
+      "provider_result_url": "https://drive.google.com/file/d/1IV7eUDLNtczEoTP1o8YA2acdXv_aQb30/view",
+      "provider_accepted_count": 4,
+      "provider_semantic_cores": [
+        "Oubaitouri",
+        "dance/expression ambition",
+        "twintail self-branding",
+        "blog dream step"
+      ],
+      "diagnostic_classes": [
+        "FALSE_NEGATIVE_VS_GOLD",
+        "OVER_SELECTION_VS_GOLD",
+        "MATERIAL_REFERENCE_CONFLICT"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": true,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 6,
+      "article_id": "67706",
+      "author": "大田美月",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/67706",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 2,
+      "gold_semantic_cores": [
+        "『月と星が踊るMidnight』参加で夢が一つ叶った。",
+        "同期がテレビで活躍する喜び。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": "member_voices/preview/2026-10-08/67706_ota_song_anchor.json",
+      "implementation_preview_count": 2,
+      "preview_semantic_cores": [
+        "song/dream realization",
+        "joy at peers appearing on television"
+      ],
+      "provider_file_id": "1iCL-2lUzvi2bi_0BQP4Cxn3dWB3M1lCn",
+      "provider_result_url": "https://drive.google.com/file/d/1iCL-2lUzvi2bi_0BQP4Cxn3dWB3M1lCn/view",
+      "provider_accepted_count": 2,
+      "provider_semantic_cores": [
+        "song/dream realization",
+        "friendship with 稲熊ひな"
+      ],
+      "diagnostic_classes": [
+        "SEMANTIC_SUBSTITUTION_COUNT_EQUAL"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 7,
+      "article_id": "50967",
+      "author": "上村ひなの",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/50967",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 2,
+      "gold_semantic_cores": [
+        "写真集発売が以前からの夢。",
+        "変わらない自分と新しい自分の両方を見せたい。"
+      ],
+      "gold_borderline": [
+        "日向市・秩父・東京を自分にとってのパワースポットとして選んだ。"
+      ],
+      "implementation_preview_path": null,
+      "implementation_preview_count": null,
+      "preview_semantic_cores": null,
+      "provider_file_id": "1fZE7zKXfz4_WDahI_455zpeEBKogM8eX",
+      "provider_result_url": "https://drive.google.com/file/d/1fZE7zKXfz4_WDahI_455zpeEBKogM8eX/view",
+      "provider_accepted_count": 1,
+      "provider_semantic_cores": [
+        "merged photobook dream + borderline locations + self-expression"
+      ],
+      "diagnostic_classes": [
+        "OVER_MERGE",
+        "BOUNDARY_ABSORPTION"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 8,
+      "article_id": "55209",
+      "author": "金村美玖",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/55209",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 2,
+      "gold_semantic_cores": [
+        "物事を俯瞰して見るようになった自分への複雑な認識と『やさしい人になりたい』という思い。",
+        "メンバーや友人が自分の固定観念を取り払ってくれることへの感謝。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": null,
+      "implementation_preview_count": null,
+      "preview_semantic_cores": null,
+      "provider_file_id": "1qq0C51C_k2klHR0J7KJLRNbDfyy4X3F-",
+      "provider_result_url": "https://drive.google.com/file/d/1qq0C51C_k2klHR0J7KJLRNbDfyy4X3F-/view",
+      "provider_accepted_count": 2,
+      "provider_semantic_cores": [
+        "complex introspection / kind person",
+        "other people change fixed assumptions"
+      ],
+      "diagnostic_classes": [
+        "PASS"
+      ],
+      "runtime_invariants_pass": true,
+      "invalid_relation_label": null,
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 9,
+      "article_id": "25939",
+      "author": "高本彩花",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/25939",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 2,
+      "gold_semantic_cores": [
+        "モデルへの憧れ→夢を言葉にするようになる→20歳までという期限→諦めかける→TGC決定、という一続きの経験。",
+        "今泉佑唯との加入初期からの記憶と卒業発表への思い。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": null,
+      "implementation_preview_count": null,
+      "preview_semantic_cores": null,
+      "provider_file_id": "1XhNQhq7JiLXKJZF-pIsbwTWd7lrlY9qF",
+      "provider_result_url": "https://drive.google.com/file/d/1XhNQhq7JiLXKJZF-pIsbwTWd7lrlY9qF/view",
+      "provider_accepted_count": 2,
+      "provider_semantic_cores": [
+        "model/TGC journey",
+        "graduation/relationship"
+      ],
+      "diagnostic_classes": [
+        "RELATION_ALLOWLIST_VIOLATION"
+      ],
+      "runtime_invariants_pass": false,
+      "invalid_relation_label": "夏の花は向日葵だけじゃない",
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    },
+    {
+      "case_no": 10,
+      "article_id": "44109",
+      "author": "山口陽世",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/44109",
+      "gold_type": "RECOVERED_APPROVED_CORE",
+      "gold_count": 1,
+      "gold_semantic_cores": [
+        "始球式という夢が叶った喜び、強い緊張、ワンバウンドへの悔しさ、再挑戦したい思い。"
+      ],
+      "gold_borderline": [],
+      "implementation_preview_path": null,
+      "implementation_preview_count": null,
+      "preview_semantic_cores": null,
+      "provider_file_id": "1oMh3u_4pxB5CWswDhe9yLIZAUDjk-HnN",
+      "provider_result_url": "https://drive.google.com/file/d/1oMh3u_4pxB5CWswDhe9yLIZAUDjk-HnN/view",
+      "provider_accepted_count": 2,
+      "provider_semantic_cores": [
+        "first pitch emotional arc",
+        "僕なんか release / 22-member observation"
+      ],
+      "diagnostic_classes": [
+        "OVER_SELECTION_VS_GOLD",
+        "RELATION_ALLOWLIST_VIOLATION"
+      ],
+      "runtime_invariants_pass": false,
+      "invalid_relation_label": "僕なんか",
+      "reference_conflict": false,
+      "acceptance_status": "DIAGNOSTIC_NOT_APPROVED"
+    }
+  ],
+  "general_remediation_document": "member_voices/eval/CAL10_P1_THREE_WAY_RECONCILIATION_DRAFT_2026-10-10.md",
+  "approval_gate_id": "MV-CAL10-RECON-APPROVAL-20261010-01",
+  "approval_status": "PENDING",
+  "no_mutations": [
+    "Recovered Gold",
+    "existing Implementation Previews",
+    "Prompt",
+    "Schema",
+    "semantic criteria",
+    "Production SQLite",
+    "Notion VOICE",
+    "permanent IDs",
+    "triggers"
+  ]
+}
