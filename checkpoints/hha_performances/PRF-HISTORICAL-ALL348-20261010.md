@@ -17,8 +17,8 @@ Status: STRUCTURAL_RESCUE_PASS / MODERN_CANONICAL_UNCHANGED
 ## Data-bearing source and reproducibility
 - User-scoped Library directory: /HHA_PERFORMANCES/2016_2026_Historical_Full_Checkpoint/
 - ZIP: HHA_PRF_2016_2026_FULL_HISTORICAL_INDEX_CHECKPOINT_2026-10-10.zip
-- ZIP size: 120211 bytes
-- ZIP SHA256: bbf3f721e2e250b1fbdff2d6b13671e9176622b41a7229c74c958e19cbbb9aa4
+- ZIP size: 120742 bytes
+- ZIP SHA256: 430a3a354831977b798216b68baa63db569fcd7bd2c7c39e7a68cf15f935f542
 - Companion: INTEGRITY_AND_CONTINUITY_REPORT.md, NEXT_CHAT_START.md, build_prf_historical_master_20261010.py.
 - ZIP internal: SHA256SUMS.txt, VERIFY_HISTORICAL_MASTER.py, per-LIVE 348 coverage CSV, unified 4867 rows CSV, old-vs-modern v2 comparison, early original-response provenance, original annual ZIP locators.
 - Library upload and file-list/readback confirmed. Annual archival ZIPs remain authoritative and separate; this master is a cross-year index, not a replacement.
@@ -39,3 +39,7 @@ Status: STRUCTURAL_RESCUE_PASS / MODERN_CANONICAL_UNCHANGED
 
 ## Share-link limitation
 The 2026-10-10 user-supplied chatgpt.com/share link was not accessible via current web fetch. This checkpoint applies previously recorded continuity controls; any distinct decisions contained only in that share have not been claimed as verified.
+## Formal historical Preservation Gate — PENDING
+- PRF-START-v1.0 requires full 4868 old Accepted candidates and row-level original fact fields, historic Open Needs Review 9 and approval provenance.
+- This 4867-row index passes STRUCTURAL rescue but does not meet full PKP/First-Pass Freeze gate while LIV-0063's old Provisional status versus old 4868 count remains unresolved, or original People/Center and evidence fields are not fully materialized.
+- Next: reconcile LIV-0063 original owner/assistant approval evidence and original field completeness, preserve nine historic review issues separately, then finalize versioned full First-Pass data-bearing baseline and Readback. No historic substantive cross-audit yet.
