@@ -1,0 +1,118 @@
+{
+  "delta_id": "VOICE-20261011-39",
+  "workstream_id": "MEMBER_VOICES",
+  "as_of_jst": "2026-10-11",
+  "checkpoint_type": "READONLY_SOURCE_BODY_BOUNDARY_CONFIRMED_35133_AND_PYTHON_SYNTHETIC_GUARD",
+  "previous_checkpoint": "member_voices/checkpoints/VOICE-20261011-38.json",
+  "authorization": "User OK authorized next nonProduction Source Body Boundary diagnostic and Python regression; no Gold/Production/new Calibration authorization.",
+  "owner_decision_gate": "MV-REF-OWNER-ADJUDICATION-20261011-01",
+  "situation": {
+    "historical_calibration_run": "CAL10-P1-20261010-084821",
+    "historical_calibration_gate": "FAIL",
+    "sandbox_article_ids": [
+      "25481",
+      "35133",
+      "65922"
+    ],
+    "sandbox_core_counts": {
+      "25481": 2,
+      "35133": 3,
+      "65922": 4
+    },
+    "sandbox_9_core_body_evidence": "9/9 exact excerpts inside provisional archived article body",
+    "historical_provider_units": "12/13 inside provisional article body; one article 35133 U6 occurs in excluded adjacent article preview",
+    "affected_historical_provider_voice": "35133 / V5 originally ACCEPT; diagnosed as SOURCE_SCOPE_CONTAMINATION",
+    "official_confirmed": {
+      "article_id": "35133",
+      "source_url": "https://www.hinatazaka46.com/s/official/diary/detail/35133",
+      "adjacent_article_id": "34996",
+      "adjacent_url": "https://www.hinatazaka46.com/s/official/diary/detail/34996?cd=member&ima=0000",
+      "finding": "The official source page shows signoff and post #147 preceding the neighbor-article preview; U6/V5 concern that adjacent article, not the owning blog post.",
+      "verification": "Original official website checked for 35133 only. No original HTML crosscheck completed for 25481/65922."
+    },
+    "archive_partition_counts": {
+      "25481": {
+        "archive_text_utf16_chars": 1207,
+        "body_end_utf16": 1016,
+        "excluded_tail_utf16_chars": 191,
+        "provisional_cores_in_body": 2
+      },
+      "35133": {
+        "archive_text_utf16_chars": 3361,
+        "body_end_utf16": 2867,
+        "excluded_tail_utf16_chars": 494,
+        "provisional_cores_in_body": 3
+      },
+      "65922": {
+        "archive_text_utf16_chars": 6467,
+        "body_end_utf16": 6375,
+        "excluded_tail_utf16_chars": 92,
+        "provisional_cores_in_body": 4
+      }
+    }
+  },
+  "new_artifacts": [
+    {
+      "kind": "BOUNDARY_POLICY_DRAFT",
+      "path": "member_voices/experiments/review_sidecar_v0_1/SOURCE_SCOPE_GUARD_POLICY_v0_1.DRAFT.md",
+      "blob_sha": "7c7c899e9490d3c9870aa652f46d3cd2aeed8338"
+    },
+    {
+      "kind": "SOURCE_BODY_CONTRACT_DRAFT",
+      "path": "member_voices/docs/MEMBER_VOICES_SOURCE_BODY_BOUNDARY_CONTRACT_v0.1.DRAFT.md",
+      "blob_sha": "75aa4664d4829156a65261f21d5a1f89e86761c2"
+    },
+    {
+      "kind": "ISOLATED_PYTHON_GUARD",
+      "path": "member_voices/experiments/review_sidecar_v0_1/source_scope_guard_v0_1.py",
+      "blob_sha": "5b0ffe31b43e136bb6beb715ffb62cf7e18ab5c5"
+    },
+    {
+      "kind": "PYTHON_SYNTHETIC_REGRESSIONS",
+      "path": "member_voices/experiments/review_sidecar_v0_1/test_source_scope_guard_v0_1.py",
+      "blob_sha": "ec9380c52ecf3e8c855ef17f53734275550a23e5"
+    },
+    {
+      "kind": "PYTHON_TEST_RESULT",
+      "path": "member_voices/experiments/review_sidecar_v0_1/SOURCE_SCOPE_GUARD_PYTHON_TEST_RESULT_20261011.json",
+      "blob_sha": "8b66dd6bbc10273e1b62fe7e49f18e050027a409"
+    },
+    {
+      "kind": "PASS1_PROVIDER_SCOPE_DIAGNOSTIC",
+      "path": "member_voices/experiments/review_sidecar_v0_1/SOURCE_SCOPE_DIAGNOSTIC_20261011.DRAFT.json",
+      "blob_sha": "f06ca7ade0387678c77428f41e4b4f1f76be2452"
+    }
+  ],
+  "python_test": {
+    "suite": "MV-SOURCE-SCOPE-v0.1-DRAFT",
+    "executed": true,
+    "result": "PASS",
+    "passed": 18,
+    "total": 18,
+    "execution": "Local Python ran exact file bytes matching the GitHub source and test script Git blob SHA1 after readback.",
+    "domain": "SYNTHETIC_ONLY—not real article text provider E2E",
+    "preexisting_28_case_sidecar_python_suite_executed": false,
+    "jsonschema_full_instance_coverage_claimed": false
+  },
+  "readback": {
+    "new_artifacts": 6,
+    "new_artifacts_blob_readback_all_pass": true,
+    "active_gold_blob_sha_unchanged": "150243809c5d96cf355114a75cc08090d9d7df39",
+    "active_prompt_blob_sha_unchanged": "bc4f59869fef2d755c50c9cbdcedc574005feab0",
+    "active_schema_blob_sha_unchanged": "21b5b51576c2f595c9be43ddfc1ef9d1fa3bf335",
+    "active_adapter_blob_sha_unchanged": "0b25de0b6e789c1f978a60b5d32a2822166ca9f6"
+  },
+  "publication_of_local_detail": "A separate full local boundary audit JSON with additional archive diagnostics exists under the current /mnt/data container; it was not itself automatically synced to Drive. The minimal diagnostic and contract are independently stored in GitHub. Source texts were not uploaded.",
+  "restrictions": {
+    "permanent_voices_added": 0,
+    "new_provider_calls": 0,
+    "new_calibration_runs": 0,
+    "pass2_runs": 0,
+    "pass3_runs": 0,
+    "production_writes": 0,
+    "active_schema_prompt_adapter_changes": 0,
+    "gold_preview_changes": 0
+  },
+  "next_safe_work": "Execute the previously saved 28-case REVIEW Sidecar Python/jsonschema suite against a local replica of original GitHub files; independently investigate DOM-based article body extraction for source format variants. Do not change active Source Resolver or Production without separate Owner approval.",
+  "resume_rule": "'続き' only new chat. In same chat OK to completed phase advances to next allowed block."
+}
